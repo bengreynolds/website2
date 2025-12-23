@@ -890,7 +890,7 @@ nav a.is-active::after {
   background: linear-gradient(135deg, var(--accent), var(--accent-warm));
   box-shadow: 0 8px 14px rgba(27, 25, 22, 0.18);
   transform: translate(-50%, -50%);
-  transition: top 0.35s ease;
+  transition: top 0.35s ease, left 0.35s ease;
 }
 
 .scroll-panel > * {
@@ -947,6 +947,15 @@ nav a.is-active::after {
   transition: transform 0.5s ease, box-shadow 0.5s ease;
 }
 
+.panel-graphic::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.65), transparent 60%);
+  opacity: 0.7;
+}
+
 .panel-graphic::after {
   content: "";
   position: absolute;
@@ -954,7 +963,7 @@ nav a.is-active::after {
   border-radius: 12px;
   border: 1px dashed rgba(255, 255, 255, 0.6);
   opacity: 0.7;
-  animation: graphicSpin 12s linear infinite;
+  animation: none;
 }
 
 .scroll-panel .panel-card:nth-child(2) .panel-graphic {
@@ -972,6 +981,335 @@ nav a.is-active::after {
 .panel-card.is-active .panel-graphic {
   transform: scale(1.05);
   box-shadow: 0 10px 18px rgba(27, 25, 22, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.panel-card[data-graphic="automation"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(47, 111, 107, 0.4), rgba(47, 111, 107, 0.1));
+}
+
+.panel-card[data-graphic="automation"] .panel-graphic::before {
+  inset: 8px;
+  border-radius: 14px;
+  background: repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.4) 0 6px,
+      transparent 6px 12px
+    );
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="automation"] .panel-graphic::before {
+  animation: trackMove 6s linear infinite;
+}
+
+.panel-card.is-active[data-graphic="automation"] .panel-graphic::after {
+  inset: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+  animation: pulseRing 4s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="data"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(43, 92, 122, 0.3), rgba(79, 76, 122, 0.18));
+}
+
+.panel-card[data-graphic="data"] .panel-graphic::before {
+  inset: 10px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.4) 0 3px,
+      transparent 3px 8px
+    );
+  opacity: 0.6;
+}
+
+.panel-card.is-active[data-graphic="data"] .panel-graphic::before {
+  animation: waveShift 5s ease-in-out infinite;
+}
+
+.panel-card.is-active[data-graphic="data"] .panel-graphic::after {
+  inset: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: orbit 6s linear infinite;
+}
+
+.panel-card[data-graphic="embedded"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(47, 111, 107, 0.2), rgba(71, 96, 85, 0.2));
+}
+
+.panel-card[data-graphic="embedded"] .panel-graphic::before {
+  inset: 8px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.35) 0 1px,
+      transparent 1px 7px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.25) 0 1px,
+      transparent 1px 7px
+    );
+  opacity: 0.65;
+}
+
+.panel-card.is-active[data-graphic="embedded"] .panel-graphic::after {
+  inset: 14px;
+  border-radius: 6px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 2px, transparent 3px);
+  animation: circuitPulse 4s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="strategy"] .panel-graphic,
+.panel-card[data-graphic="consulting"] .panel-graphic,
+.panel-card[data-graphic="visibility"] .panel-graphic,
+.panel-card[data-graphic="telemetry"] .panel-graphic,
+.panel-card[data-graphic="leadership"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(122, 79, 43, 0.26), rgba(209, 153, 74, 0.2));
+}
+
+.panel-card[data-graphic="strategy"] .panel-graphic::before,
+.panel-card[data-graphic="consulting"] .panel-graphic::before,
+.panel-card[data-graphic="visibility"] .panel-graphic::before,
+.panel-card[data-graphic="telemetry"] .panel-graphic::before,
+.panel-card[data-graphic="leadership"] .panel-graphic::before {
+  inset: 8px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(255, 255, 255, 0.6), transparent 55%);
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="strategy"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="consulting"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="visibility"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="telemetry"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="leadership"] .panel-graphic::before {
+  animation: radarSweep 5.5s linear infinite;
+}
+
+.panel-card[data-graphic="network"] .panel-graphic,
+.panel-card[data-graphic="alignment"] .panel-graphic,
+.panel-card[data-graphic="collaboration"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(79, 76, 122, 0.28), rgba(106, 63, 87, 0.22));
+}
+
+.panel-card[data-graphic="network"] .panel-graphic::before,
+.panel-card[data-graphic="alignment"] .panel-graphic::before,
+.panel-card[data-graphic="collaboration"] .panel-graphic::before {
+  inset: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 2px, transparent 3px);
+  background-position: 10% 30%, 70% 20%, 80% 70%;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="network"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="alignment"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="collaboration"] .panel-graphic::before {
+  animation: orbitDots 6s linear infinite;
+}
+
+.panel-card[data-graphic="infrastructure"] .panel-graphic,
+.panel-card[data-graphic="operations"] .panel-graphic,
+.panel-card[data-graphic="dataops"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(71, 96, 85, 0.26), rgba(63, 106, 87, 0.2));
+}
+
+.panel-card[data-graphic="infrastructure"] .panel-graphic::before,
+.panel-card[data-graphic="operations"] .panel-graphic::before,
+.panel-card[data-graphic="dataops"] .panel-graphic::before {
+  inset: 12px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.6) 0 20%, transparent 20% 40%, rgba(255, 255, 255, 0.45) 40% 60%, transparent 60% 80%, rgba(255, 255, 255, 0.35) 80% 100%);
+  opacity: 0.7;
+  transform-origin: bottom;
+}
+
+.panel-card.is-active[data-graphic="infrastructure"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="operations"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="dataops"] .panel-graphic::before {
+  animation: stackLift 4s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="documentation"] .panel-graphic,
+.panel-card[data-graphic="human"] .panel-graphic,
+.panel-card[data-graphic="governance"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(107, 79, 63, 0.28), rgba(210, 154, 60, 0.18));
+}
+
+.panel-card[data-graphic="documentation"] .panel-graphic::before,
+.panel-card[data-graphic="human"] .panel-graphic::before,
+.panel-card[data-graphic="governance"] .panel-graphic::before {
+  inset: 10px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.6) 0 2px,
+      transparent 2px 7px
+    );
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="documentation"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="human"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="governance"] .panel-graphic::before {
+  animation: docScroll 4s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="tools"] .panel-graphic,
+.panel-card[data-graphic="fabrication"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(122, 79, 43, 0.3), rgba(210, 154, 60, 0.22));
+}
+
+.panel-card[data-graphic="tools"] .panel-graphic::before,
+.panel-card[data-graphic="fabrication"] .panel-graphic::before {
+  inset: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0 3px, transparent 4px);
+}
+
+.panel-card.is-active[data-graphic="tools"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="fabrication"] .panel-graphic::before {
+  animation: gearSpin 6s linear infinite;
+}
+
+.panel-card[data-graphic="discovery"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(47, 111, 107, 0.25), rgba(79, 76, 122, 0.18));
+}
+
+.panel-card[data-graphic="discovery"] .panel-graphic::before {
+  inset: 8px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.6), transparent 70%);
+  opacity: 0.65;
+}
+
+.panel-card.is-active[data-graphic="discovery"] .panel-graphic::before {
+  animation: scanSweep 3.6s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="design"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(43, 92, 122, 0.25), rgba(106, 63, 87, 0.18));
+}
+
+.panel-card[data-graphic="design"] .panel-graphic::before {
+  inset: 8px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.35) 0 1px,
+      transparent 1px 6px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.2) 0 1px,
+      transparent 1px 6px
+    );
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="design"] .panel-graphic::before {
+  animation: gridShift 6s linear infinite;
+}
+
+.panel-card[data-graphic="implementation"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(71, 96, 85, 0.25), rgba(47, 111, 107, 0.22));
+}
+
+.panel-card[data-graphic="implementation"] .panel-graphic::before {
+  inset: 12px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 3px, transparent 4px);
+}
+
+.panel-card.is-active[data-graphic="implementation"] .panel-graphic::before {
+  animation: chipPulse 4.2s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="deployment"] .panel-graphic,
+.panel-card[data-graphic="speed"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(210, 154, 60, 0.28), rgba(122, 79, 43, 0.2));
+}
+
+.panel-card[data-graphic="deployment"] .panel-graphic::before,
+.panel-card[data-graphic="speed"] .panel-graphic::before {
+  inset: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.7), transparent 70%);
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="deployment"] .panel-graphic::before,
+.panel-card.is-active[data-graphic="speed"] .panel-graphic::before {
+  animation: speedLines 3.2s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="reliability"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(79, 76, 122, 0.25), rgba(107, 79, 63, 0.2));
+}
+
+.panel-card[data-graphic="reliability"] .panel-graphic::before {
+  inset: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 0.8) 50%, transparent 90%);
+  opacity: 0.8;
+}
+
+.panel-card.is-active[data-graphic="reliability"] .panel-graphic::before {
+  animation: pulseLine 4s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="reproducibility"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(63, 106, 87, 0.26), rgba(79, 76, 122, 0.2));
+}
+
+.panel-card[data-graphic="reproducibility"] .panel-graphic::before {
+  inset: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.panel-card.is-active[data-graphic="reproducibility"] .panel-graphic::before {
+  animation: loopSpin 5.4s linear infinite;
+}
+
+.panel-card[data-graphic="software"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(43, 92, 122, 0.28), rgba(47, 111, 107, 0.2));
+}
+
+.panel-card[data-graphic="software"] .panel-graphic::before {
+  inset: 10px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  clip-path: polygon(0 0, 70% 0, 70% 20%, 100% 20%, 100% 100%, 0 100%);
+  opacity: 0.7;
+}
+
+.panel-card.is-active[data-graphic="software"] .panel-graphic::before {
+  animation: bracketPulse 4.6s ease-in-out infinite;
+}
+
+.panel-card[data-graphic="enclosure"] .panel-graphic {
+  background: linear-gradient(135deg, rgba(71, 96, 85, 0.25), rgba(63, 106, 87, 0.2));
+}
+
+.panel-card[data-graphic="enclosure"] .panel-graphic::before {
+  inset: 10px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  opacity: 0.6;
+}
+
+.panel-card.is-active[data-graphic="enclosure"] .panel-graphic::before {
+  animation: framePulse 4.8s ease-in-out infinite;
 }
 
 .carousel {
@@ -1471,6 +1809,204 @@ nav a.is-active::after {
   }
 }
 
+@keyframes trackMove {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 120% 120%;
+  }
+}
+
+@keyframes pulseRing {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes waveShift {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 0% 120%;
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes circuitPulse {
+  0%,
+  100% {
+    transform: translateX(-4px);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
+
+@keyframes radarSweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbitDots {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes stackLift {
+  0%,
+  100% {
+    transform: scaleY(0.7);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes docScroll {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 0% 120%;
+  }
+}
+
+@keyframes gearSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scanSweep {
+  0% {
+    transform: translateX(-40%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(30%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(80%);
+    opacity: 0;
+  }
+}
+
+@keyframes gridShift {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 80% 80%;
+  }
+}
+
+@keyframes chipPulse {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes speedLines {
+  0% {
+    transform: translateX(-40%);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(20%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(80%);
+    opacity: 0.3;
+  }
+}
+
+@keyframes pulseLine {
+  0%,
+  100% {
+    transform: scaleX(0.6);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes loopSpin {
+  0% {
+    transform: rotate(0deg) scale(0.95);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes bracketPulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes framePulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
 @media (max-width: 900px) {
   .nav {
     flex-direction: column;
@@ -1545,7 +2081,8 @@ nav a.is-active::after {
   .page-hero::after,
   .brand,
   .specialty-card::after,
-  .panel-graphic::after {
+  .panel-graphic::after,
+  .panel-graphic::before {
     transition: none;
     animation: none;
     transform: none;
