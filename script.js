@@ -9,7 +9,7 @@ const header = document.querySelector(".site-header");
 const progressBar = document.querySelector(".scroll-progress");
 const navLinks = document.querySelectorAll("nav a");
 const parallaxTargets = document.querySelectorAll(
-  ".orb, .hero-card, .carousel-image, .panel-card, .home-card, .stat-card, .gallery-card, .info-card, .card, .feature, .timeline-item, .education-card, .specialty-card"
+  ".orb, .hero-card, .carousel-image, .home-card, .stat-card, .gallery-card, .info-card, .card, .feature, .timeline-item, .education-card, .specialty-card"
 );
 const carousels = document.querySelectorAll("[data-carousel]");
 const panelStacks = document.querySelectorAll(".scroll-panel.panel-stack");
@@ -111,11 +111,28 @@ const updateScrollUI = () => {
 
 const updateActiveLink = () => {
   const currentPath = window.location.pathname.split("/").pop() || "index.html";
+  const currentHash = window.location.hash || "";
+  let hasHashMatch = false;
+
   navLinks.forEach((link) => {
     const href = link.getAttribute("href") || "";
-    const normalized = href.split("#")[0];
-    if (!normalized) return;
-    link.classList.toggle("is-active", normalized === currentPath);
+    const [path, hash] = href.split("#");
+    if (!path) return;
+    const linkHash = hash ? `#${hash}` : "";
+    if (path === currentPath && linkHash && linkHash === currentHash) {
+      hasHashMatch = true;
+    }
+  });
+
+  navLinks.forEach((link) => {
+    const href = link.getAttribute("href") || "";
+    const [path, hash] = href.split("#");
+    if (!path) return;
+    const linkHash = hash ? `#${hash}` : "";
+    const matchesPath = path === currentPath;
+    const matchesHash = linkHash && linkHash === currentHash;
+    const isActive = hasHashMatch ? matchesPath && matchesHash : matchesPath;
+    link.classList.toggle("is-active", isActive);
   });
 };
 
@@ -154,6 +171,16 @@ const setPanelStackIndex = (stack, index) => {
       panel.classList.add("is-next");
     }
   });
+
+  if (state.thumb) {
+    const total = state.total > 1 ? state.total - 1 : 1;
+    const progress = state.total > 1 ? index / total : 0.5;
+    const min = 8;
+    const max = 92;
+    const top = min + (max - min) * progress;
+    state.thumb.style.top = `${top}%`;
+    state.thumb.style.setProperty("--progress", progress.toFixed(3));
+  }
 };
 
 const initPanelStacks = () => {
@@ -161,10 +188,35 @@ const initPanelStacks = () => {
   panelStacks.forEach((stack) => {
     const panels = Array.from(stack.querySelectorAll(".panel-card"));
     if (!panels.length) return;
+    const shell = document.createElement("div");
+    shell.className = "panel-stack-shell";
+    stack.parentNode.insertBefore(shell, stack);
+    shell.appendChild(stack);
+
+    const progress = document.createElement("div");
+    progress.className = "panel-progress";
+    progress.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("div");
+    label.className = "panel-progress-label";
+    label.textContent = "Scroll";
+
+    const track = document.createElement("div");
+    track.className = "panel-progress-track";
+
+    const thumb = document.createElement("div");
+    thumb.className = "panel-progress-thumb";
+
+    track.appendChild(thumb);
+    progress.append(label, track);
+    shell.appendChild(progress);
+
     panelStackState.set(stack, {
       panels,
       index: 0,
       lock: false,
+      thumb,
+      total: panels.length,
     });
     setPanelStackIndex(stack, 0);
   });
@@ -189,8 +241,16 @@ const handlePanelScroll = (event) => {
   if (prefersReducedMotion || !activePanelStack) return;
   const state = panelStackState.get(activePanelStack);
   if (!state) return;
+  const rect = activePanelStack.getBoundingClientRect();
+  const viewportCenter = window.innerHeight / 2;
+  const center = rect.top + rect.height / 2;
+  const centered = Math.abs(center - viewportCenter) <= window.innerHeight * 0.18;
+  const headerHeight = header ? header.offsetHeight : 0;
+  const fullyVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
+  if (!centered || !fullyVisible) return;
+
   const delta = event.deltaY;
-  if (Math.abs(delta) < 10) return;
+  if (Math.abs(delta) < 4) return;
   const direction = delta > 0 ? 1 : -1;
   const nextIndex = state.index + direction;
   if (nextIndex < 0 || nextIndex >= state.panels.length) {
@@ -203,7 +263,7 @@ const handlePanelScroll = (event) => {
   setPanelStackIndex(activePanelStack, nextIndex);
   window.setTimeout(() => {
     state.lock = false;
-  }, 520);
+  }, 180);
 };
 
 const initThreeBackground = () => {

@@ -804,7 +804,7 @@ nav a.is-active::after {
 .scroll-panel.panel-stack {
   display: block;
   position: relative;
-  height: clamp(260px, 42vh, 360px);
+  height: clamp(300px, 46vh, 380px);
   overflow: hidden;
   padding-bottom: 0;
   scroll-snap-type: none;
@@ -841,6 +841,58 @@ nav a.is-active::after {
   transform: translateY(16px) scale(0.98);
 }
 
+.panel-stack-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.6rem;
+  align-items: center;
+}
+
+.panel-progress {
+  display: grid;
+  gap: 0.6rem;
+  align-content: center;
+  justify-items: center;
+  color: var(--muted);
+  min-height: 100%;
+}
+
+.panel-progress-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.panel-progress-track {
+  position: relative;
+  width: 6px;
+  height: clamp(160px, 28vh, 240px);
+  background: rgba(27, 25, 22, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.panel-progress-track::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 60%);
+  opacity: 0.6;
+}
+
+.panel-progress-thumb {
+  position: absolute;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+  box-shadow: 0 8px 14px rgba(27, 25, 22, 0.18);
+  transform: translate(-50%, -50%);
+  transition: top 0.35s ease;
+}
+
 .scroll-panel > * {
   scroll-snap-align: start;
 }
@@ -869,6 +921,9 @@ nav a.is-active::after {
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
 }
 
 .panel-card::after {
@@ -878,6 +933,45 @@ nav a.is-active::after {
   background: linear-gradient(140deg, rgba(255, 255, 255, 0.6), transparent 60%);
   opacity: 0.25;
   pointer-events: none;
+}
+
+.panel-graphic {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(47, 111, 107, 0.35), rgba(210, 154, 60, 0.25));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.panel-graphic::after {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  opacity: 0.7;
+  animation: graphicSpin 12s linear infinite;
+}
+
+.scroll-panel .panel-card:nth-child(2) .panel-graphic {
+  background: linear-gradient(135deg, rgba(43, 92, 122, 0.3), rgba(209, 153, 74, 0.25));
+}
+
+.scroll-panel .panel-card:nth-child(3) .panel-graphic {
+  background: linear-gradient(135deg, rgba(79, 76, 122, 0.32), rgba(122, 79, 43, 0.22));
+}
+
+.scroll-panel .panel-card:nth-child(4) .panel-graphic {
+  background: linear-gradient(135deg, rgba(63, 106, 87, 0.3), rgba(210, 154, 60, 0.22));
+}
+
+.panel-card.is-active .panel-graphic {
+  transform: scale(1.05);
+  box-shadow: 0 10px 18px rgba(27, 25, 22, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
 .carousel {
@@ -1368,6 +1462,15 @@ nav a.is-active::after {
   }
 }
 
+@keyframes graphicSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 900px) {
   .nav {
     flex-direction: column;
@@ -1384,6 +1487,26 @@ nav a.is-active::after {
 
   nav {
     gap: 0.9rem;
+  }
+
+  .panel-stack-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-progress {
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+  }
+
+  .panel-progress-track {
+    width: 100%;
+    height: 6px;
+  }
+
+  .panel-progress-thumb {
+    top: 50%;
+    left: calc(var(--progress, 0) * 100%);
   }
 }
 
@@ -1421,7 +1544,8 @@ nav a.is-active::after {
   .page-hero::before,
   .page-hero::after,
   .brand,
-  .specialty-card::after {
+  .specialty-card::after,
+  .panel-graphic::after {
     transition: none;
     animation: none;
     transform: none;
