@@ -12,11 +12,14 @@ const parallaxTargets = document.querySelectorAll(
   ".orb, .hero-card, .carousel-image, .panel-card, .home-card, .stat-card, .gallery-card, .info-card, .card, .feature, .timeline-item, .education-card, .specialty-card"
 );
 const carousels = document.querySelectorAll("[data-carousel]");
+const panelStacks = document.querySelectorAll(".scroll-panel.panel-stack");
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let pointerX = 0;
 let pointerY = 0;
 let pointerFrame = null;
+let activePanelStack = null;
+const panelStackState = new Map();
 
 const updatePointer = (event) => {
   const { clientX, clientY } = event;
@@ -137,6 +140,72 @@ const initCarousels = () => {
   });
 };
 
+const setPanelStackIndex = (stack, index) => {
+  const state = panelStackState.get(stack);
+  if (!state) return;
+  state.index = index;
+  state.panels.forEach((panel, i) => {
+    panel.classList.remove("is-active", "is-prev", "is-next");
+    if (i === index) {
+      panel.classList.add("is-active");
+    } else if (i === index - 1) {
+      panel.classList.add("is-prev");
+    } else if (i === index + 1) {
+      panel.classList.add("is-next");
+    }
+  });
+};
+
+const initPanelStacks = () => {
+  if (!panelStacks.length) return;
+  panelStacks.forEach((stack) => {
+    const panels = Array.from(stack.querySelectorAll(".panel-card"));
+    if (!panels.length) return;
+    panelStackState.set(stack, {
+      panels,
+      index: 0,
+      lock: false,
+    });
+    setPanelStackIndex(stack, 0);
+  });
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          activePanelStack = entry.target;
+        } else if (activePanelStack === entry.target && !entry.isIntersecting) {
+          activePanelStack = null;
+        }
+      });
+    },
+    { threshold: [0.6] }
+  );
+
+  panelStacks.forEach((stack) => observer.observe(stack));
+};
+
+const handlePanelScroll = (event) => {
+  if (prefersReducedMotion || !activePanelStack) return;
+  const state = panelStackState.get(activePanelStack);
+  if (!state) return;
+  const delta = event.deltaY;
+  if (Math.abs(delta) < 10) return;
+  const direction = delta > 0 ? 1 : -1;
+  const nextIndex = state.index + direction;
+  if (nextIndex < 0 || nextIndex >= state.panels.length) {
+    return;
+  }
+
+  event.preventDefault();
+  if (state.lock) return;
+  state.lock = true;
+  setPanelStackIndex(activePanelStack, nextIndex);
+  window.setTimeout(() => {
+    state.lock = false;
+  }, 520);
+};
+
 const initThreeBackground = () => {
   if (prefersReducedMotion || !window.THREE) return;
   const ambient = document.querySelector(".ambient");
@@ -167,7 +236,7 @@ const initThreeBackground = () => {
 
   const group = new THREE.Group();
 
-  const pointsCount = 240;
+  const pointsCount = 200;
   const positions = new Float32Array(pointsCount * 3);
   for (let i = 0; i < pointsCount; i += 1) {
     const i3 = i * 3;
@@ -178,39 +247,17 @@ const initThreeBackground = () => {
 
   const pointsGeometry = new THREE.BufferGeometry();
   pointsGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const basePositions = positions.slice();
+  const pointsPosition = pointsGeometry.attributes.position;
   const pointsMaterial = new THREE.PointsMaterial({
     color: new THREE.Color(0x9fb4b0),
-    size: 1.1,
+    size: 0.9,
     transparent: true,
-    opacity: 0.45,
+    opacity: 0.3,
     depthWrite: false,
   });
   const points = new THREE.Points(pointsGeometry, pointsMaterial);
   group.add(points);
-
-  const ringGeometry = new THREE.TorusGeometry(24, 0.55, 16, 140);
-  const ringMaterial = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0x9ab7a9),
-    wireframe: true,
-    transparent: true,
-    opacity: 0.12,
-  });
-  const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-  ring.rotation.x = Math.PI / 2.6;
-  ring.rotation.y = Math.PI / 5;
-  group.add(ring);
-
-  const ringTwoGeometry = new THREE.TorusGeometry(16, 0.35, 12, 120);
-  const ringTwoMaterial = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0xd4b17c),
-    wireframe: true,
-    transparent: true,
-    opacity: 0.1,
-  });
-  const ringTwo = new THREE.Mesh(ringTwoGeometry, ringTwoMaterial);
-  ringTwo.rotation.x = Math.PI / 3.2;
-  ringTwo.rotation.z = Math.PI / 4.5;
-  group.add(ringTwo);
 
   scene.add(group);
 
@@ -225,10 +272,17 @@ const initThreeBackground = () => {
   window.addEventListener("resize", handleResize);
 
   const animate = () => {
-    const time = performance.now() * 0.0001;
-    group.rotation.y = time * 0.6 + pointerX * 0.2;
-    group.rotation.x = time * 0.4 + pointerY * 0.25;
-    points.rotation.z = time * 0.6;
+    const time = performance.now() * 0.00018;
+    group.rotation.y = time * 0.08 + pointerX * 0.08;
+    group.rotation.x = time * 0.05 + pointerY * 0.06;
+    for (let i = 0; i < pointsCount; i += 1) {
+      const i3 = i * 3;
+      const baseX = basePositions[i3];
+      const baseY = basePositions[i3 + 1];
+      positions[i3] = baseX + Math.sin(time * 1.4 + baseY * 0.02) * 1.1;
+      positions[i3 + 1] = baseY + Math.cos(time * 1.2 + baseX * 0.02) * 0.9;
+    }
+    pointsPosition.needsUpdate = true;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   };
@@ -242,6 +296,7 @@ window.addEventListener("load", () => {
     document.body.classList.add("motion-ready");
   }
   initCarousels();
+  initPanelStacks();
   initThreeBackground();
 });
 
@@ -255,3 +310,5 @@ navLinks.forEach((link) => {
     target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
+
+window.addEventListener("wheel", handlePanelScroll, { passive: false });
