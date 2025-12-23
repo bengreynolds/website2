@@ -7,8 +7,9 @@ const revealEls = document.querySelectorAll(".reveal");
 const statEls = document.querySelectorAll("[data-count]");
 const header = document.querySelector(".site-header");
 const progressBar = document.querySelector(".scroll-progress");
-const sectionLinks = document.querySelectorAll("nav a[href^=\"#\"]");
-const parallaxTargets = document.querySelectorAll(".orb, .hero-card");
+const navLinks = document.querySelectorAll("nav a");
+const parallaxTargets = document.querySelectorAll(".orb, .hero-card, .carousel-image");
+const carousels = document.querySelectorAll("[data-carousel]");
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -77,17 +78,12 @@ const updateScrollUI = () => {
 };
 
 const updateActiveLink = () => {
-  const sections = [...document.querySelectorAll("main section, footer")];
-  const scrollPosition = window.scrollY + 120;
-  let currentId = "";
-  sections.forEach((section) => {
-    if (scrollPosition >= section.offsetTop) {
-      currentId = section.getAttribute("id") || "";
-    }
-  });
-  sectionLinks.forEach((link) => {
-    const href = link.getAttribute("href")?.replace("#", "");
-    link.classList.toggle("is-active", href && href === currentId);
+  const currentPath = window.location.pathname.split("/").pop() || "index.html";
+  navLinks.forEach((link) => {
+    const href = link.getAttribute("href") || "";
+    const normalized = href.split("#")[0];
+    if (!normalized) return;
+    link.classList.toggle("is-active", normalized === currentPath);
   });
 };
 
@@ -97,14 +93,30 @@ const onScroll = () => {
 };
 
 window.addEventListener("scroll", onScroll, { passive: true });
+const initCarousels = () => {
+  if (prefersReducedMotion) return;
+  carousels.forEach((carousel) => {
+    const items = carousel.querySelectorAll(".carousel-item");
+    if (items.length <= 1) return;
+    let index = 0;
+    items[index].classList.add("is-active");
+    setInterval(() => {
+      items[index].classList.remove("is-active");
+      index = (index + 1) % items.length;
+      items[index].classList.add("is-active");
+    }, 4200);
+  });
+};
+
 window.addEventListener("load", () => {
   onScroll();
   if (!prefersReducedMotion) {
     document.body.classList.add("motion-ready");
   }
+  initCarousels();
 });
 
-sectionLinks.forEach((link) => {
+navLinks.forEach((link) => {
   link.addEventListener("click", (event) => {
     const targetId = link.getAttribute("href");
     if (!targetId || !targetId.startsWith("#")) return;

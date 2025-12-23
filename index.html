@@ -2,10 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Benjamin Reynolds | Research Engineer</title>
     <meta
       name="description"
@@ -13,7 +10,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="theme-home" data-page="home">
     <div class="scroll-progress" aria-hidden="true"></div>
     <div class="ambient">
       <div class="orb orb-a"></div>
@@ -25,18 +22,22 @@
       <div class="container nav">
         <div class="brand">BR</div>
         <nav>
-          <a href="#about">About</a>
-          <a href="#experience">Experience</a>
-          <a href="#projects">Projects</a>
-          <a href="#skills">Skills</a>
-          <a href="#contact">Contact</a>
+          <a href="index.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="experience.html">Experience</a>
+          <a href="projects.html">Projects</a>
+          <a href="figures.html">Figures</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="skills.html">Skills</a>
+          <a href="education.html">Education</a>
+          <a href="contact.html">Contact</a>
         </nav>
-        <a class="button ghost" href="#contact">Let's talk</a>
+        <a class="button ghost" href="mailto:Benjamin.g.reynolds@ucdenver.edu">Let's talk</a>
       </div>
     </header>
 
     <main>
-      <section class="hero" id="top">
+      <section class="hero">
         <div class="container hero-grid">
           <div class="hero-text">
             <p class="eyebrow reveal" style="--delay: 0.05s">
@@ -51,16 +52,12 @@
               for precision experiments.
             </p>
             <div class="hero-actions reveal" style="--delay: 0.35s">
-              <a class="button" href="mailto:Benjamin.g.reynolds@ucdenver.edu">
-                Email me
-              </a>
-              <a class="button ghost" href="#projects">View work</a>
+              <a class="button" href="about.html">Explore profile</a>
+              <a class="button ghost" href="projects.html">View projects</a>
             </div>
             <div class="hero-meta reveal" style="--delay: 0.45s">
               <span>Denver, CO</span>
-              <span>
-                <a href="tel:+13035472170">303-547-2170</a>
-              </span>
+              <span><a href="tel:+13035472170">303-547-2170</a></span>
               <span>
                 <a href="mailto:Benjamin.g.reynolds@ucdenver.edu">
                   Benjamin.g.reynolds@ucdenver.edu
@@ -86,283 +83,57 @@
         </div>
       </section>
 
-      <section class="section" id="figures">
+      <section class="section">
         <div class="container">
           <div class="section-head reveal">
-            <h2>Key Figures</h2>
-            <p>Impact metrics across systems, automation, and lab-scale reliability.</p>
+            <h2>Navigate the profile</h2>
+            <p>Each section now lives on its own page with tailored visuals.</p>
           </div>
-          <div class="stats-grid">
-            <div class="stat-card reveal" style="--delay: 0.1s">
-              <div class="stat-number" data-count="18">0</div>
-              <p>Automated rigs supported across the department</p>
-            </div>
-            <div class="stat-card reveal" style="--delay: 0.2s">
-              <div class="stat-number" data-count="6">0</div>
-              <p>Core systems upgraded with structured change management</p>
-            </div>
-            <div class="stat-card reveal" style="--delay: 0.3s">
-              <div class="stat-number" data-count="12">0</div>
-              <p>Data workflows standardized for reproducibility</p>
-            </div>
-            <div class="stat-card reveal" style="--delay: 0.4s">
-              <div class="stat-number" data-count="24">0</div>
-              <p>Months of continuous autonomous training deployments</p>
-            </div>
-          </div>
-          <p class="small-note reveal" style="--delay: 0.5s">
-            Replace these figures with exact values if desired.
-          </p>
-        </div>
-      </section>
-
-      <section class="section" id="about">
-        <div class="container split">
-          <div class="reveal" style="--delay: 0.1s">
-            <h2>Professional Summary</h2>
-            <p>
-              Experienced research engineer with expertise in automated behavioral
-              system design, scientific software development, and laboratory
-              technology integration. Proven success leading complex upgrade
-              cycles, coordinating with vendors, and implementing structured
-              change-management practices that keep high-throughput labs running
-              smoothly.
-            </p>
-          </div>
-          <div class="feature-list reveal" style="--delay: 0.25s">
-            <div class="feature">
-              <h3>System Reliability</h3>
-              <p>
-                Standardized documentation, SOPs, and training to ensure
-                reproducibility and maintainability.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>Engineering Leadership</h3>
-              <p>
-                Upgrade planning, version control, and lifecycle management for
-                critical lab software.
-              </p>
-            </div>
-            <div class="feature">
-              <h3>Automation at Scale</h3>
-              <p>
-                Adaptive training platforms, kinematic tracking, and data
-                pipelines for high-precision workflows.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section alt" id="experience">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>Experience</h2>
-            <p>Engineering leadership across neuroscience, software, and lab infrastructure.</p>
-          </div>
-          <div class="timeline">
-            <article class="timeline-item reveal" style="--delay: 0.1s">
-              <div class="timeline-meta">
-                <h3>Intermediate Research Engineer</h3>
-                <span>University of Colorado Anschutz - Department of Physiology & Biophysics</span>
-                <span>Nov 2023 - Present</span>
-              </div>
-              <ul>
-                <li>Design and optimize automated behavioral systems, embedded control software, and analysis tools.</li>
-                <li>Coordinate upgrade cycles with vendors and internal teams, validating functionality and deployment.</li>
-                <li>Maintain department-wide reach rigs, inventory, and preventive maintenance schedules.</li>
-                <li>Architect NWB-formatted data pipelines and standardized control interfaces.</li>
-              </ul>
-            </article>
-            <article class="timeline-item reveal" style="--delay: 0.2s">
-              <div class="timeline-meta">
-                <h3>Lead Researcher & Project Assistant</h3>
-                <span>CU Denver CIDE</span>
-                <span>May 2023 - Oct 2023</span>
-              </div>
-              <ul>
-                <li>Led a systematic literature review on assistive technology for mild cognitive impairments.</li>
-                <li>Designed mixed-methods studies evaluating iOS audio-visual prompting and accessibility.</li>
-                <li>Delivered quantitative and qualitative analysis with formal reporting.</li>
-              </ul>
-            </article>
-            <article class="timeline-item reveal" style="--delay: 0.3s">
-              <div class="timeline-meta">
-                <h3>Web Developer & Database Framework Architect</h3>
-                <span>Peak Leadership Frameworks</span>
-                <span>May 2022 - Sep 2022</span>
-              </div>
-              <ul>
-                <li>Built secure web applications using SQL Server, Caspio, HTML, and JavaScript.</li>
-                <li>Implemented encryption, authentication, and modular database frameworks.</li>
-                <li>Delivered scalable infrastructure for organizational program management.</li>
-              </ul>
-            </article>
-            <article class="timeline-item reveal" style="--delay: 0.4s">
-              <div class="timeline-meta">
-                <h3>Senior Design Project - Lead Engineer & Project Manager</h3>
-                <span>University of Colorado Denver</span>
-                <span>Aug 2022 - May 2023</span>
-              </div>
-              <ul>
-                <li>Directed development of a quick-release mechanism for enteral gastrostomy tubes.</li>
-                <li>Managed design, prototyping, manufacturing, and validation testing.</li>
-                <li>Delivered a clinically viable, industry-aligned mechanism.</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="gallery">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>System Gallery</h2>
-            <p>Visual snapshots of automation, training platforms, and experimental rigs.</p>
-          </div>
-          <div class="gallery-grid">
-            <figure class="gallery-card reveal" style="--delay: 0.1s">
-              <div class="gallery-image img-one"></div>
-              <figcaption>Autonomous training environment with kinematic tracking.</figcaption>
-            </figure>
-            <figure class="gallery-card reveal" style="--delay: 0.2s">
-              <div class="gallery-image img-two"></div>
-              <figcaption>Reach rig instrumentation with adaptive control.</figcaption>
-            </figure>
-            <figure class="gallery-card reveal" style="--delay: 0.3s">
-              <div class="gallery-image img-three"></div>
-              <figcaption>Embedded electronics and CAN bus coordination.</figcaption>
-            </figure>
-            <figure class="gallery-card reveal" style="--delay: 0.4s">
-              <div class="gallery-image img-four"></div>
-              <figcaption>NWB data pipeline monitoring dashboards.</figcaption>
-            </figure>
-          </div>
-          <p class="small-note reveal" style="--delay: 0.5s">
-            Swap these gradient placeholders with real lab images when ready.
-          </p>
-        </div>
-      </section>
-
-      <section class="section" id="projects">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>Selected Technical Projects</h2>
-            <p>Systems that blend automation, analytics, and experimental precision.</p>
-          </div>
-          <div class="grid">
-            <article class="card reveal" style="--delay: 0.1s">
-              <h3>Autonomous Behavioral Training System</h3>
-              <p>
-                Fully automated cerebellar training platform with DeepLabCut
-                tracking, multi-axis actuation, and CAN bus coordination.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.2s">
-              <h3>Long-term Home-Cage Training Environment</h3>
-              <p>
-                High-throughput behavioral training with machine learning-driven
-                adaptation and real-time monitoring.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.3s">
-              <h3>RFID Metadata Integration Pipeline</h3>
-              <p>
-                Real-time tag recognition linked to SQL databases and automated
-                experiment configuration.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.4s">
-              <h3>Osseointegrated Prosthetic Sensation Tester</h3>
-              <p>
-                Frequency-controlled haptic delivery system with load-cell
-                validation.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.5s">
-              <h3>Taste Sensitivity Rotational Rig</h3>
-              <p>
-                Automated multi-solution delivery platform with high-sensitivity
-                lick detection and protocol-driven trial logic.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.6s">
-              <h3>Automated TENS-Triggered DBS Alignment</h3>
-              <p>
-                Low-latency stimulation control with synchronized video
-                acquisition and NI/Arduino hardware.
-              </p>
-            </article>
-            <article class="card reveal" style="--delay: 0.7s">
-              <h3>Reach Analysis Suite</h3>
-              <p>
-                Modular pipeline for kinematic extraction, segmentation, and
-                behavioral quantification.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section alt" id="skills">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>Technical Skills</h2>
-            <p>Tools and systems used to deliver robust experimental infrastructure.</p>
-          </div>
-          <div class="tag-cloud reveal" style="--delay: 0.15s">
-            <span>Python</span>
-            <span>C++</span>
-            <span>MATLAB</span>
-            <span>SolidWorks</span>
-            <span>CAD & 3D Printing</span>
-            <span>Arduino & Embedded Systems</span>
-            <span>PCB & Circuit Design</span>
-            <span>CAN Bus</span>
-            <span>TTL/Sync Signaling</span>
-            <span>High-Speed Video Acquisition</span>
-            <span>DeepLabCut</span>
-            <span>NWB Data Workflow</span>
-            <span>SQL</span>
-            <span>HTML</span>
-            <span>JavaScript</span>
-            <span>GUI Development</span>
-            <span>Version Control (Git)</span>
-            <span>Technical Documentation & SOPs</span>
-            <span>Experimental Rig Maintenance</span>
-            <span>Inventory & Capacity Planning</span>
-            <span>Vendor Coordination</span>
-            <span>Microsoft Office</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="education">
-        <div class="container split">
-          <div class="reveal" style="--delay: 0.1s">
-            <h2>Education</h2>
-            <p class="education">
-              Bachelor of Science in Bioengineering<br />
-              University of Colorado Denver - Anschutz Medical Campus<br />
-              Graduated May 2023 | GPA 3.7
-            </p>
-          </div>
-          <div class="education-card reveal" style="--delay: 0.25s">
-            <h3>Honors</h3>
-            <p>Dean's List (2021-2023) - CEDC Design Expo Winner</p>
+          <div class="home-grid">
+            <a class="home-card reveal" href="about.html" style="--delay: 0.1s">
+              <h3>About</h3>
+              <span>Professional summary and leadership themes.</span>
+            </a>
+            <a class="home-card reveal" href="experience.html" style="--delay: 0.2s">
+              <h3>Experience</h3>
+              <span>Engineering leadership across neuroscience systems.</span>
+            </a>
+            <a class="home-card reveal" href="projects.html" style="--delay: 0.3s">
+              <h3>Projects</h3>
+              <span>Automation, analytics, and precision platforms.</span>
+            </a>
+            <a class="home-card reveal" href="figures.html" style="--delay: 0.4s">
+              <h3>Key Figures</h3>
+              <span>Impact metrics and scale indicators.</span>
+            </a>
+            <a class="home-card reveal" href="gallery.html" style="--delay: 0.5s">
+              <h3>Gallery</h3>
+              <span>Visual snapshots and animated imagery.</span>
+            </a>
+            <a class="home-card reveal" href="skills.html" style="--delay: 0.6s">
+              <h3>Skills</h3>
+              <span>Core tools, platforms, and workflow strengths.</span>
+            </a>
+            <a class="home-card reveal" href="education.html" style="--delay: 0.7s">
+              <h3>Education</h3>
+              <span>Academic background and honors.</span>
+            </a>
+            <a class="home-card reveal" href="contact.html" style="--delay: 0.8s">
+              <h3>Contact</h3>
+              <span>How to connect and collaborate.</span>
+            </a>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="section alt" id="contact">
+    <footer class="section alt">
       <div class="container contact">
         <div class="contact-copy reveal">
-          <h2>Let's build the next system.</h2>
+          <h2>Ready for the next system build?</h2>
           <p>
             Open to collaborations in neuroscience engineering, behavioral
-            automation, and laboratory infrastructure.
+            automation, and lab infrastructure.
           </p>
         </div>
         <div class="contact-actions reveal" style="--delay: 0.2s">
@@ -370,6 +141,7 @@
             Benjamin.g.reynolds@ucdenver.edu
           </a>
           <a class="button ghost" href="tel:+13035472170">303-547-2170</a>
+          <a class="button ghost" href="https://www.linkedin.com/in/benjamin-reynolds">LinkedIn</a>
           <span class="location">Denver, CO</span>
         </div>
         <p class="footer-meta">(c) <span id="year"></span> Benjamin Reynolds</p>
