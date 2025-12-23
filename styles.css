@@ -37,6 +37,27 @@ body {
   scroll-behavior: smooth;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(
+      120deg,
+      rgba(27, 25, 22, 0.05) 0%,
+      transparent 30%,
+      transparent 70%,
+      rgba(27, 25, 22, 0.04) 100%
+    ),
+    linear-gradient(0deg, rgba(27, 25, 22, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 25, 22, 0.02) 1px, transparent 1px);
+  background-size: auto, 120px 120px, 120px 120px;
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: -2;
 }
 
 body::-webkit-scrollbar {
@@ -172,6 +193,28 @@ h3 {
   line-height: 1.15;
 }
 
+.hero-text h1,
+.page-hero h1 {
+  display: inline-block;
+  position: relative;
+}
+
+.hero-text h1::after,
+.page-hero h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.4rem;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform-origin: left;
+  transform: scaleX(0.4);
+  opacity: 0.6;
+  animation: underlineSweep 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
 p {
   margin: 0 0 1rem;
   color: var(--muted);
@@ -194,6 +237,27 @@ a {
   overflow: hidden;
 }
 
+.ambient::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 50%),
+    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 70% 90%, rgba(255, 255, 255, 0.3), transparent 60%);
+  opacity: 0.4;
+  animation: ambientShift 22s ease-in-out infinite;
+}
+
+.ambient-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.45;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
 .scroll-progress {
   position: fixed;
   top: 0;
@@ -211,6 +275,7 @@ a {
   filter: blur(0px);
   opacity: 0.6;
   animation: drift 18s ease-in-out infinite;
+  z-index: 1;
 }
 
 .orb-a {
@@ -271,6 +336,7 @@ a {
   padding: 0.4rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 999px;
+  animation: morph 12s ease-in-out infinite;
 }
 
 nav {
@@ -284,6 +350,7 @@ nav a {
   font-weight: 600;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
+  position: relative;
   transition: color 0.3s ease, background 0.3s ease;
 }
 
@@ -295,6 +362,23 @@ nav a:hover {
 nav a.is-active {
   color: var(--accent-strong);
   background: var(--accent-soft);
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+nav a:hover::after,
+nav a.is-active::after {
+  width: 70%;
+  left: 15%;
 }
 
 .button {
@@ -309,12 +393,18 @@ nav a.is-active {
   border: none;
   box-shadow: 0 12px 26px rgba(47, 111, 107, 0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .button:hover {
   transform: translateY(-2px);
   background: var(--accent-strong);
   box-shadow: 0 18px 32px rgba(47, 111, 107, 0.3);
+}
+
+.button:active {
+  transform: translateY(0px) scale(0.98);
 }
 
 .button.ghost {
@@ -329,14 +419,63 @@ nav a.is-active {
   background: rgba(27, 25, 22, 0.04);
 }
 
+.button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 10%, rgba(255, 255, 255, 0.4) 45%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+
+.button:hover::after {
+  transform: translateX(120%);
+}
+
 .hero {
   padding: 6rem 0 4rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .page-hero {
   padding: 5.5rem 0 3rem;
   position: relative;
   overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  right: -160px;
+  top: -200px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 120deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(47, 111, 107, 0.1),
+    transparent 55%
+  );
+  opacity: 0.45;
+  animation: portalSpin 18s linear infinite;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  left: -140px;
+  bottom: -200px;
+  border-radius: 50%;
+  border: 1px solid rgba(27, 25, 22, 0.12);
+  box-shadow: 0 0 60px rgba(47, 111, 107, 0.18);
+  opacity: 0.5;
+  animation: portalPulse 12s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .page-hero::before,
@@ -357,7 +496,20 @@ nav a.is-active {
   transform: rotate(-2deg);
 }
 
+.page-hero::before {
+  animation: portalPulse 16s ease-in-out infinite;
+}
+
+.page-hero::after {
+  animation: portalSpin 24s linear infinite;
+}
+
 .page-hero > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero > .container {
   position: relative;
   z-index: 1;
 }
@@ -421,6 +573,17 @@ nav a.is-active {
   border: 1px solid rgba(27, 25, 22, 0.08);
   transform: perspective(1000px) rotateY(-2deg);
   transition: transform 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.7), transparent 55%);
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .hero-card:hover {
@@ -442,10 +605,25 @@ nav a.is-active {
 
 .section {
   padding: 4.5rem 0;
+  position: relative;
 }
 
 .section.alt {
   background: linear-gradient(160deg, var(--bg-alt), rgba(246, 242, 233, 0.9));
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(27, 25, 22, 0.03), transparent 35%, transparent 65%, rgba(27, 25, 22, 0.03));
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.section > .container {
+  position: relative;
+  z-index: 1;
 }
 
 .section-head {
@@ -506,6 +684,99 @@ nav a.is-active {
   gap: 1.5rem;
 }
 
+.specialty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.6rem;
+}
+
+.specialty-card {
+  position: relative;
+  padding: 2rem;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 16px 36px rgba(27, 25, 22, 0.1);
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.specialty-card h3 {
+  margin-bottom: 0.6rem;
+}
+
+.specialty-card p {
+  margin-bottom: 1.2rem;
+}
+
+.specialty-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.specialty-tags span {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.specialty-projects {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.specialty-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.6), transparent 60%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.specialty-card::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  opacity: 0.2;
+  pointer-events: none;
+  animation: circuitFlow 14s linear infinite;
+}
+
+.specialty-card.pcb::after {
+  background-image: repeating-linear-gradient(
+      90deg,
+      rgba(47, 111, 107, 0.35) 0 1px,
+      transparent 1px 14px
+    ),
+    repeating-linear-gradient(0deg, rgba(47, 111, 107, 0.25) 0 1px, transparent 1px 12px),
+    radial-gradient(circle at 30% 40%, rgba(47, 111, 107, 0.35), transparent 55%);
+}
+
+.specialty-card.automation::after {
+  background-image: linear-gradient(120deg, rgba(122, 79, 43, 0.25), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(122, 79, 43, 0.2) 0 1px, transparent 1px 16px);
+}
+
+.specialty-card.data::after {
+  background-image: radial-gradient(circle at 20% 30%, rgba(79, 76, 122, 0.35), transparent 50%),
+    repeating-linear-gradient(0deg, rgba(79, 76, 122, 0.2) 0 1px, transparent 1px 14px);
+}
+
+.specialty-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(27, 25, 22, 0.2);
+  box-shadow: 0 22px 38px rgba(27, 25, 22, 0.16);
+}
+
 .home-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -536,6 +807,8 @@ nav a.is-active {
   overflow-x: auto;
   padding-bottom: 1rem;
   scroll-snap-type: x mandatory;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
 }
 
 .scroll-panel > * {
@@ -564,6 +837,17 @@ nav a.is-active {
   box-shadow: 0 10px 22px rgba(27, 25, 22, 0.08);
   min-height: 200px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.6), transparent 60%);
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .carousel {
@@ -573,6 +857,18 @@ nav a.is-active {
   border: 1px solid var(--border);
   background: var(--card);
   box-shadow: 0 12px 26px rgba(27, 25, 22, 0.08);
+}
+
+.carousel::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.5) 50%, transparent 65%);
+  opacity: 0.15;
+  transform: translateX(-60%);
+  animation: sheen 10s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .carousel-track {
@@ -594,6 +890,10 @@ nav a.is-active {
 .carousel-item.is-active {
   opacity: 1;
   transform: scale(1);
+}
+
+.carousel-item.is-active .carousel-image {
+  animation: slowZoom 8s ease-in-out infinite;
 }
 
 .carousel-image {
@@ -776,6 +1076,13 @@ nav a.is-active {
   border: 1px solid var(--border);
   font-size: 0.9rem;
   color: var(--muted);
+  transition: transform 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.tag-cloud span:hover {
+  transform: translateY(-2px);
+  border-color: rgba(27, 25, 22, 0.2);
+  color: var(--text);
 }
 
 .education {
@@ -860,19 +1167,24 @@ nav a.is-active {
 
 .reveal {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(18px) scale(0.98);
+  filter: blur(6px);
+  transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
   transition-delay: var(--delay, 0s);
 }
 
 .reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 .parallax {
-  transform: translateY(var(--parallax-offset, 0px));
-  transition: transform 0.1s linear;
+  transform: translateY(var(--parallax-offset, 0px))
+    rotateX(var(--parallax-tilt, 0deg))
+    rotateY(var(--parallax-tilt-y, 0deg));
+  transition: transform 0.12s linear;
+  transform-style: preserve-3d;
 }
 
 @keyframes float {
@@ -917,6 +1229,16 @@ nav a.is-active {
   }
 }
 
+@keyframes ambientShift {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
 @keyframes pan {
   0%,
   100% {
@@ -924,6 +1246,16 @@ nav a.is-active {
   }
   50% {
     background-position: 80% 60%;
+  }
+}
+
+@keyframes slowZoom {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
   }
 }
 
@@ -936,6 +1268,73 @@ nav a.is-active {
   50% {
     opacity: 0.9;
     transform: scale(1.02);
+  }
+}
+
+@keyframes sheen {
+  0% {
+    transform: translateX(-60%);
+  }
+  50% {
+    transform: translateX(60%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes underlineSweep {
+  0%,
+  100% {
+    transform: scaleX(0.35);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes portalSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes portalPulse {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.7;
+  }
+}
+
+@keyframes morph {
+  0%,
+  100% {
+    border-radius: 999px;
+  }
+  50% {
+    border-radius: 45% 55% 60% 40% / 45% 45% 55% 55%;
+  }
+}
+
+@keyframes circuitFlow {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(12px);
+  }
+  100% {
+    transform: translateY(0px);
   }
 }
 
@@ -982,7 +1381,17 @@ nav a.is-active {
   .orb,
   .float-image,
   .pan-image,
-  .glow::after {
+  .glow::after,
+  .ambient::after,
+  .button::after,
+  .carousel::before,
+  .carousel-item.is-active .carousel-image,
+  .hero::before,
+  .hero::after,
+  .page-hero::before,
+  .page-hero::after,
+  .brand,
+  .specialty-card::after {
     transition: none;
     animation: none;
     transform: none;
