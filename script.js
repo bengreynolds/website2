@@ -10,7 +10,6 @@ const progressBar = document.querySelector(".scroll-progress");
 const navLinks = document.querySelectorAll("nav a");
 const parallaxTargets = document.querySelectorAll(".orb, .hero-card, .carousel-image");
 const carousels = document.querySelectorAll("[data-carousel]");
-const panelStacks = document.querySelectorAll(".scroll-panel.panel-stack");
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 if (!prefersReducedMotion) {
@@ -22,8 +21,6 @@ let revealFallbackTimer = window.setTimeout(() => {
 let pointerX = 0;
 let pointerY = 0;
 let pointerFrame = null;
-let activePanelStack = null;
-const panelStackState = new Map();
 let hasReveal = false;
 
 const updatePointer = (event) => {
@@ -166,115 +163,6 @@ const initCarousels = () => {
   });
 };
 
-const setPanelStackIndex = (stack, index) => {
-  const state = panelStackState.get(stack);
-  if (!state) return;
-  state.index = index;
-  state.panels.forEach((panel, i) => {
-    panel.classList.remove("is-active", "is-prev", "is-next");
-    if (i === index) {
-      panel.classList.add("is-active");
-    } else if (i === index - 1) {
-      panel.classList.add("is-prev");
-    } else if (i === index + 1) {
-      panel.classList.add("is-next");
-    }
-  });
-
-  if (state.thumb) {
-    const total = state.total > 1 ? state.total - 1 : 1;
-    const progress = state.total > 1 ? index / total : 0.5;
-    const min = 8;
-    const max = 92;
-    const top = min + (max - min) * progress;
-    state.thumb.style.top = `${top}%`;
-    state.thumb.style.setProperty("--progress", progress.toFixed(3));
-  }
-};
-
-const initPanelStacks = () => {
-  if (!panelStacks.length) return;
-  panelStacks.forEach((stack) => {
-    const panels = Array.from(stack.querySelectorAll(".panel-card"));
-    if (!panels.length) return;
-    const shell = document.createElement("div");
-    shell.className = "panel-stack-shell";
-    stack.parentNode.insertBefore(shell, stack);
-    shell.appendChild(stack);
-
-    const progress = document.createElement("div");
-    progress.className = "panel-progress";
-    progress.setAttribute("aria-hidden", "true");
-
-    const label = document.createElement("div");
-    label.className = "panel-progress-label";
-    label.textContent = "Scroll";
-
-    const track = document.createElement("div");
-    track.className = "panel-progress-track";
-
-    const thumb = document.createElement("div");
-    thumb.className = "panel-progress-thumb";
-
-    track.appendChild(thumb);
-    progress.append(label, track);
-    shell.appendChild(progress);
-
-    panelStackState.set(stack, {
-      panels,
-      index: 0,
-      lock: false,
-      thumb,
-      total: panels.length,
-    });
-    setPanelStackIndex(stack, 0);
-  });
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-          activePanelStack = entry.target;
-        } else if (activePanelStack === entry.target && !entry.isIntersecting) {
-          activePanelStack = null;
-        }
-      });
-    },
-    { threshold: [0.6] }
-  );
-
-  panelStacks.forEach((stack) => observer.observe(stack));
-};
-
-const handlePanelScroll = (event) => {
-  if (prefersReducedMotion || !activePanelStack) return;
-  const state = panelStackState.get(activePanelStack);
-  if (!state) return;
-  const rect = activePanelStack.getBoundingClientRect();
-  const viewportCenter = window.innerHeight / 2;
-  const center = rect.top + rect.height / 2;
-  const centered = Math.abs(center - viewportCenter) <= window.innerHeight * 0.18;
-  const headerHeight = header ? header.offsetHeight : 0;
-  const fullyVisible = rect.top >= headerHeight && rect.bottom <= window.innerHeight;
-  if (!centered || !fullyVisible) return;
-
-  const delta = event.deltaY;
-  if (Math.abs(delta) < 4) return;
-  const direction = delta > 0 ? 1 : -1;
-  const nextIndex = state.index + direction;
-  if (nextIndex < 0 || nextIndex >= state.panels.length) {
-    return;
-  }
-
-  event.preventDefault();
-  if (state.lock) return;
-  state.lock = true;
-  setPanelStackIndex(activePanelStack, nextIndex);
-  window.setTimeout(() => {
-    state.lock = false;
-  }, 180);
-};
-
 const initThreeBackground = () => {
   if (prefersReducedMotion || !window.THREE) return;
   const ambient = document.querySelector(".ambient");
@@ -362,7 +250,6 @@ const initThreeBackground = () => {
 window.addEventListener("load", () => {
   onScroll();
   initCarousels();
-  initPanelStacks();
   initThreeBackground();
 });
 
@@ -377,4 +264,3 @@ navLinks.forEach((link) => {
   });
 });
 
-window.addEventListener("wheel", handlePanelScroll, { passive: false });
