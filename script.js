@@ -8,18 +8,23 @@ const statEls = document.querySelectorAll("[data-count]");
 const header = document.querySelector(".site-header");
 const progressBar = document.querySelector(".scroll-progress");
 const navLinks = document.querySelectorAll("nav a");
-const parallaxTargets = document.querySelectorAll(
-  ".orb, .hero-card, .carousel-image, .home-card, .stat-card, .gallery-card, .info-card, .card, .feature, .timeline-item, .education-card, .specialty-card"
-);
+const parallaxTargets = document.querySelectorAll(".orb, .hero-card, .carousel-image");
 const carousels = document.querySelectorAll("[data-carousel]");
 const panelStacks = document.querySelectorAll(".scroll-panel.panel-stack");
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (!prefersReducedMotion) {
+  document.body.classList.add("motion-ready");
+}
+let revealFallbackTimer = window.setTimeout(() => {
+  document.body.classList.add("reveal-fallback");
+}, 1200);
 let pointerX = 0;
 let pointerY = 0;
 let pointerFrame = null;
 let activePanelStack = null;
 const panelStackState = new Map();
+let hasReveal = false;
 
 const updatePointer = (event) => {
   const { clientX, clientY } = event;
@@ -43,6 +48,10 @@ if (!prefersReducedMotion) {
 const activateReveal = (entries, obs) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
+      if (!hasReveal) {
+        hasReveal = true;
+        window.clearTimeout(revealFallbackTimer);
+      }
       entry.target.classList.add("is-visible");
       obs.unobserve(entry.target);
     }
@@ -97,10 +106,10 @@ const updateScrollUI = () => {
 
   if (!prefersReducedMotion) {
     parallaxTargets.forEach((el, index) => {
-      const offset = (scrollTop * 0.05 * (index + 1)) / 5;
-      const drift = Math.sin(scrollTop / 480 + index) * 1.2;
-      const tiltX = drift + pointerY * 1.4;
-      const tiltY = -drift + pointerX * 1.6;
+      const offset = (scrollTop * 0.02 * (index + 1)) / 3;
+      const drift = Math.sin(scrollTop / 720 + index) * 0.5;
+      const tiltX = drift + pointerY * 0.6;
+      const tiltY = -drift + pointerX * 0.6;
       el.style.setProperty("--parallax-offset", `${offset}px`);
       el.style.setProperty("--parallax-tilt", `${tiltX.toFixed(2)}deg`);
       el.style.setProperty("--parallax-tilt-y", `${tiltY.toFixed(2)}deg`);
@@ -352,9 +361,6 @@ const initThreeBackground = () => {
 
 window.addEventListener("load", () => {
   onScroll();
-  if (!prefersReducedMotion) {
-    document.body.classList.add("motion-ready");
-  }
   initCarousels();
   initPanelStacks();
   initThreeBackground();
