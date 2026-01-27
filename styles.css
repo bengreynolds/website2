@@ -921,7 +921,7 @@ body.motion-ready .cycle-badge {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--border);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text);
   box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
   transform: translate(-50%, -50%);
@@ -939,44 +939,156 @@ body.motion-ready .cycle-badge {
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
 }
 
-.capability-node.node-1 {
-  top: 12%;
-  left: 14%;
+.capability-node.cluster {
+  padding: 0.48rem 1rem;
+  font-weight: 600;
+  font-size: 0.86rem;
+  background: rgba(15, 23, 42, 0.9);
+  color: #fff;
 }
 
-.capability-node.node-2 {
-  top: 18%;
-  left: 72%;
+.capability-node.cluster-automation {
+  top: 22%;
+  left: 22%;
+  background: rgba(31, 138, 140, 0.92);
 }
 
-.capability-node.node-3 {
-  top: 40%;
-  left: 86%;
+.capability-node.cluster-embedded {
+  top: 22%;
+  left: 78%;
+  background: rgba(43, 108, 176, 0.92);
 }
 
-.capability-node.node-4 {
-  top: 72%;
-  left: 66%;
+.capability-node.cluster-data {
+  top: 76%;
+  left: 78%;
+  background: rgba(59, 91, 219, 0.92);
 }
 
-.capability-node.node-5 {
-  top: 82%;
-  left: 30%;
+.capability-node.cluster-ops {
+  top: 76%;
+  left: 22%;
+  background: rgba(47, 133, 90, 0.92);
 }
 
-.capability-node.node-6 {
-  top: 60%;
-  left: 10%;
+.capability-node.node-auto-1 {
+  top: 14%;
+  left: 6%;
 }
 
-.capability-node.node-7 {
-  top: 28%;
+.capability-node.node-auto-2 {
+  top: 8%;
+  left: 24%;
+}
+
+.capability-node.node-auto-3 {
+  top: 16%;
   left: 36%;
 }
 
-.capability-node.node-8 {
-  top: 34%;
-  left: 58%;
+.capability-node.node-auto-4 {
+  top: 30%;
+  left: 14%;
+}
+
+.capability-node.node-auto-5 {
+  top: 8%;
+  left: 38%;
+}
+
+.capability-node.node-auto-6 {
+  top: 28%;
+  left: 4%;
+}
+
+.capability-node.node-emb-1 {
+  top: 14%;
+  left: 94%;
+}
+
+.capability-node.node-emb-2 {
+  top: 8%;
+  left: 70%;
+}
+
+.capability-node.node-emb-3 {
+  top: 30%;
+  left: 88%;
+}
+
+.capability-node.node-emb-4 {
+  top: 26%;
+  left: 64%;
+}
+
+.capability-node.node-emb-5 {
+  top: 28%;
+  left: 96%;
+}
+
+.capability-node.node-emb-6 {
+  top: 12%;
+  left: 62%;
+}
+
+.capability-node.node-data-1 {
+  top: 64%;
+  left: 92%;
+}
+
+.capability-node.node-data-2 {
+  top: 60%;
+  left: 70%;
+}
+
+.capability-node.node-data-3 {
+  top: 88%;
+  left: 90%;
+}
+
+.capability-node.node-data-4 {
+  top: 84%;
+  left: 66%;
+}
+
+.capability-node.node-data-5 {
+  top: 76%;
+  left: 96%;
+}
+
+.capability-node.node-data-6 {
+  top: 76%;
+  left: 60%;
+}
+
+.capability-node.node-ops-1 {
+  top: 64%;
+  left: 6%;
+}
+
+.capability-node.node-ops-2 {
+  top: 60%;
+  left: 26%;
+}
+
+.capability-node.node-ops-3 {
+  top: 88%;
+  left: 10%;
+}
+
+.capability-node.node-ops-4 {
+  top: 84%;
+  left: 30%;
+}
+
+.capability-node.node-ops-5 {
+  top: 76%;
+  left: 36%;
+}
+
+.capability-node.node-ops-6 {
+  top: 76%;
+  left: 4%;
 }
 
 .capability-list {
