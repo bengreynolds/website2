@@ -2,6 +2,7 @@ node_modules/
 dist/
 .vite/
 .vercel/
+agentic-docs/
 .DS_Store
 *.log
 npm-debug.log*
