@@ -2,11 +2,15 @@ import { Suspense, lazy, memo, useCallback, useEffect, useMemo, useState } from 
 import {
   aboutCards,
   contactLinks,
+  contactPrompt,
   education,
   experience,
-  heroMetrics,
+  heroProofPoints,
+  heroStatement,
   navigation,
   projects,
+  resumeHref,
+  socialProofItems,
   skillGroups,
 } from "./siteData";
 
@@ -206,6 +210,7 @@ const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
       <div className="project-card-top">
         <div className="tag-row">
           {project.featured ? <span className="tag">Featured</span> : null}
+          <span className="tag">Case study</span>
           {project.tags.map((tag) => (
             <span key={tag} className="tag">
               {tag}
@@ -216,6 +221,16 @@ const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
       </div>
       <h3>{project.title}</h3>
       <p>{project.summary}</p>
+      <div className="project-snapshot">
+        <div>
+          <span>Problem</span>
+          <strong>{project.challenge || "[PLACEHOLDER: project problem]"}</strong>
+        </div>
+        <div>
+          <span>Result</span>
+          <strong>{project.result || "[PLACEHOLDER: project result]"}</strong>
+        </div>
+      </div>
       <ul>
         {project.bullets.slice(0, project.featured ? 3 : 2).map((bullet) => (
           <li key={bullet}>{bullet}</li>
@@ -265,6 +280,28 @@ function ProjectModal({ project, onClose }) {
         </div>
         <h3 id="project-title">{project.title}</h3>
         <p>{project.summary}</p>
+        <div className="case-study-grid">
+          <article>
+            <span>Problem</span>
+            <p>{project.challenge || "[PLACEHOLDER: project problem]"}</p>
+          </article>
+          <article>
+            <span>Constraints</span>
+            <p>{project.constraints || "[PLACEHOLDER: project constraints]"}</p>
+          </article>
+          <article>
+            <span>Approach</span>
+            <p>{project.approach || "[PLACEHOLDER: project approach]"}</p>
+          </article>
+          <article>
+            <span>Result</span>
+            <p>{project.result || "[PLACEHOLDER: project result]"}</p>
+          </article>
+          <article>
+            <span>Role</span>
+            <p>{project.role || "[PLACEHOLDER: your role on this project]"}</p>
+          </article>
+        </div>
         <ul>
           {project.bullets.map((bullet) => (
             <li key={bullet}>{bullet}</li>
@@ -426,6 +463,9 @@ export default function App() {
           <div className="brand" aria-label="Benjamin Reynolds">
             BR
           </div>
+          <a className="button ghost nav-resume" href={resumeHref}>
+            Resume
+          </a>
           <button
             type="button"
             className="theme-toggle"
@@ -486,20 +526,23 @@ export default function App() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow reveal" style={{ "--delay": "0.05s" }}>
-                Research Engineer | Automation & Systems
+                Research Engineer | Automation, Lab Systems, and Software
               </p>
               <h1 className="reveal" style={{ "--delay": "0.15s" }}>
                 Benjamin Reynolds
               </h1>
               <p className="lead reveal" style={{ "--delay": "0.25s" }}>
-                I build calm, reliable systems that help teams move complex work forward with less friction.
+                {heroStatement}
               </p>
               <div className="hero-actions reveal" style={{ "--delay": "0.35s" }}>
                 <a className="button" href="#projects" onClick={(event) => { event.preventDefault(); goToSection("projects"); }}>
-                  View work
+                  View case studies
                 </a>
                 <a className="button ghost" href="#about" onClick={(event) => { event.preventDefault(); goToSection("about"); }}>
                   View profile
+                </a>
+                <a className="button ghost" href={resumeHref}>
+                  Download resume
                 </a>
               </div>
               <div className="hero-meta reveal" style={{ "--delay": "0.45s" }}>
@@ -540,15 +583,33 @@ export default function App() {
         <section id="overview" className="section section-alt">
           <div className="container">
             <SectionHeading
-              eyebrow="Snapshot"
-              title="At a glance"
-              body="Measured scope across roles, projects, and technical depth."
+              eyebrow="Proof"
+              title="Why this work is credible"
+              body="A quick read on the domains, recognition, and operating context behind the portfolio."
             />
-            <div className="metric-grid">
-              {heroMetrics.map((metric, index) => (
-                <article key={metric.label} className="metric-card reveal" style={{ "--delay": `${index * 0.1}s` }}>
-                  <h3 data-count={metric.value}>{metric.value}</h3>
-                  <p>{metric.label}</p>
+            <div className="proof-grid">
+              {heroProofPoints.map((point, index) => (
+                <article key={point.title} className="proof-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
+                  <p className="proof-card-title">{point.title}</p>
+                  <p>{point.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="recognition" className="section">
+          <div className="container">
+            <SectionHeading
+              eyebrow="Recognition"
+              title="Selected proof points"
+              body="A small set of credentials, milestones, and placeholders that can grow into stronger social proof as more material becomes available."
+            />
+            <div className="proof-grid recognition-grid">
+              {socialProofItems.map((item, index) => (
+                <article key={item.title} className="proof-card recognition-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
+                  <p className="proof-card-title">{item.title}</p>
+                  <p>{item.body}</p>
                 </article>
               ))}
             </div>
@@ -707,6 +768,7 @@ export default function App() {
                 title="Start the conversation"
                 body="Open to collaborations in automation, lab infrastructure, and applied research engineering."
               />
+              <p className="contact-prompt reveal">{contactPrompt}</p>
               <div className="contact-links">
                 {contactLinks.map((link) => (
                   <a key={link.label} className="contact-link reveal" href={link.href}>
@@ -725,6 +787,9 @@ export default function App() {
                   <p>Direct, concise, and focused on next steps.</p>
                 </div>
               </div>
+              <a className="button ghost contact-resume reveal" href={resumeHref}>
+                Resume / CV
+              </a>
             </div>
 
             <form className="contact-form reveal" onSubmit={handleContactSubmit}>
@@ -743,7 +808,7 @@ export default function App() {
               </label>
               <label className="field">
                 <span>Message</span>
-                <textarea name="message" placeholder="What are you working on?" />
+                <textarea name="message" placeholder="What are you working on, and what kind of help do you need?" />
               </label>
               <div className="form-actions">
                 <button className="button" type="submit">
@@ -761,6 +826,7 @@ export default function App() {
           <p className="footer-meta">(c) {new Date().getFullYear()} Benjamin Reynolds</p>
           <div className="footer-links">
             <span>Denver, CO</span>
+            <a href={resumeHref}>Resume</a>
             <a href="mailto:Benjamin.g.reynolds@ucdenver.edu">Email</a>
             <a href="https://www.linkedin.com/in/benjamin-reynolds">LinkedIn</a>
           </div>

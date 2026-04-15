@@ -1,52 +1,24 @@
-import { useEffect, useState } from "react";
-import { galleryItems } from "../siteData";
+import { evidenceItems } from "../siteData";
 
-export default function GallerySection({ reducedMotion = false }) {
-  const [galleryIndex, setGalleryIndex] = useState(0);
-
-  useEffect(() => {
-    if (reducedMotion || galleryItems.length <= 1) return undefined;
-
-    const timer = window.setInterval(() => {
-      setGalleryIndex((index) => (index + 1) % galleryItems.length);
-    }, 4200);
-
-    return () => window.clearInterval(timer);
-  }, [reducedMotion]);
-
+export default function GallerySection() {
   return (
     <>
       <div className="section-heading reveal">
-        <p className="eyebrow">Visuals</p>
-        <h2>Gallery</h2>
-        <p>Abstract visual snapshots now, with room for real imagery later.</p>
+        <p className="eyebrow">Evidence</p>
+        <h2>Selected work artifacts</h2>
+        <p>
+          These are the systems, workflows, and outputs that make the work concrete. If you want screenshots, rig photos, or notebooks later, this section can grow into a visual archive.
+        </p>
       </div>
 
-      <div className="gallery-layout">
-        <article className="gallery-hero reveal" style={{ "--delay": "0.1s" }}>
-          <div className={`gallery-graphic gallery-${galleryIndex + 1}`} aria-hidden="true" />
-          <div className="gallery-copy">
-            <span className="tag">Feature reel</span>
-            <h3>{galleryItems[galleryIndex].title}</h3>
-            <p>{galleryItems[galleryIndex].body}</p>
-          </div>
-        </article>
-
-        <div className="gallery-grid">
-          {galleryItems.map((item, index) => (
-            <button
-              key={item.title}
-              type="button"
-              className={`gallery-card reveal ${index === galleryIndex ? "is-active" : ""}`}
-              style={{ "--delay": `${index * 0.1}s` }}
-              onClick={() => setGalleryIndex(index)}
-            >
-              <div className={`gallery-thumb gallery-${index + 1}`} aria-hidden="true" />
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-            </button>
-          ))}
-        </div>
+      <div className="evidence-grid">
+        {evidenceItems.map((item, index) => (
+          <article key={item.title} className="evidence-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
+            <p className="evidence-kicker">{item.proof}</p>
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))}
       </div>
     </>
   );
