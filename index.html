@@ -8,131 +8,25 @@
       name="description"
       content="Benjamin Reynolds is a research engineer focused on reliable systems, automation, and lab infrastructure."
     />
-    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (() => {
+        try {
+          const stored = localStorage.getItem("theme");
+          const theme =
+            stored === "dark" || stored === "light"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
   </head>
-  <body class="theme-home" data-page="home">
-    <div class="scroll-progress" aria-hidden="true"></div>
-    <div class="ambient">
-      <div class="orb orb-a"></div>
-      <div class="orb orb-b"></div>
-      <div class="orb orb-c"></div>
-    </div>
-
-    <header class="site-header">
-      <div class="container nav">
-        <div class="brand">BR</div>
-        <nav>
-          <a href="index.html">Home</a>
-          <a href="about.html">Profile</a>
-          <a href="experience.html">Resume</a>
-          <a href="projects.html">Work</a>
-          <a href="gallery.html">Media</a>
-          <a href="contact.html">Contact</a>
-        </nav>
-        <a class="button ghost" href="mailto:Benjamin.g.reynolds@ucdenver.edu">Let's talk</a>
-      </div>
-    </header>
-
-    <main>
-      <section class="hero">
-        <div class="container hero-grid">
-          <div class="hero-text">
-            <p class="eyebrow reveal" style="--delay: 0.05s">
-              Research Engineer | Automation & Systems
-            </p>
-            <h1 class="reveal" style="--delay: 0.15s">
-              Benjamin Reynolds
-            </h1>
-            <p class="lead reveal" style="--delay: 0.25s">
-              Research engineer focused on building calm, reliable systems and
-              helping teams move complex work forward with clarity.
-            </p>
-            <div class="hero-actions reveal" style="--delay: 0.35s">
-              <a class="button" href="about.html">View profile</a>
-              <a class="button ghost" href="projects.html">View work</a>
-            </div>
-            <div class="hero-meta reveal" style="--delay: 0.45s">
-              <span>Denver, CO</span>
-              <span><a href="tel:+13035472170">303-547-2170</a></span>
-              <span>
-                <a href="mailto:Benjamin.g.reynolds@ucdenver.edu">
-                  Benjamin.g.reynolds@ucdenver.edu
-                </a>
-              </span>
-            </div>
-          </div>
-          <div class="hero-card reveal" style="--delay: 0.2s">
-            <h2>Working Style</h2>
-            <ul>
-              <li>Systems-first thinking and steady iteration</li>
-              <li>Clear documentation and repeatable workflows</li>
-              <li>Hands-on prototyping with practical constraints</li>
-              <li>Cross-team coordination and stakeholder clarity</li>
-            </ul>
-            <div class="card-highlight">
-              <p>
-                Based in Denver, CO. Open to roles centered on automation,
-                lab infrastructure, and applied R&D.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section alt">
-        <div class="container">
-          <div class="section-head reveal">
-            <h2>Explore the site</h2>
-            <p>Condensed navigation with a clean path to experience, work, and visuals.</p>
-          </div>
-          <div class="home-grid">
-            <a class="home-card reveal" href="about.html" style="--delay: 0.1s">
-              <h3>Profile</h3>
-              <span>Summary, operating style, and focus areas.</span>
-            </a>
-            <a class="home-card reveal" href="experience.html" style="--delay: 0.2s">
-              <h3>Resume</h3>
-              <span>Experience, education, and technical strengths.</span>
-            </a>
-            <a class="home-card reveal" href="projects.html" style="--delay: 0.3s">
-              <h3>Work</h3>
-              <span>Selected systems, tools, and project builds.</span>
-            </a>
-            <a class="home-card reveal" href="gallery.html" style="--delay: 0.4s">
-              <h3>Media</h3>
-              <span>Visuals and motion snapshots of lab systems.</span>
-            </a>
-            <a class="home-card reveal" href="contact.html" style="--delay: 0.5s">
-              <h3>Contact</h3>
-              <span>Get in touch for collaboration or opportunities.</span>
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="section alt">
-      <div class="container contact">
-        <div class="contact-copy reveal">
-          <h2>Ready for the next system build?</h2>
-          <p>
-            Open to collaborations in neuroscience engineering, behavioral
-            automation, and lab infrastructure.
-          </p>
-        </div>
-        <div class="contact-actions reveal" style="--delay: 0.2s">
-          <a class="button" href="mailto:Benjamin.g.reynolds@ucdenver.edu">
-            Benjamin.g.reynolds@ucdenver.edu
-          </a>
-          <a class="button ghost" href="tel:+13035472170">303-547-2170</a>
-          <a class="button ghost" href="https://www.linkedin.com/in/benjamin-reynolds">LinkedIn</a>
-          <span class="location">Denver, CO</span>
-        </div>
-        <p class="footer-meta">(c) <span id="year"></span> Benjamin Reynolds</p>
-      </div>
-    </footer>
-
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-    <script src="script.js"></script>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
