@@ -3,6 +3,8 @@
 This file is intentionally left untracked.
 It describes how the current version of the site is built, how the SPA is organized, and what each major subsystem is responsible for.
 
+Note: the old compatibility HTML shells were removed after the SPA-only migration. Any references to `about.html`, `contact.html`, `experience.html`, `gallery.html`, or `projects.html` are historical only.
+
 ## 1. Architectural Summary
 
 This repository is a client-rendered React SPA built with Vite.
@@ -427,4 +429,3 @@ If you need to change the site:
 - prefer styling in `spa.css`
 - keep the site calm and recruiter-friendly
 - don’t introduce unnecessary abstractions
-

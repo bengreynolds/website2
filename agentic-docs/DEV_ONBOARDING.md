@@ -3,6 +3,8 @@
 This file is intentionally left untracked.
 It is the practical starting point for a new developer coming into this repository.
 
+Note: the repository is now SPA-only. The old compatibility page shells were removed, so any mentions of `about.html`, `contact.html`, `experience.html`, `gallery.html`, or `projects.html` are historical context only.
+
 ## 1. What This Repo Is
 
 This is a personal portfolio website for Benjamin Reynolds.
@@ -332,4 +334,3 @@ If the next change starts to feel broad, the likely safe expansion path is:
 
 Do not broaden scope silently.
 The site currently works best as a lightweight SPA with one clear content model.
-

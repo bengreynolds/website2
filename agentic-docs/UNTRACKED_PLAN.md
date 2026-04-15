@@ -3,6 +3,8 @@
 This file is intentionally left untracked.
 It is the current-state reference for the website, the implementation status, the intended goals, and the remaining work.
 
+Note: the SPA-only migration is complete. The old compatibility HTML shells were removed, so any mentions of `about.html`, `contact.html`, `experience.html`, `gallery.html`, or `projects.html` in the historical notes should be treated as legacy context.
+
 Related docs:
 - [DEV_ONBOARDING.md](./DEV_ONBOARDING.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
