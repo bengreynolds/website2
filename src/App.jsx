@@ -2,19 +2,25 @@ import { Suspense, lazy, memo, useCallback, useEffect, useMemo, useState } from 
 import {
   aboutCards,
   contactLinks,
-  contactPrompt,
   education,
   experience,
-  heroProofPoints,
   heroStatement,
   navigation,
   projects,
-  resumeHref,
-  socialProofItems,
   skillGroups,
 } from "./siteData";
 
 const sectionIds = navigation.map((item) => item.id);
+const navAccentBySection = {
+  home: "#c17537",
+  about: "#6b8555",
+  skills: "#c8953b",
+  experience: "#b06442",
+  projects: "#cb7838",
+  goals: "#7a628e",
+  gallery: "#665276",
+  contact: "#d69354",
+};
 const THEME_STORAGE_KEY = "theme";
 const GallerySection = lazy(() => import("./sections/GallerySection"));
 
@@ -201,14 +207,14 @@ function SectionHeading({ eyebrow, title, body, align = "left" }) {
 }
 
 const skillVisuals = {
-  scientific: { kind: "chart", accent: "#c96a2f" },
-  acquisition: { kind: "camera", accent: "#0f8b8d" },
-  packaging: { kind: "box", accent: "#2c6bed" },
-  embedded: { kind: "chip", accent: "#8b5cf6" },
-  automation: { kind: "network", accent: "#db2777" },
-  physical: { kind: "draft", accent: "#d97706" },
-  support: { kind: "wrench", accent: "#16a34a" },
-  developer: { kind: "code", accent: "#4f46e5" },
+  scientific: { kind: "chart", accent: "#c86a2d" },
+  acquisition: { kind: "camera", accent: "#8c5a8f" },
+  packaging: { kind: "box", accent: "#5f64b8" },
+  embedded: { kind: "chip", accent: "#a65544" },
+  automation: { kind: "network", accent: "#b7546e" },
+  physical: { kind: "draft", accent: "#c3842e" },
+  support: { kind: "wrench", accent: "#72813d" },
+  developer: { kind: "code", accent: "#5367a6" },
 };
 
 function getVisualMeta(text = "") {
@@ -351,6 +357,50 @@ function GlyphIcon({ kind }) {
           <path d="M26 12l-4 24" />
         </svg>
       );
+    case "mail":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="10" y="14" width="28" height="20" rx="4" />
+          <path d="M12 18l12 9 12-9" />
+        </svg>
+      );
+    case "phone":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M16 10h4l3 8-4 3c1 3 4 6 7 7l3-4 8 3v4c0 2-2 4-4 4-13 0-23-10-23-23 0-2 2-4 4-4Z" />
+        </svg>
+      );
+    case "linkedin":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="8" y="8" width="32" height="32" rx="8" />
+          <path d="M17 21v13M17 16.5v.5" />
+          <path d="M24 34V21" />
+          <path d="M24 26.5c0-3 1.8-5 4.5-5s4.5 2 4.5 5V34" />
+        </svg>
+      );
+    case "github":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M24 10a14 14 0 0 0-4.4 27.3c.7.1.9-.3.9-.7v-2.5c-3.7.8-4.5-1.6-4.5-1.6-.6-1.4-1.5-1.8-1.5-1.8-1.2-.9.1-.9.1-.9 1.3.1 2 .7 2.4 1.3 1.2 2.1 3.2 1.5 4 .1.1-.9.5-1.5.9-1.9-3-.3-6.2-1.5-6.2-6.8 0-1.5.5-2.7 1.3-3.7-.1-.4-.6-1.7.1-3.5 0 0 1.1-.4 3.8 1.4a13.4 13.4 0 0 1 6.9 0c2.7-1.8 3.8-1.4 3.8-1.4.7 1.8.3 3.1.1 3.5.8 1 1.3 2.2 1.3 3.7 0 5.3-3.2 6.5-6.3 6.8.5.4 1 1.3 1 2.6v3.8c0 .4.2.8.9.7A14 14 0 0 0 24 10Z" />
+        </svg>
+      );
+    case "download":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M24 10v16" />
+          <path d="M17 23l7 7 7-7" />
+          <path d="M12 34h24" />
+        </svg>
+      );
+    case "globe":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <circle cx="24" cy="24" r="14" />
+          <path d="M10 24h28" />
+          <path d="M24 10c4.5 4.4 7 9.2 7 14s-2.5 9.6-7 14c-4.5-4.4-7-9.2-7-14s2.5-9.6 7-14Z" />
+        </svg>
+      );
     default:
       return (
         <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -361,33 +411,16 @@ function GlyphIcon({ kind }) {
   }
 }
 
-function CardVisual({ title, label, text }) {
-  const meta = getVisualMeta(`${title} ${label} ${text}`);
-
-  return (
-    <div className="card-visual" style={{ "--visual-accent": meta.accent }}>
-      <div className="card-visual-icon" aria-hidden="true">
-        <GlyphIcon kind={meta.kind} />
-      </div>
-      <div className="card-visual-copy">
-        {label ? <span>{label}</span> : null}
-        <strong>{title}</strong>
-        {text ? <p className="card-visual-text">{text}</p> : null}
-      </div>
-    </div>
-  );
-}
-
 function HeroSystemMap() {
   const nodes = [
-    { label: "Concept", kind: "draft" },
-    { label: "Production", kind: "box" },
-    { label: "Deployment", kind: "camera" },
+    { label: "Design", kind: "draft" },
+    { label: "Build", kind: "box" },
+    { label: "Release", kind: "camera" },
     { label: "Support", kind: "wrench" },
   ];
 
   return (
-      <div className="hero-map" aria-label="Systems map">
+    <div className="hero-map" aria-label="Systems map">
       {nodes.map((node, index) => (
         <div key={node.label} className={`hero-map-node node-${index + 1}`}>
           <span className="hero-map-icon" aria-hidden="true">
@@ -398,7 +431,7 @@ function HeroSystemMap() {
       ))}
       <div className="hero-map-core">
         <span>Benjamin Reynolds</span>
-        <strong>Design to Deployment</strong>
+        <strong>Systems</strong>
       </div>
     </div>
   );
@@ -406,17 +439,17 @@ function HeroSystemMap() {
 
 function BioCompass() {
   const points = [
-    { label: "Python + tooling", kind: "chart" },
-    { label: "Packaging + deployment", kind: "box" },
-    { label: "CAD + build work", kind: "draft" },
-    { label: "IT support + maintenance", kind: "wrench" },
+    { label: "Python", kind: "chart" },
+    { label: "Packaging", kind: "box" },
+    { label: "CAD", kind: "draft" },
+    { label: "Maintenance", kind: "wrench" },
   ];
 
   return (
     <div className="bio-compass" aria-label="Portfolio capability compass">
       <div className="bio-compass-core">
         <span>Focus</span>
-        <strong>Full Scope</strong>
+        <strong>Systems</strong>
       </div>
       {points.map((point, index) => (
         <div key={point.label} className={`bio-compass-node node-${index + 1}`}>
@@ -435,9 +468,9 @@ function CapabilityMap({ groups }) {
     <div className="capability-map reveal">
       <div className="capability-map-copy">
         <p className="eyebrow">Map</p>
-        <h3>Capability density by area</h3>
+        <h3>Focus areas</h3>
         <p>
-          The stack is intentionally wide: explicit tools, packaging workflows, embedded deployment, physical build work, and support are all represented here.
+          The stack is intentionally wide, but the graph stays quiet and only gives a sense of where the work is strongest.
         </p>
       </div>
       <div className="capability-bars" aria-label="Skill density chart">
@@ -453,7 +486,6 @@ function CapabilityMap({ groups }) {
             >
               <div className="capability-bar-head">
                 <span>{group.title}</span>
-                <strong>{group.items.length}</strong>
               </div>
               <div className="capability-bar-track" aria-hidden="true">
                 <div className="capability-bar-fill" style={{ width }} />
@@ -468,53 +500,19 @@ function CapabilityMap({ groups }) {
 
 const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
   return (
-    <details className={`project-card reveal ${project.featured ? "is-featured" : ""}`}>
-      <summary className="project-card-summary">
-        <div className="project-card-top">
-          <div className="tag-row">
-            {project.featured ? <span className="tag">Featured</span> : null}
-            <span className="tag">Case study</span>
-            {project.tags.map((tag) => (
-              <span key={tag} className="tag">
-                {tag}
-              </span>
-            ))}
-          </div>
-          <span className="project-cue">Open details</span>
-        </div>
+    <article className={`project-card reveal ${project.featured ? "is-featured" : ""}`}>
+      <button
+        type="button"
+        className="project-card-trigger"
+        onClick={() => onOpen(project)}
+        aria-label={`Open case study for ${project.title}`}
+      >
+        {project.featured ? <span className="project-card-kicker">Featured system</span> : null}
         <h3>{project.title}</h3>
         <p>{project.summary}</p>
-      </summary>
-      <div className="project-card-body">
-        <div className="project-scene" aria-hidden="true">
-          <div className="project-scene-icon">
-            <GlyphIcon kind={getVisualMeta(`${project.title} ${project.summary}`).kind} />
-          </div>
-          <div className="project-scene-copy">
-            <span>{project.category}</span>
-            <strong>{project.tags.join(" / ")}</strong>
-          </div>
-        </div>
-        <div className="project-snapshot">
-          <div>
-            <span>Problem</span>
-            <strong>{project.challenge || "[PLACEHOLDER: project problem]"}</strong>
-          </div>
-          <div>
-            <span>Result</span>
-            <strong>{project.result || "[PLACEHOLDER: project result]"}</strong>
-          </div>
-        </div>
-        <ul>
-          {project.bullets.slice(0, project.featured ? 3 : 2).map((bullet) => (
-            <li key={bullet}>{bullet}</li>
-          ))}
-        </ul>
-        <button type="button" className="button ghost project-open" onClick={() => onOpen(project)}>
-          Open full case study
-        </button>
-      </div>
-    </details>
+        <span className="project-cue">Open case study</span>
+      </button>
+    </article>
   );
 });
 
@@ -549,16 +547,16 @@ function ProjectModal({ project, onClose }) {
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close project details">
           Close
         </button>
-        <div className="tag-row">
-          {project.tags.map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
-          ))}
+        <div className="project-modal-media" aria-hidden="true">
+          <div className="project-modal-media-frame">
+            <span>Visual space</span>
+            <strong>Reserved for renders, animations, and photos</strong>
+            <p>Use this area for real-world imagery when you are ready to add it.</p>
+          </div>
         </div>
         <h3 id="project-title">{project.title}</h3>
         <p>{project.summary}</p>
-        <div className="case-study-grid">
+        <div className="case-study-stack">
           <article>
             <span>Problem</span>
             <p>{project.challenge || "[PLACEHOLDER: project problem]"}</p>
@@ -580,11 +578,14 @@ function ProjectModal({ project, onClose }) {
             <p>{project.role || "[PLACEHOLDER: your role on this project]"}</p>
           </article>
         </div>
-        <ul>
-          {project.bullets.map((bullet) => (
-            <li key={bullet}>{bullet}</li>
-          ))}
-        </ul>
+        <div className="project-modal-detail">
+          <span>Implementation notes</span>
+          <ul>
+            {project.bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+        </div>
         <div className="modal-actions">
           <a className="button" href="#contact" onClick={goToContact}>
             Discuss this project
@@ -603,7 +604,6 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("home");
   const [projectFilter, setProjectFilter] = useState("all");
   const [selectedProject, setSelectedProject] = useState(null);
-  const [contactStatus, setContactStatus] = useState("mailto");
   const [theme, setTheme] = useState(getInitialTheme);
   const reducedMotion = usePrefersReducedMotion();
   const { progress, headerScrolled } = useScrollProgress();
@@ -707,26 +707,6 @@ export default function App() {
     });
   }, []);
 
-  const handleContactSubmit = (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get("name") || "").trim();
-    const email = String(form.get("email") || "").trim();
-    const message = String(form.get("message") || "").trim();
-
-    setContactStatus("draft");
-    const subject = encodeURIComponent(`Portfolio inquiry from ${name || "a visitor"}`);
-    const body = encodeURIComponent(
-      [
-        `Name: ${name || "Not provided"}`,
-        `Email: ${email || "Not provided"}`,
-        "",
-        message || "No message provided.",
-      ].join("\n")
-    );
-    window.location.href = `mailto:Benjamin.g.reynolds@ucdenver.edu?subject=${subject}&body=${body}`;
-  };
-
   return (
     <div className="spa-shell">
       <div className="scroll-progress" style={{ width: `${progress * 100}%` }} aria-hidden="true" />
@@ -741,9 +721,6 @@ export default function App() {
           <div className="brand" aria-label="Benjamin Reynolds">
             BR
           </div>
-          <a className="button ghost nav-resume" href={resumeHref}>
-            Resume
-          </a>
           <button
             type="button"
             className="theme-toggle"
@@ -781,6 +758,7 @@ export default function App() {
                 href={`#${item.id}`}
                 className={activeSection === item.id ? "is-active" : ""}
                 aria-current={activeSection === item.id ? "page" : undefined}
+                style={{ "--nav-accent": navAccentBySection[item.id] || "var(--accent)" }}
                 onClick={(event) => {
                   event.preventDefault();
                   goToSection(item.id);
@@ -790,12 +768,6 @@ export default function App() {
               </a>
             ))}
           </nav>
-          <a className="button ghost nav-cta" href="#contact" onClick={(event) => {
-            event.preventDefault();
-            goToSection("contact");
-          }}>
-            Let's talk
-          </a>
         </div>
       </header>
 
@@ -804,7 +776,7 @@ export default function App() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow reveal" style={{ "--delay": "0.05s" }}>
-                Full-Scope Systems Engineer | Design to Deployment
+                Full-Scope Systems Engineer
               </p>
               <h1 className="reveal" style={{ "--delay": "0.15s" }}>
                 Benjamin Reynolds
@@ -819,14 +791,9 @@ export default function App() {
                 <a className="button ghost" href="#about" onClick={(event) => { event.preventDefault(); goToSection("about"); }}>
                   View profile
                 </a>
-                <a className="button ghost" href={resumeHref}>
-                  Download resume
-                </a>
               </div>
               <div className="hero-meta reveal" style={{ "--delay": "0.45s" }}>
                 <span>Denver, CO</span>
-                <span><a href="tel:+13035472170">303-547-2170</a></span>
-                <span><a href="mailto:Benjamin.g.reynolds@ucdenver.edu">Benjamin.g.reynolds@ucdenver.edu</a></span>
               </div>
               <div className="hero-tiles reveal" style={{ "--delay": "0.5s" }}>
                 <a href="#experience" onClick={(event) => { event.preventDefault(); goToSection("experience"); }}>
@@ -835,61 +802,24 @@ export default function App() {
                 <a href="#gallery" onClick={(event) => { event.preventDefault(); goToSection("gallery"); }}>
                   Gallery
                 </a>
-                <a href="#contact" onClick={(event) => { event.preventDefault(); goToSection("contact"); }}>
-                  Contact
-                </a>
               </div>
             </div>
 
             <aside className="hero-panel reveal" style={{ "--delay": "0.2s" }}>
               <div className="panel-header">
                 <span className="tag">Working style</span>
-                <span className="panel-note">Concept, production, deployment</span>
+                <span className="panel-note">Practical delivery</span>
               </div>
               <HeroSystemMap />
               <ul>
-                <li>Clear documentation and repeatable workflows.</li>
-                <li>Hands-on prototyping with practical constraints.</li>
-                <li>Cross-team coordination, user support, and stakeholder clarity.</li>
+                <li>Clear documentation and handoffs.</li>
+                <li>Practical builds that hold up in use.</li>
+                <li>Cross-team coordination when systems change.</li>
               </ul>
               <div className="panel-highlight">
-                Open to roles centered on full-scope systems engineering, from concept through physical production, software deployment, support, and applied development.
+                I work best when technical detail connects to a usable result.
               </div>
             </aside>
-          </div>
-        </section>
-
-        <section id="overview" className="section section-alt">
-          <div className="container">
-            <SectionHeading
-              eyebrow="Proof"
-              title="Why this work is credible"
-              body="A quick read on the domains, recognition, and operating context behind the portfolio."
-            />
-            <div className="proof-grid">
-              {heroProofPoints.map((point, index) => (
-                <article key={point.title} className="proof-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
-                  <CardVisual title={point.title} label="Proof" text={point.body} />
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="recognition" className="section">
-          <div className="container">
-            <SectionHeading
-              eyebrow="Recognition"
-              title="Selected proof points"
-              body="A compact set of credentials and operational proof points across software, hardware, and support."
-            />
-            <div className="proof-grid recognition-grid">
-              {socialProofItems.map((item, index) => (
-                <article key={item.title} className="proof-card recognition-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
-                  <CardVisual title={item.title} label="Recognition" text={item.body} />
-                </article>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -897,36 +827,28 @@ export default function App() {
           <div className="container bio-layout">
             <aside className="bio-portrait reveal">
               <div className="portrait-mark" aria-hidden="true" />
-              <div className="tag-row">
-                <span className="tag">Systems Engineering</span>
-                <span className="tag">Production</span>
-                <span className="tag">Deployment</span>
-              </div>
               <BioCompass />
-              <p>Denver-based, working across design, build, deployment, support, and operational systems.</p>
             </aside>
 
             <div className="bio-copy">
               <SectionHeading
                 eyebrow="Profile"
                 title="Bio"
-                body="I build reliable systems from design ideas through physical production, software deployment, support, and maintenance."
+                body="I build practical systems for real-world use."
               />
               <div className="bio-text reveal">
                 <p>
-                  I'm a full-scope systems engineer working across scientific Python, desktop application development, acquisition and control, packaging and deployment, and analysis tooling.
-                  My background is intentionally hybrid: CAD, electronics, embedded and GPU toolchains, fabrication, and the physical systems that keep complex tools usable in practice.
-                </p>
-                <p>
-                  I work closely with teams and stakeholders to plan upgrades, document processes, support users, and keep systems dependable inside real institutional constraints.
-                  That includes IT provisioning, troubleshooting, recovery procedures, approved workarounds for platform limits, vendor coordination, hands-on maintenance, and production-minded deployment.
+                  I work across scientific Python, desktop application development, acquisition and control, packaging, analysis tooling, CAD, electronics, embedded and GPU toolchains, and the physical systems that keep tools usable in practice.
+                  I also handle documentation, troubleshooting, recovery, vendor coordination, and practical workarounds inside real institutional constraints.
                 </p>
               </div>
 
               <div className="about-grid">
                 {aboutCards.map((card, index) => (
-                  <article key={card.title} className="about-card reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
-                    <CardVisual title={card.title} label="About" text={card.body} />
+                  <article key={card.title} className="about-card about-card-simple reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
+                    <span className="about-card-kicker">0{index + 1}</span>
+                    <h3>{card.title}</h3>
+                    <p>{card.body}</p>
                   </article>
                 ))}
               </div>
@@ -936,11 +858,11 @@ export default function App() {
 
         <section id="skills" className="section section-alt">
           <div className="container">
-              <SectionHeading
-                eyebrow="Capabilities"
-                title="Skills and tech stack"
-                body="Grouped by concrete tools, runtimes, deployment workflows, and physical systems from design to release."
-              />
+            <SectionHeading
+              eyebrow="Capabilities"
+              title="Skills and tech stack"
+              body="A focused stack across analysis, deployment, embedded work, and physical build systems."
+            />
             <CapabilityMap groups={skillGroups} />
             <div className="skill-grid">
               {skillGroups.map((group, index) => {
@@ -953,7 +875,6 @@ export default function App() {
                         <GlyphIcon kind={meta.kind} />
                       </div>
                       <div className="skill-card-copy">
-                        <p className="skill-card-count">{group.items.length} explicit skills</p>
                         <h3>{group.title}</h3>
                       </div>
                     </div>
@@ -976,7 +897,7 @@ export default function App() {
             <SectionHeading
               eyebrow="History"
               title="Experience"
-              body="Engineering roles and systems work across support, hardware, and deployment."
+              body="Roles across support, hardware, software, and delivery."
             />
             <div className="timeline">
               {experience.map((item, index) => (
@@ -1002,11 +923,11 @@ export default function App() {
             </div>
 
             <div className="edu-grid">
-              <SectionHeading
-                eyebrow="Education"
-                title="Academic foundation"
-                body="Academic training and residency that support the systems work."
-              />
+            <SectionHeading
+              eyebrow="Education"
+              title="Academic foundation"
+              body="Academic training and residency that support the systems work."
+            />
               <div className="edu-cards">
                 {education.map((item, index) => (
                   <article key={item.title} className="edu-card reveal" style={{ "--delay": `${index * 0.1}s` }}>
@@ -1025,7 +946,7 @@ export default function App() {
             <SectionHeading
               eyebrow="Work"
               title="Selected systems and builds"
-              body="Representative work spanning automation, data systems, hardware, and applied engineering."
+              body="Representative work across automation, data systems, hardware, and applied engineering."
             />
 
             <div className="filter-row reveal">
@@ -1057,77 +978,60 @@ export default function App() {
           </div>
         </section>
 
+        <section id="goals" className="section">
+          <div className="container goals-layout">
+            <SectionHeading
+              eyebrow="Future"
+              title="What I'm looking for"
+              body="A role built around ownership, coordination, and follow-through."
+            />
+            <div className="goals-copy reveal">
+              <p>
+                I want work that lets me stay close to the full life cycle of a system, from early design through physical production,
+                release, and handoff. I work best when I can see how choices affect the finished system.
+              </p>
+              <p>
+                Longer term, I want to grow into project management. I like keeping work organized, translating between technical and
+                non-technical stakeholders, and making sure plans survive real-world constraints.
+              </p>
+              <p>
+                As an employee, I am flexible and practical. I am open to the East Coast, overseas opportunities, remote, hybrid, or on-site
+                work, and I would welcome travel-based roles when being on the ground helps the work move faster.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section id="contact" className="section section-alt">
           <div className="container contact-grid">
             <div className="contact-copy">
               <SectionHeading
                 eyebrow="Contact"
                 title="Start the conversation"
-                body="Open to collaborations in full-scope systems engineering, automation, hardware, deployment, and user support."
+                body="Direct links for email, phone, LinkedIn, GitHub, and the resume download."
               />
-              <p className="contact-prompt reveal">{contactPrompt}</p>
-              <div className="contact-route reveal">
-                <div className="contact-route-node">
-                  <GlyphIcon kind="wrench" />
-                  <span>Support</span>
-                </div>
-                <div className="contact-route-line" aria-hidden="true" />
-                <div className="contact-route-node">
-                  <GlyphIcon kind="box" />
-                  <span>Deploy</span>
-                </div>
-                <div className="contact-route-line" aria-hidden="true" />
-                <div className="contact-route-node">
-                  <GlyphIcon kind="chart" />
-                  <span>Build</span>
-                </div>
-              </div>
               <div className="contact-links">
                 {contactLinks.map((link) => (
-                  <a key={link.label} className="contact-link reveal" href={link.href}>
-                    <span>{link.label}</span>
-                    <strong>{link.value}</strong>
+                  <a
+                    key={link.label}
+                    className="contact-link reveal"
+                    href={link.href}
+                    download={link.download ? "" : undefined}
+                    target={link.href.startsWith("http") ? "_blank" : undefined}
+                    rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                    title={link.download ? "Downloads the resume / CV file" : link.value}
+                  >
+                    <span className="contact-link-icon" aria-hidden="true">
+                      <GlyphIcon kind={link.icon} />
+                    </span>
+                    <span className="contact-link-copy">
+                      <span>{link.label}</span>
+                      <strong>{link.value}</strong>
+                    </span>
                   </a>
                 ))}
               </div>
-              <div className="contact-notes reveal">
-                <div className="note-card">
-                  <CardVisual title="Best for" label="Contact" text="Collaborations, hiring conversations, and project inquiries." />
-                </div>
-                <div className="note-card">
-                  <CardVisual title="Response style" label="Contact" text="Direct, concise, and focused on next steps." />
-                </div>
-              </div>
-              <a className="button ghost contact-resume reveal" href={resumeHref}>
-                Resume / CV
-              </a>
             </div>
-
-            <form className="contact-form reveal" onSubmit={handleContactSubmit}>
-              <div className="section-heading is-centered reveal">
-                <p className="eyebrow">Message</p>
-                <h2>Send a note</h2>
-                <p>A short message is enough. The form opens your email client with the details filled in.</p>
-              </div>
-              <label className="field">
-                <span>Name</span>
-                <input name="name" type="text" autoComplete="name" placeholder="Your name" />
-              </label>
-              <label className="field">
-                <span>Email</span>
-                <input name="email" type="email" autoComplete="email" placeholder="you@example.com" />
-              </label>
-              <label className="field">
-                <span>Message</span>
-                <textarea name="message" placeholder="What are you working on, and what kind of help do you need?" />
-              </label>
-              <div className="form-actions">
-                <button className="button" type="submit">
-                  Open email draft
-                </button>
-                <span className="form-status">{contactStatus === "draft" ? "Draft opened in mail client." : "Mailto fallback enabled."}</span>
-              </div>
-            </form>
           </div>
         </section>
       </main>
@@ -1137,9 +1041,6 @@ export default function App() {
           <p className="footer-meta">(c) {new Date().getFullYear()} Benjamin Reynolds</p>
           <div className="footer-links">
             <span>Denver, CO</span>
-            <a href={resumeHref}>Resume</a>
-            <a href="mailto:Benjamin.g.reynolds@ucdenver.edu">Email</a>
-            <a href="https://www.linkedin.com/in/benjamin-reynolds">LinkedIn</a>
           </div>
         </div>
       </footer>

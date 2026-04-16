@@ -1,52 +1,18 @@
 export const navigation = [
   { id: "home", label: "Home" },
   { id: "about", label: "About" },
-  { id: "recognition", label: "Recognition" },
   { id: "skills", label: "Skills" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
   { id: "gallery", label: "Gallery" },
+  { id: "goals", label: "Future" },
   { id: "contact", label: "Contact" },
 ];
 
 export const resumeHref = "/Benjamin_Reynolds_Updated_CV_Fall2025.docx";
 
 export const heroStatement =
-  "I build and support full-scope systems across concept, physical production, software deployment, and operations so critical work stays reliable.";
-
-export const heroProofPoints = [
-  {
-    title: "Full-scope systems engineering",
-    body: "Concept work, prototypes, desktop tools, data pipelines, automation, and control workflows in active use.",
-  },
-  {
-    title: "Design to deployment",
-    body: "I move from ideas and drawings into physical builds, shipped software, and operational handoff.",
-  },
-  {
-    title: "Physical systems",
-    body: "CAD, electronics, fabrication, assembly, repair, and production hardware for real-world equipment.",
-  },
-  {
-    title: "Support and operations",
-    body: "IT help for users, deployment support, vendor coordination, and troubleshooting.",
-  },
-];
-
-export const socialProofItems = [
-  {
-    title: "CEDC Design Expo Winner",
-    body: "Recognition for a senior design project that combined engineering, validation, and delivery.",
-  },
-  {
-    title: "Dean's List 2021-2023",
-    body: "Consistent academic performance through the bioengineering program.",
-  },
-  {
-    title: "Systems and support",
-    body: "Hands-on work spanning software, hardware, maintenance, and user support in live operating environments.",
-  },
-];
+  "I turn design ideas into dependable systems people can actually use.";
 
 export const aboutCards = [
   {
@@ -60,10 +26,6 @@ export const aboutCards = [
   {
     title: "Physical Build Work",
     body: "I move between CAD, KiCad, Autodesk tools, Adobe Illustrator, electronics, embedded setup, fabrication, and hardware maintenance.",
-  },
-  {
-    title: "Hybrid Background",
-    body: "I connect design ideas, physical production, software deployment, and support in one workflow instead of treating them as separate jobs.",
   },
 ];
 
@@ -364,34 +326,10 @@ export const projects = [
   },
 ];
 
-export const evidenceItems = [
-  {
-    title: "Systems architecture",
-    body: "Design, acquisition, control, and structured data workflows.",
-    proof: "Automation, data flow, and timing.",
-  },
-  {
-    title: "User support and operational tooling",
-    body: "Deployment support, troubleshooting, and handoffs for internal users.",
-    proof: "IT help and maintainable operations.",
-  },
-  {
-    title: "Hardware build and integration",
-    body: "CAD, electronics, and physical systems that have to work in practice.",
-    proof: "Build, repair, and maintain.",
-  },
-  {
-    title: "Validation and maintenance workflow",
-    body: "SOPs, testing gates, inventory, and preventive maintenance kept visible.",
-    proof: "Safer deployment and easier upkeep in production-like environments.",
-  },
-];
-
-export const contactPrompt =
-  "If you need someone who can support users, keep systems reliable, and build practical tooling across software and hardware, send a note. I am also open to collaborations, questions, and conversations about roles.";
-
 export const contactLinks = [
-  { label: "Email", href: "mailto:Benjamin.g.reynolds@ucdenver.edu", value: "Benjamin.g.reynolds@ucdenver.edu" },
-  { label: "Phone", href: "tel:+13035472170", value: "303-547-2170" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/benjamin-reynolds", value: "LinkedIn" },
+  { label: "Email", icon: "mail", href: "mailto:Benjamin.g.reynolds@ucdenver.edu", value: "Benjamin.g.reynolds@ucdenver.edu" },
+  { label: "Phone", icon: "phone", href: "tel:+13035472170", value: "303-547-2170" },
+  { label: "LinkedIn", icon: "linkedin", href: "https://www.linkedin.com/in/benjamin-reynolds", value: "LinkedIn" },
+  { label: "GitHub", icon: "github", href: "https://github.com/bengreynolds", value: "github.com/bengreynolds" },
+  { label: "Resume / CV", icon: "download", href: resumeHref, value: "Download CV (.docx)", download: true },
 ];
