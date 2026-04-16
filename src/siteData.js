@@ -12,24 +12,24 @@ export const navigation = [
 export const resumeHref = "/Benjamin_Reynolds_Updated_CV_Fall2025.docx";
 
 export const heroStatement =
-  "I build and support research systems across software, hardware, and lab operations so complex work stays reliable.";
+  "I build and support full-scope systems across concept, physical production, software deployment, and operations so critical work stays reliable.";
 
 export const heroProofPoints = [
   {
-    title: "Research engineering",
-    body: "Behavioral systems, NWB pipelines, desktop tools, and lab automation in active use.",
+    title: "Full-scope systems engineering",
+    body: "Concept work, prototypes, desktop tools, data pipelines, automation, and control workflows in active use.",
+  },
+  {
+    title: "Design to deployment",
+    body: "I move from ideas and drawings into physical builds, shipped software, and operational handoff.",
   },
   {
     title: "Physical systems",
-    body: "CAD, electronics, assembly, repair, and hardware integration for real lab equipment.",
+    body: "CAD, electronics, fabrication, assembly, repair, and production hardware for real-world equipment.",
   },
   {
-    title: "Systems support",
+    title: "Support and operations",
     body: "IT help for users, deployment support, vendor coordination, and troubleshooting.",
-  },
-  {
-    title: "Operational ownership",
-    body: "SOPs, validation gates, vendor coordination, inventory, and preventive maintenance.",
   },
 ];
 
@@ -43,29 +43,33 @@ export const socialProofItems = [
     body: "Consistent academic performance through the bioengineering program.",
   },
   {
-    title: "Lab systems and support",
-    body: "Hands-on work spanning software, hardware, maintenance, and user support in live research settings.",
+    title: "Systems and support",
+    body: "Hands-on work spanning software, hardware, maintenance, and user support in live operating environments.",
   },
 ];
 
 export const aboutCards = [
   {
     title: "System Reliability",
-    body: "I build around validation, documentation, recovery paths, and packaging so systems stay dependable after launch.",
+    body: "I build around validation, documentation, recovery paths, and packaging so systems stay dependable from prototype through launch.",
   },
   {
-    title: "Scientific Tooling",
+    title: "Software Tooling",
     body: "I work in Python, SciPy, NumPy, Pandas, OpenCV, PySide6, NWB, and the workflows around them.",
   },
   {
     title: "Physical Build Work",
-    body: "I move between CAD, KiCad, Autodesk tools, Adobe Illustrator, electronics, embedded setup, and hardware maintenance.",
+    body: "I move between CAD, KiCad, Autodesk tools, Adobe Illustrator, electronics, embedded setup, fabrication, and hardware maintenance.",
+  },
+  {
+    title: "Hybrid Background",
+    body: "I connect design ideas, physical production, software deployment, and support in one workflow instead of treating them as separate jobs.",
   },
 ];
 
 export const skillGroups = [
   {
-    title: "Scientific Python and analysis",
+    title: "Python and data analysis",
     items: [
       "Python",
       "NumPy",
@@ -196,7 +200,7 @@ export const experience = [
     dates: "Nov 2023 - Present",
     bullets: [
       "Build automated behavioral systems, NWB pipelines, desktop tools, and analysis workflows.",
-      "Support users with lab hardware/software troubleshooting, deployment validation, and handoffs.",
+      "Support users with hardware/software troubleshooting, deployment validation, and handoffs.",
       "Lead upgrade cycles with vendors, testing gates, and maintenance planning.",
       "Own rig infrastructure, inventory, preventive maintenance, and SOPs.",
     ],
@@ -242,7 +246,7 @@ export const education = [
   {
     title: "Christie Lab - CU Anschutz",
     subtitle: "Research Engineering Residency",
-    body: "Hands-on automation, experimental infrastructure, and lab operations.",
+    body: "Hands-on automation, systems maintenance, and operations work.",
   },
 ];
 
@@ -282,7 +286,7 @@ export const projects = [
     bullets: [
       "Integrated camera capture, tracking, and hardware control.",
       "Designed for long-running sessions and repeatable setup.",
-      "Kept maintenance and deployment practical for live lab use.",
+      "Kept maintenance and deployment practical for live use.",
     ],
   },
   {
@@ -362,29 +366,29 @@ export const projects = [
 
 export const evidenceItems = [
   {
-    title: "Research lab systems architecture",
-    body: "Behavioral control, acquisition, and NWB-oriented workflows.",
+    title: "Systems architecture",
+    body: "Design, acquisition, control, and structured data workflows.",
     proof: "Automation, data flow, and timing.",
   },
   {
     title: "User support and operational tooling",
-    body: "Deployment support, troubleshooting, and handoffs for lab users.",
+    body: "Deployment support, troubleshooting, and handoffs for internal users.",
     proof: "IT help and maintainable operations.",
   },
   {
     title: "Hardware build and integration",
-    body: "CAD, electronics, and physical systems that have to work in the lab.",
+    body: "CAD, electronics, and physical systems that have to work in practice.",
     proof: "Build, repair, and maintain.",
   },
   {
     title: "Validation and maintenance workflow",
     body: "SOPs, testing gates, inventory, and preventive maintenance kept visible.",
-    proof: "Safer deployment and easier upkeep in a live lab.",
+    proof: "Safer deployment and easier upkeep in production-like environments.",
   },
 ];
 
 export const contactPrompt =
-  "If you need someone who can support users, keep lab systems reliable, and build practical research tooling across software and hardware, send a note. I am also open to collaborations, questions, and conversations about roles.";
+  "If you need someone who can support users, keep systems reliable, and build practical tooling across software and hardware, send a note. I am also open to collaborations, questions, and conversations about roles.";
 
 export const contactLinks = [
   { label: "Email", href: "mailto:Benjamin.g.reynolds@ucdenver.edu", value: "Benjamin.g.reynolds@ucdenver.edu" },

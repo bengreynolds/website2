@@ -372,6 +372,7 @@ function CardVisual({ title, label, text }) {
       <div className="card-visual-copy">
         {label ? <span>{label}</span> : null}
         <strong>{title}</strong>
+        {text ? <p className="card-visual-text">{text}</p> : null}
       </div>
     </div>
   );
@@ -379,14 +380,14 @@ function CardVisual({ title, label, text }) {
 
 function HeroSystemMap() {
   const nodes = [
-    { label: "Scientific Python", kind: "chart" },
-    { label: "Acquisition", kind: "camera" },
-    { label: "Deployment", kind: "box" },
+    { label: "Concept", kind: "draft" },
+    { label: "Production", kind: "box" },
+    { label: "Deployment", kind: "camera" },
     { label: "Support", kind: "wrench" },
   ];
 
   return (
-    <div className="hero-map" aria-label="Research systems map">
+      <div className="hero-map" aria-label="Systems map">
       {nodes.map((node, index) => (
         <div key={node.label} className={`hero-map-node node-${index + 1}`}>
           <span className="hero-map-icon" aria-hidden="true">
@@ -397,7 +398,7 @@ function HeroSystemMap() {
       ))}
       <div className="hero-map-core">
         <span>Benjamin Reynolds</span>
-        <strong>Research Systems</strong>
+        <strong>Design to Deployment</strong>
       </div>
     </div>
   );
@@ -405,7 +406,7 @@ function HeroSystemMap() {
 
 function BioCompass() {
   const points = [
-    { label: "Python + NWB", kind: "chart" },
+    { label: "Python + tooling", kind: "chart" },
     { label: "Packaging + deployment", kind: "box" },
     { label: "CAD + build work", kind: "draft" },
     { label: "IT support + maintenance", kind: "wrench" },
@@ -415,7 +416,7 @@ function BioCompass() {
     <div className="bio-compass" aria-label="Portfolio capability compass">
       <div className="bio-compass-core">
         <span>Focus</span>
-        <strong>Lab systems</strong>
+        <strong>Full Scope</strong>
       </div>
       {points.map((point, index) => (
         <div key={point.label} className={`bio-compass-node node-${index + 1}`}>
@@ -467,50 +468,53 @@ function CapabilityMap({ groups }) {
 
 const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
   return (
-    <button
-      type="button"
-      className={`project-card reveal ${project.featured ? "is-featured" : ""}`}
-      onClick={() => onOpen(project)}
-    >
-      <div className="project-card-top">
-        <div className="tag-row">
-          {project.featured ? <span className="tag">Featured</span> : null}
-          <span className="tag">Case study</span>
-          {project.tags.map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
+    <details className={`project-card reveal ${project.featured ? "is-featured" : ""}`}>
+      <summary className="project-card-summary">
+        <div className="project-card-top">
+          <div className="tag-row">
+            {project.featured ? <span className="tag">Featured</span> : null}
+            <span className="tag">Case study</span>
+            {project.tags.map((tag) => (
+              <span key={tag} className="tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+          <span className="project-cue">Open details</span>
+        </div>
+        <h3>{project.title}</h3>
+        <p>{project.summary}</p>
+      </summary>
+      <div className="project-card-body">
+        <div className="project-scene" aria-hidden="true">
+          <div className="project-scene-icon">
+            <GlyphIcon kind={getVisualMeta(`${project.title} ${project.summary}`).kind} />
+          </div>
+          <div className="project-scene-copy">
+            <span>{project.category}</span>
+            <strong>{project.tags.join(" / ")}</strong>
+          </div>
+        </div>
+        <div className="project-snapshot">
+          <div>
+            <span>Problem</span>
+            <strong>{project.challenge || "[PLACEHOLDER: project problem]"}</strong>
+          </div>
+          <div>
+            <span>Result</span>
+            <strong>{project.result || "[PLACEHOLDER: project result]"}</strong>
+          </div>
+        </div>
+        <ul>
+          {project.bullets.slice(0, project.featured ? 3 : 2).map((bullet) => (
+            <li key={bullet}>{bullet}</li>
           ))}
-        </div>
-        <span className="project-cue">View details</span>
+        </ul>
+        <button type="button" className="button ghost project-open" onClick={() => onOpen(project)}>
+          Open full case study
+        </button>
       </div>
-      <div className="project-scene" aria-hidden="true">
-        <div className="project-scene-icon">
-          <GlyphIcon kind={getVisualMeta(`${project.title} ${project.summary}`).kind} />
-        </div>
-        <div className="project-scene-copy">
-          <span>{project.category}</span>
-          <strong>{project.tags.join(" / ")}</strong>
-        </div>
-      </div>
-      <h3>{project.title}</h3>
-      <p>{project.summary}</p>
-      <div className="project-snapshot">
-        <div>
-          <span>Problem</span>
-          <strong>{project.challenge || "[PLACEHOLDER: project problem]"}</strong>
-        </div>
-        <div>
-          <span>Result</span>
-          <strong>{project.result || "[PLACEHOLDER: project result]"}</strong>
-        </div>
-      </div>
-      <ul>
-        {project.bullets.slice(0, project.featured ? 3 : 2).map((bullet) => (
-          <li key={bullet}>{bullet}</li>
-        ))}
-      </ul>
-    </button>
+    </details>
   );
 });
 
@@ -800,7 +804,7 @@ export default function App() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow reveal" style={{ "--delay": "0.05s" }}>
-                Research Engineer | Software, Hardware, and Lab Operations
+                Full-Scope Systems Engineer | Design to Deployment
               </p>
               <h1 className="reveal" style={{ "--delay": "0.15s" }}>
                 Benjamin Reynolds
@@ -840,7 +844,7 @@ export default function App() {
             <aside className="hero-panel reveal" style={{ "--delay": "0.2s" }}>
               <div className="panel-header">
                 <span className="tag">Working style</span>
-                <span className="panel-note">Systems-first, steady iteration</span>
+                <span className="panel-note">Concept, production, deployment</span>
               </div>
               <HeroSystemMap />
               <ul>
@@ -849,7 +853,7 @@ export default function App() {
                 <li>Cross-team coordination, user support, and stakeholder clarity.</li>
               </ul>
               <div className="panel-highlight">
-                Open to roles centered on automation, lab infrastructure, user support, and applied R&D.
+                Open to roles centered on full-scope systems engineering, from concept through physical production, software deployment, support, and applied development.
               </div>
             </aside>
           </div>
@@ -866,7 +870,6 @@ export default function App() {
               {heroProofPoints.map((point, index) => (
                 <article key={point.title} className="proof-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
                   <CardVisual title={point.title} label="Proof" text={point.body} />
-                    <p>{point.body}</p>
                 </article>
               ))}
             </div>
@@ -878,13 +881,12 @@ export default function App() {
             <SectionHeading
               eyebrow="Recognition"
               title="Selected proof points"
-              body="A compact set of credentials and operational proof points across software, hardware, and lab support."
+              body="A compact set of credentials and operational proof points across software, hardware, and support."
             />
             <div className="proof-grid recognition-grid">
               {socialProofItems.map((item, index) => (
                 <article key={item.title} className="proof-card recognition-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
                   <CardVisual title={item.title} label="Recognition" text={item.body} />
-                    <p>{item.body}</p>
                 </article>
               ))}
             </div>
@@ -896,28 +898,28 @@ export default function App() {
             <aside className="bio-portrait reveal">
               <div className="portrait-mark" aria-hidden="true" />
               <div className="tag-row">
-                <span className="tag">Research Engineering</span>
-                <span className="tag">Automation</span>
-                <span className="tag">Lab Ops</span>
+                <span className="tag">Systems Engineering</span>
+                <span className="tag">Production</span>
+                <span className="tag">Deployment</span>
               </div>
               <BioCompass />
-              <p>Denver-based, working across neuroscience infrastructure, hardware, software, and operational systems.</p>
+              <p>Denver-based, working across design, build, deployment, support, and operational systems.</p>
             </aside>
 
             <div className="bio-copy">
               <SectionHeading
                 eyebrow="Profile"
                 title="Bio"
-                body="I build reliable systems that make complex work easier to run, support, audit, deploy, and maintain."
+                body="I build reliable systems from design ideas through physical production, software deployment, support, and maintenance."
               />
               <div className="bio-text reveal">
                 <p>
-                  I'm a neuroscience research engineer working across scientific Python, desktop application development, acquisition and control, packaging and deployment, and analysis tooling.
-                  My work also spans CAD, electronics, embedded and GPU toolchains, and the physical systems that keep experiments and internal tools usable in practice.
+                  I'm a full-scope systems engineer working across scientific Python, desktop application development, acquisition and control, packaging and deployment, and analysis tooling.
+                  My background is intentionally hybrid: CAD, electronics, embedded and GPU toolchains, fabrication, and the physical systems that keep complex tools usable in practice.
                 </p>
                 <p>
-                  I work closely with researchers and stakeholders to plan upgrades, document processes, support users, and keep systems dependable inside real institutional constraints.
-                  That includes IT provisioning, troubleshooting, recovery procedures, approved workarounds for platform limits, vendor coordination, and hands-on maintenance.
+                  I work closely with teams and stakeholders to plan upgrades, document processes, support users, and keep systems dependable inside real institutional constraints.
+                  That includes IT provisioning, troubleshooting, recovery procedures, approved workarounds for platform limits, vendor coordination, hands-on maintenance, and production-minded deployment.
                 </p>
               </div>
 
@@ -925,7 +927,6 @@ export default function App() {
                 {aboutCards.map((card, index) => (
                   <article key={card.title} className="about-card reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
                     <CardVisual title={card.title} label="About" text={card.body} />
-                    <p>{card.body}</p>
                   </article>
                 ))}
               </div>
@@ -935,11 +936,11 @@ export default function App() {
 
         <section id="skills" className="section section-alt">
           <div className="container">
-            <SectionHeading
-              eyebrow="Capabilities"
-              title="Skills and tech stack"
-              body="Grouped by concrete tools, runtimes, deployment workflows, and physical systems."
-            />
+              <SectionHeading
+                eyebrow="Capabilities"
+                title="Skills and tech stack"
+                body="Grouped by concrete tools, runtimes, deployment workflows, and physical systems from design to release."
+              />
             <CapabilityMap groups={skillGroups} />
             <div className="skill-grid">
               {skillGroups.map((group, index) => {
@@ -975,11 +976,12 @@ export default function App() {
             <SectionHeading
               eyebrow="History"
               title="Experience"
-              body="Engineering roles and research leadership across lab systems, support, and hardware."
+              body="Engineering roles and systems work across support, hardware, and deployment."
             />
-              <div className="timeline">
-                {experience.map((item, index) => (
-                  <article key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
+            <div className="timeline">
+              {experience.map((item, index) => (
+                <details key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
+                  <summary className="timeline-summary">
                     <div className="timeline-meta">
                       <span className="timeline-badge" aria-hidden="true">
                         <GlyphIcon kind={getVisualMeta(`${item.role} ${item.org}`).kind} />
@@ -988,12 +990,14 @@ export default function App() {
                       <span>{item.org}</span>
                       <span>{item.dates}</span>
                     </div>
+                    <span className="timeline-cue">Open details</span>
+                  </summary>
                   <ul>
                     {item.bullets.map((bullet) => (
                       <li key={bullet}>{bullet}</li>
                     ))}
                   </ul>
-                </article>
+                </details>
               ))}
             </div>
 
@@ -1001,7 +1005,7 @@ export default function App() {
               <SectionHeading
                 eyebrow="Education"
                 title="Academic foundation"
-                body="Academic training and lab residency that support the systems work."
+                body="Academic training and residency that support the systems work."
               />
               <div className="edu-cards">
                 {education.map((item, index) => (
@@ -1059,7 +1063,7 @@ export default function App() {
               <SectionHeading
                 eyebrow="Contact"
                 title="Start the conversation"
-                body="Open to collaborations in automation, lab infrastructure, hardware systems, user support, and applied research engineering."
+                body="Open to collaborations in full-scope systems engineering, automation, hardware, deployment, and user support."
               />
               <p className="contact-prompt reveal">{contactPrompt}</p>
               <div className="contact-route reveal">

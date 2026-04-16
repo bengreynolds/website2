@@ -6,9 +6,7 @@ export default function GallerySection() {
       <div className="section-heading reveal">
         <p className="eyebrow">Evidence</p>
         <h2>Selected work artifacts</h2>
-        <p>
-          These are the systems, workflows, and outputs that make the work concrete. If you want screenshots, rig photos, or notebooks later, this section can grow into a visual archive.
-        </p>
+        <p>Quick artifacts first, with the fuller archive one click away.</p>
       </div>
 
       <div className="gallery-archive reveal">
@@ -21,15 +19,24 @@ export default function GallerySection() {
         ))}
       </div>
 
-      <div className="evidence-grid">
-        {evidenceItems.map((item, index) => (
-          <article key={item.title} className="evidence-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
-            <p className="evidence-kicker">{item.proof}</p>
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-          </article>
-        ))}
-      </div>
+      <details className="gallery-disclosure reveal">
+        <summary className="gallery-disclosure-summary">
+          <span className="eyebrow">Archive</span>
+          <strong>Show the full evidence grid</strong>
+          <span className="gallery-disclosure-cue">Open details</span>
+        </summary>
+        <div className="gallery-disclosure-body">
+          <div className="evidence-grid">
+            {evidenceItems.map((item, index) => (
+              <article key={item.title} className="evidence-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
+                <p className="evidence-kicker">{item.proof}</p>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </details>
     </>
   );
 }

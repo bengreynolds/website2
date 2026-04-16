@@ -785,6 +785,13 @@ main {
   line-height: 1.2;
 }
 
+.card-visual-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 .hero-map {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1183,6 +1190,20 @@ main {
   padding: 1.1rem 1.2rem;
 }
 
+.timeline-item summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.timeline-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.timeline-summary {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .timeline-item::before {
   content: "";
   position: absolute;
@@ -1205,6 +1226,20 @@ main {
 .edu-subtitle {
   color: var(--muted);
   font-size: 0.94rem;
+}
+
+.timeline-cue {
+  color: var(--accent-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  justify-self: end;
+}
+
+.timeline-item[open] {
+  border-color: rgba(154, 95, 49, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.32));
 }
 
 .edu-grid {
@@ -1243,17 +1278,36 @@ main {
 }
 
 .project-card {
-  display: grid;
-  gap: 0.9rem;
   width: 100%;
   text-align: left;
-  padding: 1.2rem;
+  padding: 0;
   transition: transform var(--motion-fast) var(--motion-ease), border-color var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .project-card:hover {
   transform: translateY(-1px);
   border-color: rgba(154, 95, 49, 0.22);
+}
+
+.project-card summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.project-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-card-summary {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.2rem;
+}
+
+.project-card-body {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0 1.2rem 1.2rem;
 }
 
 .project-snapshot {
@@ -1301,6 +1355,17 @@ main {
   color: var(--accent-strong);
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.78rem;
+  justify-self: end;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.project-card[open] {
+  border-color: rgba(154, 95, 49, 0.22);
+}
+
+.project-open {
+  justify-self: start;
 }
 
 .gallery-layout {
@@ -1415,6 +1480,45 @@ main {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.gallery-disclosure {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.gallery-disclosure summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.gallery-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.gallery-disclosure-summary {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+}
+
+.gallery-disclosure-summary strong {
+  font-size: 1rem;
+}
+
+.gallery-disclosure-cue {
+  color: var(--accent-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gallery-disclosure-body {
+  padding: 0 1rem 1rem;
 }
 
 .evidence-card {
