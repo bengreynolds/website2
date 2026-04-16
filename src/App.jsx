@@ -526,7 +526,7 @@ export default function App() {
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow reveal" style={{ "--delay": "0.05s" }}>
-                Research Engineer | Automation, Lab Systems, and Software
+                Research Engineer | Software, Hardware, and Lab Operations
               </p>
               <h1 className="reveal" style={{ "--delay": "0.15s" }}>
                 Benjamin Reynolds
@@ -571,10 +571,10 @@ export default function App() {
               <ul>
                 <li>Clear documentation and repeatable workflows.</li>
                 <li>Hands-on prototyping with practical constraints.</li>
-                <li>Cross-team coordination and stakeholder clarity.</li>
+                <li>Cross-team coordination, user support, and stakeholder clarity.</li>
               </ul>
               <div className="panel-highlight">
-                Open to roles centered on automation, lab infrastructure, and applied R&D.
+                Open to roles centered on automation, lab infrastructure, user support, and applied R&D.
               </div>
             </aside>
           </div>
@@ -603,7 +603,7 @@ export default function App() {
             <SectionHeading
               eyebrow="Recognition"
               title="Selected proof points"
-              body="A small set of credentials, milestones, and placeholders that can grow into stronger social proof as more material becomes available."
+              body="A compact set of credentials and operational proof points across software, hardware, and lab support."
             />
             <div className="proof-grid recognition-grid">
               {socialProofItems.map((item, index) => (
@@ -625,22 +625,23 @@ export default function App() {
                 <span className="tag">Automation</span>
                 <span className="tag">Lab Ops</span>
               </div>
-              <p>Denver-based, working across neuroscience infrastructure, software, and operational systems.</p>
+              <p>Denver-based, working across neuroscience infrastructure, hardware, software, and operational systems.</p>
             </aside>
 
             <div className="bio-copy">
               <SectionHeading
                 eyebrow="Profile"
                 title="Bio"
-                body="I build reliable systems that make complex work easier to run, audit, and improve."
+                body="I build reliable systems that make complex work easier to run, support, audit, deploy, and maintain."
               />
               <div className="bio-text reveal">
                 <p>
-                  I'm a neuroscience research engineer focused on automation, lab software, and infrastructure that supports repeatable experiments.
-                  I work closely with researchers and stakeholders to plan upgrades, document processes, and keep systems dependable under real lab constraints.
+                  I'm a neuroscience research engineer working across scientific Python, desktop application development, acquisition and control, packaging and deployment, and analysis tooling.
+                  My work also spans CAD, electronics, embedded and GPU toolchains, and the physical systems that keep experiments and internal tools usable in practice.
                 </p>
                 <p>
-                  My day-to-day work sits at the intersection of hardware, data, and operations: building tools, coordinating vendors, and writing the procedural layer that keeps projects moving with less friction.
+                  I work closely with researchers and stakeholders to plan upgrades, document processes, support users, and keep systems dependable inside real institutional constraints.
+                  That includes IT provisioning, troubleshooting, recovery procedures, approved workarounds for platform limits, vendor coordination, and hands-on maintenance.
                 </p>
               </div>
 
@@ -661,7 +662,7 @@ export default function App() {
             <SectionHeading
               eyebrow="Capabilities"
               title="Skills and tech stack"
-              body="Grouped around the work I actually do, not around a generic badge cloud."
+              body="Grouped by concrete tools, runtimes, deployment workflows, and physical systems."
             />
             <div className="skill-grid">
               {skillGroups.map((group, index) => (
@@ -685,7 +686,7 @@ export default function App() {
             <SectionHeading
               eyebrow="History"
               title="Experience"
-              body="Engineering roles and research leadership across lab systems."
+              body="Engineering roles and research leadership across lab systems, support, and hardware."
             />
             <div className="timeline">
               {experience.map((item, index) => (
@@ -728,7 +729,7 @@ export default function App() {
             <SectionHeading
               eyebrow="Work"
               title="Selected systems and builds"
-              body="Representative work spanning automation, data systems, and applied engineering."
+              body="Representative work spanning automation, data systems, hardware, and applied engineering."
             />
 
             <div className="filter-row reveal">
@@ -766,7 +767,7 @@ export default function App() {
               <SectionHeading
                 eyebrow="Contact"
                 title="Start the conversation"
-                body="Open to collaborations in automation, lab infrastructure, and applied research engineering."
+                body="Open to collaborations in automation, lab infrastructure, hardware systems, user support, and applied research engineering."
               />
               <p className="contact-prompt reveal">{contactPrompt}</p>
               <div className="contact-links">
