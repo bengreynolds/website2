@@ -733,6 +733,314 @@ main {
   box-shadow: var(--shadow);
 }
 
+.card-visual {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.85rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.36));
+}
+
+.card-visual-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--visual-accent);
+  border: 1px solid color-mix(in srgb, var(--visual-accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--visual-accent) 10%, white);
+}
+
+.card-visual-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.card-visual-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.card-visual-copy span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.card-visual-copy strong {
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.hero-map {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.28));
+}
+
+.hero-map-node,
+.hero-map-core {
+  min-height: 72px;
+  padding: 0.8rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 0.3rem;
+  align-content: center;
+}
+
+.hero-map-core {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(154, 95, 49, 0.16), rgba(194, 138, 85, 0.1)), var(--surface);
+}
+
+.hero-map-core span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-map-core strong {
+  font-size: 1rem;
+}
+
+.hero-map-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  color: var(--accent-strong);
+}
+
+.hero-map-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bio-compass {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.25rem 0;
+}
+
+.bio-compass-core,
+.bio-compass-node {
+  min-height: 72px;
+  padding: 0.75rem 0.8rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bio-compass-core {
+  grid-column: 1 / -1;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.28));
+}
+
+.bio-compass-core span,
+.bio-compass-node span {
+  display: block;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bio-compass-core strong,
+.bio-compass-node strong {
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.bio-compass-node {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+}
+
+.bio-compass-node svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--accent-strong);
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.project-scene {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.26));
+}
+
+.project-scene-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  color: var(--accent-strong);
+}
+
+.project-scene-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.project-scene-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.project-scene-copy span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.timeline-badge {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+  color: var(--accent-strong);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 9%, white);
+}
+
+.timeline-badge svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contact-route {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  align-items: center;
+  margin: 0.8rem 0 1rem;
+  padding: 0.85rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.2));
+}
+
+.contact-route-node {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+.contact-route-node svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: var(--accent-strong);
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contact-route-node span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.contact-route-line {
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(154, 95, 49, 0.4), transparent);
+}
+
+.gallery-archive {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.gallery-archive-tile {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top right, rgba(154, 95, 49, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.28));
+}
+
+.gallery-archive-tile span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gallery-archive-tile strong {
+  font-size: 1rem;
+}
+
+.gallery-archive-tile p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .capability-map-copy {
   display: grid;
   gap: 0.45rem;
@@ -1419,8 +1727,17 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .hero-map,
+  .bio-compass {
+    grid-template-columns: 1fr;
+  }
+
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gallery-archive {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1515,6 +1832,18 @@ main {
     grid-template-columns: 1fr;
   }
 
+  .contact-notes {
+    display: grid;
+  }
+
+  .contact-route {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-route-line {
+    display: none;
+  }
+
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
@@ -1544,6 +1873,10 @@ main {
 
   .capability-map {
     padding: 1rem;
+  }
+
+  .gallery-archive {
+    grid-template-columns: 1fr;
   }
 }
 

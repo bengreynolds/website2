@@ -211,20 +211,80 @@ const skillVisuals = {
   developer: { kind: "code", accent: "#4f46e5" },
 };
 
-function getSkillVisualMeta(title) {
-  const lowerTitle = title.toLowerCase();
-  if (lowerTitle.includes("scientific")) return skillVisuals.scientific;
-  if (lowerTitle.includes("acquisition")) return skillVisuals.acquisition;
-  if (lowerTitle.includes("packaging")) return skillVisuals.packaging;
-  if (lowerTitle.includes("embedded")) return skillVisuals.embedded;
-  if (lowerTitle.includes("agentic")) return skillVisuals.automation;
-  if (lowerTitle.includes("pcb")) return skillVisuals.physical;
-  if (lowerTitle.includes("help desk")) return skillVisuals.support;
-  if (lowerTitle.includes("developer")) return skillVisuals.developer;
-  return skillVisuals.scientific;
+function getVisualMeta(text = "") {
+  const lowerText = text.toLowerCase();
+  if (
+    lowerText.includes("scientific") ||
+    lowerText.includes("analysis") ||
+    lowerText.includes("python") ||
+    lowerText.includes("nwb") ||
+    lowerText.includes("data")
+  ) {
+    return skillVisuals.scientific;
+  }
+  if (
+    lowerText.includes("acquisition") ||
+    lowerText.includes("camera") ||
+    lowerText.includes("behavior") ||
+    lowerText.includes("training") ||
+    lowerText.includes("reach")
+  ) {
+    return skillVisuals.acquisition;
+  }
+  if (
+    lowerText.includes("package") ||
+    lowerText.includes("install") ||
+    lowerText.includes("deploy") ||
+    lowerText.includes("environment") ||
+    lowerText.includes("release")
+  ) {
+    return skillVisuals.packaging;
+  }
+  if (
+    lowerText.includes("embedded") ||
+    lowerText.includes("cuda") ||
+    lowerText.includes("jetpack") ||
+    lowerText.includes("tensorrt") ||
+    lowerText.includes("cudnn")
+  ) {
+    return skillVisuals.embedded;
+  }
+  if (
+    lowerText.includes("agentic") ||
+    lowerText.includes("automation") ||
+    lowerText.includes("workflow") ||
+    lowerText.includes("codex") ||
+    lowerText.includes("github")
+  ) {
+    return skillVisuals.automation;
+  }
+  if (
+    lowerText.includes("pcb") ||
+    lowerText.includes("kicad") ||
+    lowerText.includes("inventor") ||
+    lowerText.includes("fusion") ||
+    lowerText.includes("solidworks") ||
+    lowerText.includes("illustrator") ||
+    lowerText.includes("draft")
+  ) {
+    return skillVisuals.physical;
+  }
+  if (
+    lowerText.includes("support") ||
+    lowerText.includes("maintenance") ||
+    lowerText.includes("help") ||
+    lowerText.includes("provisioning") ||
+    lowerText.includes("troubleshoot")
+  ) {
+    return skillVisuals.support;
+  }
+  if (lowerText.includes("developer") || lowerText.includes("runtime") || lowerText.includes("tooling")) {
+    return skillVisuals.developer;
+  }
+  return skillVisuals.developer;
 }
 
-function SkillGlyph({ kind }) {
+function GlyphIcon({ kind }) {
   switch (kind) {
     case "chart":
       return (
@@ -301,6 +361,72 @@ function SkillGlyph({ kind }) {
   }
 }
 
+function CardVisual({ title, label, text }) {
+  const meta = getVisualMeta(`${title} ${label} ${text}`);
+
+  return (
+    <div className="card-visual" style={{ "--visual-accent": meta.accent }}>
+      <div className="card-visual-icon" aria-hidden="true">
+        <GlyphIcon kind={meta.kind} />
+      </div>
+      <div className="card-visual-copy">
+        {label ? <span>{label}</span> : null}
+        <strong>{title}</strong>
+      </div>
+    </div>
+  );
+}
+
+function HeroSystemMap() {
+  const nodes = [
+    { label: "Scientific Python", kind: "chart" },
+    { label: "Acquisition", kind: "camera" },
+    { label: "Deployment", kind: "box" },
+    { label: "Support", kind: "wrench" },
+  ];
+
+  return (
+    <div className="hero-map" aria-label="Research systems map">
+      {nodes.map((node, index) => (
+        <div key={node.label} className={`hero-map-node node-${index + 1}`}>
+          <span className="hero-map-icon" aria-hidden="true">
+            <GlyphIcon kind={node.kind} />
+          </span>
+          <strong>{node.label}</strong>
+        </div>
+      ))}
+      <div className="hero-map-core">
+        <span>Benjamin Reynolds</span>
+        <strong>Research Systems</strong>
+      </div>
+    </div>
+  );
+}
+
+function BioCompass() {
+  const points = [
+    { label: "Python + NWB", kind: "chart" },
+    { label: "Packaging + deployment", kind: "box" },
+    { label: "CAD + build work", kind: "draft" },
+    { label: "IT support + maintenance", kind: "wrench" },
+  ];
+
+  return (
+    <div className="bio-compass" aria-label="Portfolio capability compass">
+      <div className="bio-compass-core">
+        <span>Focus</span>
+        <strong>Lab systems</strong>
+      </div>
+      {points.map((point, index) => (
+        <div key={point.label} className={`bio-compass-node node-${index + 1}`}>
+          <GlyphIcon kind={point.kind} />
+          <span>{point.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CapabilityMap({ groups }) {
   const maxCount = Math.max(...groups.map((group) => group.items.length));
 
@@ -315,7 +441,7 @@ function CapabilityMap({ groups }) {
       </div>
       <div className="capability-bars" aria-label="Skill density chart">
         {groups.map((group, index) => {
-          const meta = getSkillVisualMeta(group.title);
+          const meta = getVisualMeta(group.title);
           const width = `${Math.max(18, Math.round((group.items.length / maxCount) * 100))}%`;
 
           return (
@@ -357,6 +483,15 @@ const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
           ))}
         </div>
         <span className="project-cue">View details</span>
+      </div>
+      <div className="project-scene" aria-hidden="true">
+        <div className="project-scene-icon">
+          <GlyphIcon kind={getVisualMeta(`${project.title} ${project.summary}`).kind} />
+        </div>
+        <div className="project-scene-copy">
+          <span>{project.category}</span>
+          <strong>{project.tags.join(" / ")}</strong>
+        </div>
       </div>
       <h3>{project.title}</h3>
       <p>{project.summary}</p>
@@ -463,7 +598,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [projectFilter, setProjectFilter] = useState("all");
-  const [selectedProject, setSelectedProject] = useState(projects.find((project) => project.featured) || projects[0] || null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [contactStatus, setContactStatus] = useState("mailto");
   const [theme, setTheme] = useState(getInitialTheme);
   const reducedMotion = usePrefersReducedMotion();
@@ -707,6 +842,7 @@ export default function App() {
                 <span className="tag">Working style</span>
                 <span className="panel-note">Systems-first, steady iteration</span>
               </div>
+              <HeroSystemMap />
               <ul>
                 <li>Clear documentation and repeatable workflows.</li>
                 <li>Hands-on prototyping with practical constraints.</li>
@@ -729,8 +865,8 @@ export default function App() {
             <div className="proof-grid">
               {heroProofPoints.map((point, index) => (
                 <article key={point.title} className="proof-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
-                  <p className="proof-card-title">{point.title}</p>
-                  <p>{point.body}</p>
+                  <CardVisual title={point.title} label="Proof" text={point.body} />
+                    <p>{point.body}</p>
                 </article>
               ))}
             </div>
@@ -747,8 +883,8 @@ export default function App() {
             <div className="proof-grid recognition-grid">
               {socialProofItems.map((item, index) => (
                 <article key={item.title} className="proof-card recognition-card reveal" style={{ "--delay": `${index * 0.08}s` }}>
-                  <p className="proof-card-title">{item.title}</p>
-                  <p>{item.body}</p>
+                  <CardVisual title={item.title} label="Recognition" text={item.body} />
+                    <p>{item.body}</p>
                 </article>
               ))}
             </div>
@@ -764,6 +900,7 @@ export default function App() {
                 <span className="tag">Automation</span>
                 <span className="tag">Lab Ops</span>
               </div>
+              <BioCompass />
               <p>Denver-based, working across neuroscience infrastructure, hardware, software, and operational systems.</p>
             </aside>
 
@@ -787,7 +924,7 @@ export default function App() {
               <div className="about-grid">
                 {aboutCards.map((card, index) => (
                   <article key={card.title} className="about-card reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
-                    <h3>{card.title}</h3>
+                    <CardVisual title={card.title} label="About" text={card.body} />
                     <p>{card.body}</p>
                   </article>
                 ))}
@@ -806,13 +943,13 @@ export default function App() {
             <CapabilityMap groups={skillGroups} />
             <div className="skill-grid">
               {skillGroups.map((group, index) => {
-                const meta = getSkillVisualMeta(group.title);
+                const meta = getVisualMeta(group.title);
 
                 return (
                   <article key={group.title} className="skill-card reveal" style={{ "--delay": `${index * 0.1}s`, "--skill-accent": meta.accent }}>
                     <div className="skill-card-head">
                       <div className="skill-card-icon" aria-hidden="true">
-                        <SkillGlyph kind={meta.kind} />
+                        <GlyphIcon kind={meta.kind} />
                       </div>
                       <div className="skill-card-copy">
                         <p className="skill-card-count">{group.items.length} explicit skills</p>
@@ -840,14 +977,17 @@ export default function App() {
               title="Experience"
               body="Engineering roles and research leadership across lab systems, support, and hardware."
             />
-            <div className="timeline">
-              {experience.map((item, index) => (
-                <article key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
-                  <div className="timeline-meta">
-                    <h3>{item.role}</h3>
-                    <span>{item.org}</span>
-                    <span>{item.dates}</span>
-                  </div>
+              <div className="timeline">
+                {experience.map((item, index) => (
+                  <article key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
+                    <div className="timeline-meta">
+                      <span className="timeline-badge" aria-hidden="true">
+                        <GlyphIcon kind={getVisualMeta(`${item.role} ${item.org}`).kind} />
+                      </span>
+                      <h3>{item.role}</h3>
+                      <span>{item.org}</span>
+                      <span>{item.dates}</span>
+                    </div>
                   <ul>
                     {item.bullets.map((bullet) => (
                       <li key={bullet}>{bullet}</li>
@@ -922,6 +1062,22 @@ export default function App() {
                 body="Open to collaborations in automation, lab infrastructure, hardware systems, user support, and applied research engineering."
               />
               <p className="contact-prompt reveal">{contactPrompt}</p>
+              <div className="contact-route reveal">
+                <div className="contact-route-node">
+                  <GlyphIcon kind="wrench" />
+                  <span>Support</span>
+                </div>
+                <div className="contact-route-line" aria-hidden="true" />
+                <div className="contact-route-node">
+                  <GlyphIcon kind="box" />
+                  <span>Deploy</span>
+                </div>
+                <div className="contact-route-line" aria-hidden="true" />
+                <div className="contact-route-node">
+                  <GlyphIcon kind="chart" />
+                  <span>Build</span>
+                </div>
+              </div>
               <div className="contact-links">
                 {contactLinks.map((link) => (
                   <a key={link.label} className="contact-link reveal" href={link.href}>
@@ -932,12 +1088,10 @@ export default function App() {
               </div>
               <div className="contact-notes reveal">
                 <div className="note-card">
-                  <strong>Best for</strong>
-                  <p>Collaborations, hiring conversations, and project inquiries.</p>
+                  <CardVisual title="Best for" label="Contact" text="Collaborations, hiring conversations, and project inquiries." />
                 </div>
                 <div className="note-card">
-                  <strong>Response style</strong>
-                  <p>Direct, concise, and focused on next steps.</p>
+                  <CardVisual title="Response style" label="Contact" text="Direct, concise, and focused on next steps." />
                 </div>
               </div>
               <a className="button ghost contact-resume reveal" href={resumeHref}>
