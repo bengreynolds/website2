@@ -719,9 +719,137 @@ main {
   gap: 1.1rem;
 }
 
+.capability-map {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+}
+
+.capability-map-copy {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+}
+
+.capability-map-copy h3 {
+  font-size: 1.35rem;
+  margin-bottom: 0.15rem;
+}
+
+.capability-map-copy p:last-child {
+  margin: 0;
+  max-width: 40ch;
+}
+
+.capability-bars {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.capability-bar {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.capability-bar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+
+.capability-bar-head strong {
+  font-size: 0.84rem;
+  color: var(--accent-strong);
+}
+
+.capability-bar-track {
+  position: relative;
+  overflow: hidden;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.12);
+  border: 1px solid var(--border);
+}
+
+.capability-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--bar-accent), color-mix(in srgb, var(--bar-accent) 70%, white));
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
 .skill-card {
   display: grid;
   gap: 0.9rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--skill-accent);
+  opacity: 0.88;
+}
+
+.skill-card-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.skill-card-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.38));
+  border: 1px solid var(--border);
+  color: var(--skill-accent);
+  flex-shrink: 0;
+}
+
+.skill-card-icon svg {
+  width: 1.55rem;
+  height: 1.55rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skill-card-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.skill-card-count {
+  margin: 0;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skill-card .chip-row {
+  padding-left: 0.1rem;
 }
 
 .timeline {
@@ -1406,11 +1534,16 @@ main {
   .gallery-grid,
   .proof-grid,
   .about-grid,
+  .capability-map,
   .skill-grid,
   .edu-cards,
   .evidence-grid,
   .case-study-grid {
     grid-template-columns: 1fr;
+  }
+
+  .capability-map {
+    padding: 1rem;
   }
 }
 

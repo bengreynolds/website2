@@ -200,6 +200,145 @@ function SectionHeading({ eyebrow, title, body, align = "left" }) {
   );
 }
 
+const skillVisuals = {
+  scientific: { kind: "chart", accent: "#c96a2f" },
+  acquisition: { kind: "camera", accent: "#0f8b8d" },
+  packaging: { kind: "box", accent: "#2c6bed" },
+  embedded: { kind: "chip", accent: "#8b5cf6" },
+  automation: { kind: "network", accent: "#db2777" },
+  physical: { kind: "draft", accent: "#d97706" },
+  support: { kind: "wrench", accent: "#16a34a" },
+  developer: { kind: "code", accent: "#4f46e5" },
+};
+
+function getSkillVisualMeta(title) {
+  const lowerTitle = title.toLowerCase();
+  if (lowerTitle.includes("scientific")) return skillVisuals.scientific;
+  if (lowerTitle.includes("acquisition")) return skillVisuals.acquisition;
+  if (lowerTitle.includes("packaging")) return skillVisuals.packaging;
+  if (lowerTitle.includes("embedded")) return skillVisuals.embedded;
+  if (lowerTitle.includes("agentic")) return skillVisuals.automation;
+  if (lowerTitle.includes("pcb")) return skillVisuals.physical;
+  if (lowerTitle.includes("help desk")) return skillVisuals.support;
+  if (lowerTitle.includes("developer")) return skillVisuals.developer;
+  return skillVisuals.scientific;
+}
+
+function SkillGlyph({ kind }) {
+  switch (kind) {
+    case "chart":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M8 36h32" />
+          <path d="M12 30l6-6 5 4 10-12" />
+          <path d="M32 16h6v6" />
+        </svg>
+      );
+    case "camera":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="8" y="14" width="32" height="20" rx="4" />
+          <circle cx="24" cy="24" r="7" />
+          <path d="M14 14l3-5h6l2 5" />
+        </svg>
+      );
+    case "box":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M10 18l14-8 14 8-14 8-14-8Z" />
+          <path d="M10 18v14l14 8 14-8V18" />
+          <path d="M24 26v14" />
+        </svg>
+      );
+    case "chip":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <rect x="14" y="14" width="20" height="20" rx="3" />
+          <path d="M19 19h10v10H19z" />
+          <path d="M10 18h4M10 24h4M10 30h4M34 18h4M34 24h4M34 30h4M18 10v4M24 10v4M30 10v4M18 34v4M24 34v4M30 34v4" />
+        </svg>
+      );
+    case "network":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M16 18h16M16 30h16M18 18l-6 6 6 6M30 18l6 6-6 6" />
+          <circle cx="10" cy="24" r="3" />
+          <circle cx="38" cy="24" r="3" />
+          <circle cx="24" cy="12" r="3" />
+          <circle cx="24" cy="36" r="3" />
+        </svg>
+      );
+    case "draft":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M12 34l14-14 6 6-14 14H12z" />
+          <path d="M24 16l4-4 8 8-4 4" />
+          <path d="M10 38h28" />
+        </svg>
+      );
+    case "wrench":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M30 10a8 8 0 0 0-7 12L12 33l3 3 11-11a8 8 0 0 0 12-7l-6 6-4-4 6-6z" />
+          <path d="M14 34l-4 4" />
+        </svg>
+      );
+    case "code":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M18 16L8 24l10 8" />
+          <path d="M30 16l10 8-10 8" />
+          <path d="M26 12l-4 24" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+          <path d="M10 24h28" />
+          <path d="M24 10v28" />
+        </svg>
+      );
+  }
+}
+
+function CapabilityMap({ groups }) {
+  const maxCount = Math.max(...groups.map((group) => group.items.length));
+
+  return (
+    <div className="capability-map reveal">
+      <div className="capability-map-copy">
+        <p className="eyebrow">Map</p>
+        <h3>Capability density by area</h3>
+        <p>
+          The stack is intentionally wide: explicit tools, packaging workflows, embedded deployment, physical build work, and support are all represented here.
+        </p>
+      </div>
+      <div className="capability-bars" aria-label="Skill density chart">
+        {groups.map((group, index) => {
+          const meta = getSkillVisualMeta(group.title);
+          const width = `${Math.max(18, Math.round((group.items.length / maxCount) * 100))}%`;
+
+          return (
+            <div
+              key={group.title}
+              className="capability-bar reveal"
+              style={{ "--bar-accent": meta.accent, "--delay": `${index * 0.06}s` }}
+            >
+              <div className="capability-bar-head">
+                <span>{group.title}</span>
+                <strong>{group.items.length}</strong>
+              </div>
+              <div className="capability-bar-track" aria-hidden="true">
+                <div className="capability-bar-fill" style={{ width }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
   return (
     <button
@@ -664,19 +803,32 @@ export default function App() {
               title="Skills and tech stack"
               body="Grouped by concrete tools, runtimes, deployment workflows, and physical systems."
             />
+            <CapabilityMap groups={skillGroups} />
             <div className="skill-grid">
-              {skillGroups.map((group, index) => (
-                <article key={group.title} className="skill-card reveal" style={{ "--delay": `${index * 0.1}s` }}>
-                  <h3>{group.title}</h3>
-                  <div className="chip-row">
-                    {group.items.map((item) => (
-                      <span key={item} className="chip">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </article>
-              ))}
+              {skillGroups.map((group, index) => {
+                const meta = getSkillVisualMeta(group.title);
+
+                return (
+                  <article key={group.title} className="skill-card reveal" style={{ "--delay": `${index * 0.1}s`, "--skill-accent": meta.accent }}>
+                    <div className="skill-card-head">
+                      <div className="skill-card-icon" aria-hidden="true">
+                        <SkillGlyph kind={meta.kind} />
+                      </div>
+                      <div className="skill-card-copy">
+                        <p className="skill-card-count">{group.items.length} explicit skills</p>
+                        <h3>{group.title}</h3>
+                      </div>
+                    </div>
+                    <div className="chip-row">
+                      {group.items.map((item) => (
+                        <span key={item} className="chip">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
