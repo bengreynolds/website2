@@ -12,14 +12,14 @@ import {
 
 const sectionIds = navigation.map((item) => item.id);
 const navAccentBySection = {
-  home: "#c17537",
-  about: "#6b8555",
-  skills: "#c8953b",
-  experience: "#b06442",
-  projects: "#cb7838",
-  goals: "#7a628e",
-  gallery: "#665276",
-  contact: "#d69354",
+  home: "#ff5001",
+  about: "#798347",
+  skills: "#b3aea8",
+  experience: "#798347",
+  projects: "#ff5001",
+  goals: "#798347",
+  gallery: "#646368",
+  contact: "#ff5001",
 };
 const THEME_STORAGE_KEY = "theme";
 const GallerySection = lazy(() => import("./sections/GallerySection"));
@@ -207,14 +207,14 @@ function SectionHeading({ eyebrow, title, body, align = "left" }) {
 }
 
 const skillVisuals = {
-  scientific: { kind: "chart", accent: "#c86a2d" },
-  acquisition: { kind: "camera", accent: "#8c5a8f" },
-  packaging: { kind: "box", accent: "#5f64b8" },
-  embedded: { kind: "chip", accent: "#a65544" },
-  automation: { kind: "network", accent: "#b7546e" },
-  physical: { kind: "draft", accent: "#c3842e" },
-  support: { kind: "wrench", accent: "#72813d" },
-  developer: { kind: "code", accent: "#5367a6" },
+  scientific: { kind: "chart", accent: "#ff5001" },
+  acquisition: { kind: "camera", accent: "#b3aea8" },
+  packaging: { kind: "box", accent: "#646368" },
+  embedded: { kind: "chip", accent: "#ff6b24" },
+  automation: { kind: "network", accent: "#798347" },
+  physical: { kind: "draft", accent: "#b3aea8" },
+  support: { kind: "wrench", accent: "#798347" },
+  developer: { kind: "code", accent: "#646368" },
 };
 
 function getVisualMeta(text = "") {
