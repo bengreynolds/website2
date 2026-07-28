@@ -1,4 +1,4 @@
-import { Suspense, lazy, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   aboutCards,
   contactLinks,
@@ -7,22 +7,19 @@ import {
   heroStatement,
   navigation,
   projects,
+  resumeHref,
   skillGroups,
 } from "./siteData";
 
 const sectionIds = navigation.map((item) => item.id);
 const navAccentBySection = {
-  home: "#ff5001",
-  about: "#798347",
-  skills: "#b3aea8",
-  experience: "#798347",
-  projects: "#ff5001",
-  goals: "#798347",
-  gallery: "#646368",
-  contact: "#ff5001",
+  home: "var(--accent)",
+  projects: "var(--accent)",
+  experience: "var(--accent)",
+  capabilities: "var(--accent)",
+  contact: "var(--accent)",
 };
 const THEME_STORAGE_KEY = "theme";
-const GallerySection = lazy(() => import("./sections/GallerySection"));
 
 function readStoredTheme() {
   try {
@@ -183,7 +180,8 @@ function useSectionSpy(setActiveSection) {
           if (!entry.isIntersecting) return;
           const id = entry.target.id;
           setActiveSection(id);
-          if (window.location.hash !== `#${id}`) {
+          const projectHashIsActive = id === "projects" && window.location.hash.startsWith("#project-");
+          if (!projectHashIsActive && window.location.hash !== `#${id}`) {
             window.history.replaceState(null, "", `#${id}`);
           }
         });
@@ -207,14 +205,14 @@ function SectionHeading({ eyebrow, title, body, align = "left" }) {
 }
 
 const skillVisuals = {
-  scientific: { kind: "chart", accent: "#ff5001" },
-  acquisition: { kind: "camera", accent: "#b3aea8" },
-  packaging: { kind: "box", accent: "#646368" },
-  embedded: { kind: "chip", accent: "#ff6b24" },
-  automation: { kind: "network", accent: "#798347" },
-  physical: { kind: "draft", accent: "#b3aea8" },
-  support: { kind: "wrench", accent: "#798347" },
-  developer: { kind: "code", accent: "#646368" },
+  scientific: { kind: "chart", accent: "var(--accent)" },
+  acquisition: { kind: "camera", accent: "var(--accent)" },
+  packaging: { kind: "box", accent: "var(--accent)" },
+  embedded: { kind: "chip", accent: "var(--accent)" },
+  automation: { kind: "network", accent: "var(--accent)" },
+  physical: { kind: "draft", accent: "var(--accent)" },
+  support: { kind: "wrench", accent: "var(--accent)" },
+  developer: { kind: "code", accent: "var(--accent)" },
 };
 
 function getVisualMeta(text = "") {
@@ -265,6 +263,7 @@ function getVisualMeta(text = "") {
     return skillVisuals.automation;
   }
   if (
+    lowerText.includes("hardware") ||
     lowerText.includes("pcb") ||
     lowerText.includes("kicad") ||
     lowerText.includes("inventor") ||
@@ -420,7 +419,7 @@ function HeroSystemMap() {
   ];
 
   return (
-    <div className="hero-map" aria-label="Systems map">
+    <div className="hero-map" role="img" aria-label="Systems workflow connecting design, build, release, and support">
       {nodes.map((node, index) => (
         <div key={node.label} className={`hero-map-node node-${index + 1}`}>
           <span className="hero-map-icon" aria-hidden="true">
@@ -446,7 +445,7 @@ function BioCompass() {
   ];
 
   return (
-    <div className="bio-compass" aria-label="Portfolio capability compass">
+    <div className="bio-compass" role="img" aria-label="Capability map spanning Python, packaging, CAD, and maintenance">
       <div className="bio-compass-core">
         <span>Focus</span>
         <strong>Systems</strong>
@@ -461,149 +460,85 @@ function BioCompass() {
   );
 }
 
-function CapabilityMap({ groups }) {
-  const maxCount = Math.max(...groups.map((group) => group.items.length));
-
+const ProjectCard = memo(function ProjectCard({ project }) {
   return (
-    <div className="capability-map reveal">
-      <div className="capability-map-copy">
-        <p className="eyebrow">Map</p>
-        <h3>Focus areas</h3>
-        <p>
-          The stack is intentionally wide, but the graph stays quiet and only gives a sense of where the work is strongest.
-        </p>
-      </div>
-      <div className="capability-bars" aria-label="Skill density chart">
-        {groups.map((group, index) => {
-          const meta = getVisualMeta(group.title);
-          const width = `${Math.max(18, Math.round((group.items.length / maxCount) * 100))}%`;
-
-          return (
-            <div
-              key={group.title}
-              className="capability-bar reveal"
-              style={{ "--bar-accent": meta.accent, "--delay": `${index * 0.06}s` }}
-            >
-              <div className="capability-bar-head">
-                <span>{group.title}</span>
-              </div>
-              <div className="capability-bar-track" aria-hidden="true">
-                <div className="capability-bar-fill" style={{ width }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-const ProjectCard = memo(function ProjectCard({ project, onOpen }) {
-  return (
-    <article className={`project-card reveal ${project.featured ? "is-featured" : ""}`}>
-      <button
-        type="button"
-        className="project-card-trigger"
-        onClick={() => onOpen(project)}
-        aria-label={`Open case study for ${project.title}`}
-      >
-        {project.featured ? <span className="project-card-kicker">Featured system</span> : null}
-        <h3>{project.title}</h3>
-        <p>{project.summary}</p>
-        <span className="project-cue">Open case study</span>
-      </button>
-    </article>
-  );
-});
-
-function ProjectModal({ project, onClose }) {
-  useEffect(() => {
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
-
-  if (!project) return null;
-
-  const goToContact = (event) => {
-    event.preventDefault();
-    onClose();
-    const contact = document.getElementById("contact");
-    if (contact) {
-      contact.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        block: "start",
-      });
-      window.history.pushState(null, "", "#contact");
-    }
-  };
-
-  return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      <div className="modal-panel" role="dialog" aria-modal="true" aria-labelledby="project-title" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close project details">
-          Close
-        </button>
-        <div className="project-modal-media" aria-hidden="true">
-          <div className="project-modal-media-frame">
-            <span>Visual space</span>
-            <strong>Reserved for renders, animations, and photos</strong>
-            <p>Use this area for real-world imagery when you are ready to add it.</p>
-          </div>
+    <article
+      id={`project-${project.id}`}
+      className={`project-card reveal ${project.featured ? "is-featured" : ""}`}
+    >
+      <header className="project-card-header">
+        <div>
+          {project.featured ? <span className="project-card-kicker">Featured project</span> : null}
+          <h3>{project.title}</h3>
         </div>
-        <h3 id="project-title">{project.title}</h3>
-        <p>{project.summary}</p>
+        <a className="project-permalink" href={`#project-${project.id}`} aria-label={`Link to ${project.title}`}>
+          Link
+        </a>
+      </header>
+      <p className="project-outcome">{project.result}</p>
+      <p className="project-summary">{project.summary}</p>
+      <dl className="project-facts">
+        <div>
+          <dt>Tools and technologies</dt>
+          <dd>
+            <ul className="project-keywords" aria-label={`Tools used for ${project.title}`}>
+              {project.tools.map((tool) => (
+                <li key={tool}>{tool}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+        <div>
+          <dt>Transferable skills</dt>
+          <dd>
+            <ul className="project-keywords" aria-label={`Skills demonstrated by ${project.title}`}>
+              {project.skills.map((skill) => (
+                <li key={skill}>{skill}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      </dl>
+      <div className="project-contribution">
+        <span>Contribution</span>
+        <p>{project.role}</p>
+      </div>
+      <details className="project-details">
+        <summary>
+          <span>Technical case study</span>
+          <span className="project-cue" aria-hidden="true">Expand</span>
+        </summary>
         <div className="case-study-stack">
           <article>
-            <span>Problem</span>
-            <p>{project.challenge || "[PLACEHOLDER: project problem]"}</p>
+            <span>Need</span>
+            <p>{project.challenge}</p>
           </article>
           <article>
             <span>Constraints</span>
-            <p>{project.constraints || "[PLACEHOLDER: project constraints]"}</p>
+            <p>{project.constraints}</p>
           </article>
           <article>
-            <span>Approach</span>
-            <p>{project.approach || "[PLACEHOLDER: project approach]"}</p>
-          </article>
-          <article>
-            <span>Result</span>
-            <p>{project.result || "[PLACEHOLDER: project result]"}</p>
-          </article>
-          <article>
-            <span>Role</span>
-            <p>{project.role || "[PLACEHOLDER: your role on this project]"}</p>
+            <span>Engineering approach</span>
+            <p>{project.approach}</p>
           </article>
         </div>
-        <div className="project-modal-detail">
-          <span>Implementation notes</span>
+        <div className="project-implementation">
+          <span>Technical implementation</span>
           <ul>
             {project.bullets.map((bullet) => (
               <li key={bullet}>{bullet}</li>
             ))}
           </ul>
         </div>
-        <div className="modal-actions">
-          <a className="button" href="#contact" onClick={goToContact}>
-            Discuss this project
-          </a>
-          <a className="button ghost" href="mailto:Benjamin.g.reynolds@ucdenver.edu">
-            Email details
-          </a>
-        </div>
-      </div>
-    </div>
+      </details>
+    </article>
   );
-}
+});
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [projectFilter, setProjectFilter] = useState("all");
-  const [selectedProject, setSelectedProject] = useState(null);
   const [theme, setTheme] = useState(getInitialTheme);
   const reducedMotion = usePrefersReducedMotion();
   const { progress, headerScrolled } = useScrollProgress();
@@ -640,7 +575,7 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
-    const initialSection = hash || "home";
+    const initialSection = hash.startsWith("project-") ? "projects" : hash || "home";
     setActiveSection(initialSection);
     if (!hash) return undefined;
     const target = document.getElementById(hash);
@@ -652,15 +587,6 @@ export default function App() {
   }, [reducedMotion]);
 
   useEffect(() => {
-    if (!selectedProject) return;
-    const filtered = projectFilter === "all" ? projects : projects.filter((project) => project.tags.includes(projectFilter));
-    if (!filtered.length) return;
-    if (!filtered.some((project) => project.id === selectedProject.id)) {
-      setSelectedProject(filtered[0]);
-    }
-  }, [projectFilter, selectedProject]);
-
-  useEffect(() => {
     const onClick = (event) => {
       if (!menuOpen) return;
       const shell = document.querySelector(".site-header");
@@ -668,8 +594,15 @@ export default function App() {
         setMenuOpen(false);
       }
     };
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
     document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [menuOpen]);
 
   const filteredProjects = useMemo(() => {
@@ -687,14 +620,6 @@ export default function App() {
     target.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
   }, [reducedMotion]);
 
-  const openProject = useCallback((project) => {
-    setSelectedProject(project);
-  }, []);
-
-  const closeProject = useCallback(() => {
-    setSelectedProject(null);
-  }, []);
-
   const toggleTheme = useCallback(() => {
     setTheme((currentTheme) => {
       const nextTheme = currentTheme === "dark" ? "light" : "dark";
@@ -709,18 +634,24 @@ export default function App() {
 
   return (
     <div className="spa-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <div className="scroll-progress" style={{ width: `${progress * 100}%` }} aria-hidden="true" />
-      <div className="ambient" aria-hidden="true">
-        <div className="orb orb-a" />
-        <div className="orb orb-b" />
-        <div className="orb orb-c" />
-      </div>
 
       <header className={`site-header ${headerScrolled ? "is-scrolled" : ""}`}>
         <div className="container nav-shell">
-          <div className="brand" aria-label="Benjamin Reynolds">
+          <a
+            className="brand"
+            href="#home"
+            aria-label="Benjamin Reynolds, home"
+            onClick={(event) => {
+              event.preventDefault();
+              goToSection("home");
+            }}
+          >
             BR
-          </div>
+          </a>
           <button
             type="button"
             className="theme-toggle"
@@ -743,21 +674,22 @@ export default function App() {
           <button
             type="button"
             className="nav-toggle"
-            aria-label="Toggle navigation"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={menuOpen}
+            aria-controls="primary-navigation"
             onClick={() => setMenuOpen((value) => !value)}
           >
             <span />
             <span />
             <span />
           </button>
-          <nav className={menuOpen ? "is-open" : ""}>
+          <nav id="primary-navigation" className={menuOpen ? "is-open" : ""} aria-label="Primary navigation">
             {navigation.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
                 className={activeSection === item.id ? "is-active" : ""}
-                aria-current={activeSection === item.id ? "page" : undefined}
+                aria-current={activeSection === item.id ? "location" : undefined}
                 style={{ "--nav-accent": navAccentBySection[item.id] || "var(--accent)" }}
                 onClick={(event) => {
                   event.preventDefault();
@@ -768,15 +700,18 @@ export default function App() {
               </a>
             ))}
           </nav>
+          <a className="button nav-resume" href={resumeHref} download>
+            Resume
+          </a>
         </div>
       </header>
 
-      <main>
+      <main id="main-content">
         <section id="home" className="hero section">
           <div className="container hero-grid">
             <div className="hero-copy">
               <p className="eyebrow reveal" style={{ "--delay": "0.05s" }}>
-                Full-Scope Systems Engineer
+                Research Systems Engineer
               </p>
               <h1 className="reveal" style={{ "--delay": "0.15s" }}>
                 Benjamin Reynolds
@@ -788,106 +723,54 @@ export default function App() {
                 <a className="button" href="#projects" onClick={(event) => { event.preventDefault(); goToSection("projects"); }}>
                   View case studies
                 </a>
-                <a className="button ghost" href="#about" onClick={(event) => { event.preventDefault(); goToSection("about"); }}>
-                  View profile
+                <a className="button ghost" href={resumeHref} download>
+                  Download resume
                 </a>
               </div>
               <div className="hero-meta reveal" style={{ "--delay": "0.45s" }}>
                 <span>Denver, CO</span>
-              </div>
-              <div className="hero-tiles reveal" style={{ "--delay": "0.5s" }}>
-                <a href="#experience" onClick={(event) => { event.preventDefault(); goToSection("experience"); }}>
-                  Experience
-                </a>
-                <a href="#gallery" onClick={(event) => { event.preventDefault(); goToSection("gallery"); }}>
-                  Gallery
-                </a>
+                <span>Open to remote, hybrid, on-site, and travel-based roles</span>
               </div>
             </div>
 
-            <aside className="hero-panel reveal" style={{ "--delay": "0.2s" }}>
+            <aside className="hero-visual reveal" style={{ "--delay": "0.2s" }} aria-label="Systems engineering workflow">
               <div className="panel-header">
-                <span className="tag">Working style</span>
-                <span className="panel-note">Practical delivery</span>
+                <span className="eyebrow">End-to-end delivery</span>
               </div>
               <HeroSystemMap />
-              <ul>
-                <li>Clear documentation and handoffs.</li>
-                <li>Practical builds that hold up in use.</li>
-                <li>Cross-team coordination when systems change.</li>
-              </ul>
-              <div className="panel-highlight">
-                I work best when technical detail connects to a usable result.
-              </div>
+              <p className="hero-visual-caption">
+                Design, build, validation, deployment, and support treated as one connected system.
+              </p>
             </aside>
           </div>
         </section>
 
-        <section id="about" className="section">
-          <div className="container bio-layout">
-            <aside className="bio-portrait reveal">
-              <div className="portrait-mark" aria-hidden="true" />
-              <BioCompass />
-            </aside>
-
-            <div className="bio-copy">
-              <SectionHeading
-                eyebrow="Profile"
-                title="Bio"
-                body="I build practical systems for real-world use."
-              />
-              <div className="bio-text reveal">
-                <p>
-                  I work across scientific Python, desktop application development, acquisition and control, packaging, analysis tooling, CAD, electronics, embedded and GPU toolchains, and the physical systems that keep tools usable in practice.
-                  I also handle documentation, troubleshooting, recovery, vendor coordination, and practical workarounds inside real institutional constraints.
-                </p>
-              </div>
-
-              <div className="about-grid">
-                {aboutCards.map((card, index) => (
-                  <article key={card.title} className="about-card about-card-simple reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
-                    <span className="about-card-kicker">0{index + 1}</span>
-                    <h3>{card.title}</h3>
-                    <p>{card.body}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="skills" className="section section-alt">
+        <section id="projects" className="section section-alt">
           <div className="container">
             <SectionHeading
-              eyebrow="Capabilities"
-              title="Skills and tech stack"
-              body="A focused stack across analysis, deployment, embedded work, and physical build systems."
+              eyebrow="Selected work"
+              title="Engineering projects built for operational value"
+              body="Outcomes and transferable skills first, with implementation details available for technical review."
             />
-            <CapabilityMap groups={skillGroups} />
-            <div className="skill-grid">
-              {skillGroups.map((group, index) => {
-                const meta = getVisualMeta(group.title);
 
-                return (
-                  <article key={group.title} className="skill-card reveal" style={{ "--delay": `${index * 0.1}s`, "--skill-accent": meta.accent }}>
-                    <div className="skill-card-head">
-                      <div className="skill-card-icon" aria-hidden="true">
-                        <GlyphIcon kind={meta.kind} />
-                      </div>
-                      <div className="skill-card-copy">
-                        <h3>{group.title}</h3>
-                      </div>
-                    </div>
-                    <div className="chip-row">
-                      {group.items.map((item) => (
-                        <span key={item} className="chip">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="filter-row reveal">
+              {["all", "automation", "data", "hardware", "software"].map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={`filter-btn ${projectFilter === filter ? "is-active" : ""}`}
+                  aria-pressed={projectFilter === filter}
+                  onClick={() => setProjectFilter(filter)}
+                >
+                  {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <div className="project-grid">
+              {filteredProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
             </div>
           </div>
         </section>
@@ -899,138 +782,147 @@ export default function App() {
               title="Experience"
               body="Roles across support, hardware, software, and delivery."
             />
-            <div className="timeline">
-              {experience.map((item, index) => (
-                <details key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
-                  <summary className="timeline-summary">
-                    <div className="timeline-meta">
-                      <span className="timeline-badge" aria-hidden="true">
-                        <GlyphIcon kind={getVisualMeta(`${item.role} ${item.org}`).kind} />
-                      </span>
-                      <h3>{item.role}</h3>
-                      <span>{item.org}</span>
-                      <span>{item.dates}</span>
-                    </div>
-                    <span className="timeline-cue">Open details</span>
-                  </summary>
-                  <ul>
-                    {item.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
-                    ))}
-                  </ul>
-                </details>
-              ))}
+            <div className="experience-layout">
+              <div className="timeline">
+                {experience.map((item, index) => (
+                  <details key={`${item.role}-${item.dates}`} className="timeline-item reveal" style={{ "--delay": `${index * 0.1}s` }}>
+                    <summary className="timeline-summary">
+                      <div className="timeline-meta">
+                        <span className="timeline-badge" aria-hidden="true">
+                          <GlyphIcon kind={getVisualMeta(`${item.role} ${item.org}`).kind} />
+                        </span>
+                        <h3>{item.role}</h3>
+                        <span>{item.org}</span>
+                        <span>{item.dates}</span>
+                      </div>
+                      <span className="timeline-cue" aria-hidden="true">Open details</span>
+                    </summary>
+                    <ul>
+                      {item.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ))}
+              </div>
+
+              <aside className="education-panel reveal">
+                <div className="section-subheading">
+                  <p className="eyebrow">Education</p>
+                  <h3>Academic foundation</h3>
+                  <p>Academic training and residency supporting systems work.</p>
+                </div>
+                <div className="edu-cards">
+                  {education.map((item) => (
+                    <article key={item.title} className="edu-card">
+                      <h3>{item.title}</h3>
+                      <p className="edu-subtitle">{item.subtitle}</p>
+                      <p>{item.body}</p>
+                    </article>
+                  ))}
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="capabilities" className="section section-alt">
+          <div className="container">
+            <SectionHeading
+              eyebrow="Capabilities"
+              title="Engineering across the system lifecycle"
+              body="Software, hardware, deployment, validation, and support organized around dependable delivery."
+            />
+
+            <div className="capability-overview">
+              <aside className="bio-portrait reveal">
+                <BioCompass />
+              </aside>
+
+              <div className="bio-copy">
+                <div className="bio-text reveal">
+                  <p>
+                    Technical work spans scientific Python, desktop applications, acquisition and control, packaging, CAD, electronics, documentation, troubleshooting, recovery, and handoff.
+                  </p>
+                </div>
+
+                <div className="about-grid">
+                  {aboutCards.map((card, index) => (
+                    <article key={card.title} className="about-card about-card-simple reveal" style={{ "--delay": `${0.1 * (index + 1)}s` }}>
+                      <span className="about-card-kicker">0{index + 1}</span>
+                      <h3>{card.title}</h3>
+                      <p>{card.body}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className="edu-grid">
-            <SectionHeading
-              eyebrow="Education"
-              title="Academic foundation"
-              body="Academic training and residency that support the systems work."
-            />
-              <div className="edu-cards">
-                {education.map((item, index) => (
-                  <article key={item.title} className="edu-card reveal" style={{ "--delay": `${index * 0.1}s` }}>
-                    <h3>{item.title}</h3>
-                    <p className="edu-subtitle">{item.subtitle}</p>
-                    <p>{item.body}</p>
-                  </article>
-                ))}
+            <div className="capabilities">
+              <SectionHeading
+                eyebrow="Technical toolkit"
+                title="Tools grouped by how they support delivery"
+                body="Four areas repeatedly used to move systems from prototype to dependable operation."
+              />
+              <div className="skill-grid">
+                {skillGroups.map((group, index) => {
+                  const meta = getVisualMeta(group.title);
+
+                  return (
+                    <article key={group.title} className="skill-card reveal" style={{ "--delay": `${index * 0.08}s`, "--skill-accent": meta.accent }}>
+                      <div className="skill-card-head">
+                        <div className="skill-card-icon" aria-hidden="true">
+                          <GlyphIcon kind={meta.kind} />
+                        </div>
+                        <div className="skill-card-copy">
+                          <h3>{group.title}</h3>
+                        </div>
+                      </div>
+                      <div className="chip-row">
+                        {group.items.map((item) => (
+                          <span key={item} className="chip">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </div>
           </div>
         </section>
 
-        <section id="projects" className="section section-alt">
-          <div className="container">
-            <SectionHeading
-              eyebrow="Work"
-              title="Selected systems and builds"
-              body="Representative work across automation, data systems, hardware, and applied engineering."
-            />
-
-            <div className="filter-row reveal">
-              {["all", "automation", "data", "hardware", "software"].map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  className={`filter-btn ${projectFilter === filter ? "is-active" : ""}`}
-                  onClick={() => setProjectFilter(filter)}
-                >
-                  {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            <div className="project-grid">
-              {filteredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} onOpen={openProject} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="gallery" className="section">
-          <div className="container">
-            <Suspense fallback={<div className="gallery-skeleton" aria-busy="true" aria-live="polite" />}>
-              <GallerySection reducedMotion={reducedMotion} />
-            </Suspense>
-          </div>
-        </section>
-
-        <section id="goals" className="section">
-          <div className="container goals-layout">
-            <SectionHeading
-              eyebrow="Future"
-              title="What I'm looking for"
-              body="A role built around ownership, coordination, and follow-through."
-            />
-            <div className="goals-copy reveal">
-              <p>
-                I want work that lets me stay close to the full life cycle of a system, from early design through physical production,
-                release, and handoff. I work best when I can see how choices affect the finished system.
-              </p>
-              <p>
-                Longer term, I want to grow into project management. I like keeping work organized, translating between technical and
-                non-technical stakeholders, and making sure plans survive real-world constraints.
-              </p>
-              <p>
-                As an employee, I am flexible and practical. I am open to the East Coast, overseas opportunities, remote, hybrid, or on-site
-                work, and I would welcome travel-based roles when being on the ground helps the work move faster.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="section section-alt">
+        <section id="contact" className="section">
           <div className="container contact-grid">
             <div className="contact-copy">
               <SectionHeading
                 eyebrow="Contact"
-                title="Start the conversation"
-                body="Direct links for email, phone, LinkedIn, GitHub, and the resume download."
+                title="Start a technical conversation"
+                body="Available for systems engineering roles in scientific software, automation, hardware integration, and technical delivery."
               />
-              <div className="contact-links">
-                {contactLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    className="contact-link reveal"
-                    href={link.href}
-                    download={link.download ? "" : undefined}
-                    target={link.href.startsWith("http") ? "_blank" : undefined}
-                    rel={link.href.startsWith("http") ? "noreferrer" : undefined}
-                    title={link.download ? "Downloads the resume / CV file" : link.value}
-                  >
-                    <span className="contact-link-icon" aria-hidden="true">
-                      <GlyphIcon kind={link.icon} />
-                    </span>
-                    <span className="contact-link-copy">
-                      <span>{link.label}</span>
-                      <strong>{link.value}</strong>
-                    </span>
-                  </a>
-                ))}
-              </div>
+              <p className="contact-availability">Denver, Colorado | Open to remote, hybrid, on-site, and travel-based roles.</p>
+            </div>
+            <div className="contact-links">
+              {contactLinks.map((link) => (
+                <a
+                  key={link.label}
+                  className="contact-link reveal"
+                  href={link.href}
+                  download={link.download ? "" : undefined}
+                  target={link.href.startsWith("http") ? "_blank" : undefined}
+                  rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+                  title={link.download ? "Downloads the resume PDF" : link.value}
+                >
+                  <span className="contact-link-icon" aria-hidden="true">
+                    <GlyphIcon kind={link.icon} />
+                  </span>
+                  <span className="contact-link-copy">
+                    <span>{link.label}</span>
+                    <strong>{link.value}</strong>
+                  </span>
+                </a>
+              ))}
             </div>
           </div>
         </section>
@@ -1038,14 +930,12 @@ export default function App() {
 
       <footer className="site-footer">
         <div className="container footer-row">
-          <p className="footer-meta">(c) {new Date().getFullYear()} Benjamin Reynolds</p>
+          <p className="footer-meta">&copy; {new Date().getFullYear()} Benjamin Reynolds</p>
           <div className="footer-links">
             <span>Denver, CO</span>
           </div>
         </div>
       </footer>
-
-      <ProjectModal project={selectedProject} onClose={closeProject} />
     </div>
   );
 }
