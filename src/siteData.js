@@ -9,7 +9,7 @@ export const navigation = [
 export const resumeHref = "/Benjamin_Reynolds_Resume.pdf";
 
 export const heroStatement =
-  "Scientific software, automation, and hardware-integrated systems built for dependable real-world use.";
+  "Scientific software, neuroscience automation, and hardware-integrated systems built for dependable real-world use.";
 
 export const aboutCards = [
   {
@@ -18,11 +18,11 @@ export const aboutCards = [
   },
   {
     title: "Software Tooling",
-    body: "Python, SciPy, NumPy, Pandas, OpenCV, PySide6, NWB, and supporting workflows.",
+    body: "Python, scientific computing, computer vision, desktop interfaces, and validated data-conversion workflows.",
   },
   {
     title: "Physical Build Work",
-    body: "CAD, KiCad, Autodesk tools, electronics, embedded setup, fabrication, and hardware maintenance.",
+    body: "CAD, KiCad, electronics, assistive-device prototyping, embedded setup, fabrication, and hardware maintenance.",
   },
 ];
 
@@ -36,9 +36,9 @@ export const skillGroups = [
       "Pandas",
       "OpenCV",
       "PySide6",
-      "NWB",
-      "PyNWB",
-      "NeuroConv",
+      "Scientific data standards",
+      "Metadata validation",
+      "Reproducible workflows",
     ],
   },
   {
@@ -95,7 +95,7 @@ export const experience = [
     org: "University of Colorado Anschutz - Department of Physiology & Biophysics",
     dates: "Nov 2023 - Present",
     bullets: [
-      "Build automated behavioral systems, NWB pipelines, desktop tools, and analysis workflows.",
+      "Build automated neuroscience systems, scientific data pipelines, desktop tools, and analysis workflows.",
       "Support users with hardware/software troubleshooting, deployment validation, and handoffs.",
       "Lead upgrade cycles with vendors, testing gates, and maintenance planning.",
       "Own rig infrastructure, inventory, preventive maintenance, and SOPs.",
@@ -149,34 +149,35 @@ export const education = [
 export const projects = [
   {
     id: "scientific-data-standardization-platform",
-    title: "Scientific Data Standardization Platform",
+    title: "Neuroscience Data Standardization Platform",
     category: "software",
     tags: ["software", "data"],
     featured: true,
     summary:
-      "Desktop software that converts mixed research files into a consistent, validated data standard for long-term access, review, and reuse.",
-    challenge: "Research data arrived in incompatible formats with inconsistent metadata, making validation, sharing, and long-term reuse difficult.",
+      "Desktop software that converts mixed neuroscience acquisition files into a consistent, validated research format for long-term access, review, and reuse.",
+    challenge: "Neuroscience data arrived in incompatible formats with inconsistent metadata, making validation, sharing, and long-term reuse difficult.",
     constraints: "Multiple source formats, metadata conflicts, strict validation requirements, and the need to preserve traceability throughout conversion.",
-    approach: "Designed a staged PySide6 workflow for import, metadata review, mapping, file assembly, NWB validation, provenance tracking, and recovery.",
+    approach: "Designed a staged PySide6 workflow for import, metadata review, mapping, file assembly, provenance tracking, recovery, and validation against the Neurodata Without Borders (NWB) standard.",
     result: "Created a repeatable conversion process that makes complex datasets easier to audit, standardize, share, and trust.",
     role: "Designed the desktop workflow, conversion architecture, metadata controls, and validation safeguards.",
-    tools: ["Python", "PySide6", "NWB", "PyNWB", "NeuroConv", "HDF5"],
+    tools: ["Python", "PySide6", "Scientific data conversion", "Metadata validation"],
     skills: ["Desktop software", "Data modeling", "Validation", "Metadata workflows"],
     bullets: [
       "Grouped related recording files into reviewable sessions.",
       "Added metadata conflict review before file assembly.",
       "Supported standard, custom, and hybrid conversion paths.",
+      "Validated NWB output through PyNWB and NeuroConv workflows.",
       "Preserved provenance and recovery information for auditability.",
     ],
   },
   {
     id: "automated-multicamera-training-control-system",
-    title: "Automated Multi-Camera Training and Control System",
+    title: "Closed-Loop Behavioral Training and Multi-Camera Acquisition",
     category: "automation",
     tags: ["automation", "hardware", "data"],
     featured: true,
     summary:
-      "An automated research system coordinating synchronized video, machine-learning tracking, control hardware, and responsive training logic during long-running sessions.",
+      "An automated neuroscience system coordinating synchronized video, machine-learning tracking, control hardware, and responsive behavioral training during long-running sessions.",
     challenge: "Coordinate video, tracking, and physical devices reliably while reducing the amount of manual supervision required during live operation.",
     constraints: "Multi-device timing, continuous uptime, active research use, repeatable setup, and existing institutional hardware.",
     approach: "Integrated acquisition, DeepLabCut tracking, CAN bus control, and operator safeguards into a closed-loop workflow with deployment checks.",
@@ -193,18 +194,18 @@ export const projects = [
   },
   {
     id: "motion-analysis-reporting-suite",
-    title: "Motion Analysis and Reporting Suite",
+    title: "Reach-to-Grasp Motion Analysis Suite",
     category: "software",
     tags: ["data", "software"],
     featured: true,
     summary:
-      "Software that transforms recorded movement data into structured, comparable analysis results through both graphical and command-line workflows.",
+      "Software that transforms recorded reach-to-grasp movement data into structured, comparable results through both graphical and command-line workflows.",
     challenge: "Convert raw recordings into consistent outputs that could be compared across sessions, reviewed by researchers, and reused downstream.",
     constraints: "Different session types, variable recording quality, multi-session processing, and support for both interactive and automated use.",
-    approach: "Built GUI and CLI workflows for processing, aggregation, structured export, and NWB-compatible data handling.",
+    approach: "Built GUI and CLI workflows for processing, aggregation, structured export, and NWB-compatible data handling when standardized neuroscience interchange was required.",
     result: "Created a repeatable path from raw recordings to reviewable analysis outputs and standardized handoffs.",
     role: "Developed the processing workflow, multi-session aggregation, user interface, and export structure.",
-    tools: ["Python", "GUI", "CLI", "NWB", "Structured exports"],
+    tools: ["Python", "Desktop GUI", "Command line", "Structured data export"],
     skills: ["Data processing", "Motion analysis", "Workflow design", "Reproducible reporting"],
     bullets: [
       "Supported interactive and headless processing.",
@@ -215,7 +216,7 @@ export const projects = [
   },
   {
     id: "application-deployment-support-toolkit",
-    title: "Application Deployment and Support Toolkit",
+    title: "Research Application Deployment and Support Toolkit",
     category: "software",
     tags: ["software", "automation"],
     summary:
@@ -236,7 +237,7 @@ export const projects = [
   },
   {
     id: "multicamera-alignment-data-recovery-tool",
-    title: "Multi-Camera Alignment and Data Recovery Tool",
+    title: "Multi-Camera Alignment and Recording Recovery Tool",
     category: "software",
     tags: ["software", "hardware", "data"],
     summary:
@@ -257,15 +258,15 @@ export const projects = [
   },
   {
     id: "haptic-device-validation-test-bench",
-    title: "Haptic Device Validation Test Bench",
+    title: "Prosthetic Sensation Test Bench",
     category: "hardware",
     tags: ["hardware", "automation"],
     summary:
-      "A physical test system that delivers controlled haptic stimulation and uses load-cell feedback to verify force, timing, and repeatability.",
-    challenge: "Create a consistent method for evaluating tactile hardware under controlled, measurable conditions.",
+      "A physical test system for prosthetic sensation research that delivers controlled haptic stimulation and uses load-cell feedback to verify force, timing, and repeatability.",
+    challenge: "Create a consistent method for evaluating tactile response hardware under controlled, measurable conditions.",
     constraints: "Measurement fidelity, timing stability, mechanical repeatability, straightforward calibration, and safe bench operation.",
     approach: "Combined mechanical design, frequency control, sensing, electronics, and load-cell feedback into a calibrated test workflow.",
-    result: "Produced a repeatable validation platform for comparing haptic device performance under controlled conditions.",
+    result: "Produced a repeatable platform for comparing prosthetic sensation hardware under controlled test conditions.",
     role: "Led the mechanical and electrical integration, calibration strategy, and validation workflow.",
     tools: ["CAD", "Load-cell sensing", "Embedded control", "Electronics"],
     skills: ["Mechanical integration", "Electrical integration", "Calibration", "Test design"],
