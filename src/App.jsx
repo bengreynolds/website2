@@ -461,15 +461,22 @@ function BioCompass() {
 }
 
 const ProjectCard = memo(function ProjectCard({ project }) {
+  const visual = getVisualMeta(`${project.category} ${project.tools.join(" ")}`);
+
   return (
     <article
       id={`project-${project.id}`}
       className={`project-card reveal ${project.featured ? "is-featured" : ""}`}
     >
       <header className="project-card-header">
-        <div>
-          {project.featured ? <span className="project-card-kicker">Featured project</span> : null}
-          <h3>{project.title}</h3>
+        <div className="project-title-row">
+          <span className="project-card-icon" aria-hidden="true">
+            <GlyphIcon kind={visual.kind} />
+          </span>
+          <div>
+            {project.featured ? <span className="project-card-kicker">Featured project</span> : null}
+            <h3>{project.title}</h3>
+          </div>
         </div>
         <a className="project-permalink" href={`#project-${project.id}`} aria-label={`Link to ${project.title}`}>
           Link

@@ -42,7 +42,9 @@
   --radius-md: 12px;
   --max-width: 1120px;
   --gutter: clamp(1rem, 3vw, 2rem);
-  --section-space: clamp(4rem, 8vw, 7rem);
+  --section-space: clamp(3rem, 5.5vh, 5.25rem);
+  --cluster-space: clamp(1.25rem, 2.5vw, 2.5rem);
+  --panel-gap: clamp(0.85rem, 1.5vw, 1.5rem);
   --motion-fast: 180ms;
   --motion-med: 280ms;
   --motion-slow: 560ms;
@@ -542,7 +544,12 @@ main {
 .section-heading {
   display: grid;
   gap: 0.4rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2vh, 1.5rem);
+}
+
+.section-heading > p:last-child {
+  max-width: 70ch;
+  margin-bottom: 0;
 }
 
 .section-heading.is-centered {
@@ -1010,11 +1017,24 @@ main {
 
 .hero-map-core {
   grid-column: 1 / -1;
+  position: relative;
+  overflow: hidden;
   text-align: center;
   background: var(--surface);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), color-mix(in srgb, var(--accent-warm) 8%, var(--surface))),
     var(--surface);
+}
+
+body.motion-ready .hero-map-core::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -32%;
+  width: 24%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 18%, transparent), transparent);
+  transform: skewX(-18deg);
+  animation: signal-scan 4.8s var(--motion-ease) infinite;
 }
 
 .hero-map-core span {
@@ -2147,14 +2167,15 @@ section,
 
 .hero {
   min-height: calc(100vh - 76px);
-  min-height: calc(100svh - 76px);
+  min-height: min(760px, calc(100svh - 76px));
+  padding-block: clamp(3rem, 5vh, 4.5rem);
   display: flex;
   align-items: center;
 }
 
 .hero-grid {
   align-items: center;
-  gap: clamp(2rem, 5vw, 4.5rem);
+  gap: clamp(1.75rem, 4vw, 3.75rem);
 }
 
 .hero-meta {
@@ -2188,8 +2209,8 @@ section,
 
 .capability-overview {
   display: grid;
-  grid-template-columns: minmax(260px, 0.38fr) minmax(0, 1fr);
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--cluster-space);
   align-items: start;
 }
 
@@ -2198,13 +2219,13 @@ section,
 }
 
 .capability-overview .about-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
 }
 
 .experience-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.75fr);
-  gap: clamp(2rem, 5vw, 4rem);
+  gap: var(--cluster-space);
   align-items: start;
 }
 
@@ -2235,8 +2256,8 @@ section,
 }
 
 .capabilities {
-  margin-top: clamp(3rem, 6vw, 5rem);
-  padding-top: clamp(2.5rem, 5vw, 4rem);
+  margin-top: var(--cluster-space);
+  padding-top: var(--cluster-space);
   border-top: 1px solid var(--section-divider);
 }
 
@@ -2263,12 +2284,12 @@ section,
 }
 
 .about-grid {
-  gap: 1.5rem;
+  gap: var(--panel-gap);
 }
 
 .skill-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--panel-gap);
 }
 
 .timeline-item {
@@ -2291,14 +2312,15 @@ section,
 }
 
 .project-grid {
-  gap: 1.25rem;
+  gap: var(--panel-gap);
 }
 
 .project-card {
-  padding: clamp(1.15rem, 3vw, 1.75rem);
+  padding: clamp(1.1rem, 2vw, 1.6rem);
   border-radius: var(--radius-lg);
   box-shadow: none;
   backdrop-filter: none;
+  container-type: inline-size;
 }
 
 .project-card:hover {
@@ -2317,6 +2339,45 @@ section,
 .project-card-header h3 {
   margin-top: 0.25rem;
   font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+}
+
+.project-title-row {
+  display: flex;
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.project-title-row > div {
+  min-width: 0;
+}
+
+.project-card-icon {
+  width: clamp(2.6rem, 4vw, 3rem);
+  height: clamp(2.6rem, 4vw, 3rem);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  transition: transform var(--motion-fast) var(--motion-ease), border-color var(--motion-fast) var(--motion-ease);
+}
+
+.project-card-icon svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.project-card:hover .project-card-icon {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
 }
 
 .project-permalink {
@@ -2460,13 +2521,14 @@ section,
 }
 
 .contact-links {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--panel-gap);
   margin-top: 0;
 }
 
 .contact-grid {
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--cluster-space);
 }
 
 .contact-copy {
@@ -2499,6 +2561,31 @@ section,
   overflow-wrap: anywhere;
 }
 
+@container (max-width: 660px) {
+  .project-facts,
+  .project-contribution,
+  .case-study-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .project-facts > div + div {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@keyframes signal-scan {
+  0%,
+  56% {
+    transform: translateX(0) skewX(-18deg);
+  }
+  78%,
+  100% {
+    transform: translateX(560%) skewX(-18deg);
+  }
+}
+
 @keyframes drift {
   0%,
   100% {
@@ -2517,8 +2604,6 @@ section,
 
 @media (max-width: 1024px) {
   .hero-grid,
-  .capability-overview,
-  .contact-grid,
   .gallery-hero {
     grid-template-columns: 1fr;
   }
@@ -2683,19 +2768,6 @@ section,
     grid-column: 1 / -1;
   }
 
-  .skill-grid,
-  .project-facts,
-  .project-contribution,
-  .case-study-stack {
-    grid-template-columns: 1fr;
-  }
-
-  .project-facts > div + div {
-    padding-left: 0;
-    border-left: 0;
-    border-top: 1px solid var(--border);
-  }
-
   .timeline::before {
     left: 10px;
   }
@@ -2708,7 +2780,6 @@ section,
     left: -22px;
   }
 
-  .contact-links,
   .contact-notes {
     grid-template-columns: 1fr;
   }
@@ -2733,7 +2804,7 @@ section,
 
 @media (max-width: 640px) {
   .section {
-    padding-block: clamp(3.25rem, 12vw, 4.5rem);
+    padding-block: var(--section-space);
   }
 
   .container {
