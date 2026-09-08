@@ -665,32 +665,30 @@ summary {
 }
 
 /* --- rig build-up -------------------------------------------------------
-   A 24-frame sprite strip scrubbed by scroll. Frame 0 is the exploded rig,
-   frame 23 is assembled.
+   45-frame full assembly (legs, bars, rails, submodules, floor, panels,
+   doors, connectors) as a 9x5 sprite grid, scrubbed by scroll.
 
-   Lives inside the project's <details> case study. A closed <details> does
-   NOT prevent a CSS background from being fetched (measured: the strip loaded
-   before the details was opened), so the strip URL is gated behind .is-live,
-   which React adds on the toggle event. Only the 23KB poster loads up front.
+   Keyframes are GENERATED into src/rig-buildup.css, one stop per frame with
+   step-end. Two chained steps() animations would be more compact but need
+   iteration-count phase alignment across both axes to stay in sync; explicit
+   stops cannot drift.
 
-   view(), not scroll(root), because this sits far below the fold: the
-   timeline has to be relative to the figure, not the document. (The reverse
-   was true when this was in the hero, where view() would already have been
-   past its entry range at load.)
+   The 1.1MB grid is gated behind .is-live, which React adds when the case
+   study is opened. A closed <details> does NOT prevent a background fetch,
+   so this gating is what makes it opt-in. Until then only the poster loads.
 
-   The poster is the whole image for anyone who cannot animate it, so only
-   browsers with scroll-driven animation pay for the strip.
+   view(), not scroll(root): the figure sits far below the fold, so the
+   timeline has to be relative to the figure.
    -------------------------------------------------------------------- */
 
 .rig-figure-wrap {
-  grid-column: 1 / -1;
-  margin: 0 0 clamp(0.75rem, 2vw, 1.5rem);
+  margin: 0;
+  align-self: start;
 }
 
 .rig-figure {
   width: 100%;
-  max-width: 40rem;
-  aspect-ratio: 520 / 446;
+  aspect-ratio: 1 / 1;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -706,12 +704,17 @@ summary {
   color: var(--text-subtle);
 }
 
-@keyframes rig-buildup {
-  from {
-    background-position-x: 0%;
-  }
-  to {
-    background-position-x: 100%;
+/* Figure beside the prose rather than stacked on top of it. */
+.case-text {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+  align-content: start;
+}
+
+@media (min-width: 56rem) {
+  .case-body--figure {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: start;
   }
 }
 
@@ -719,11 +722,13 @@ summary {
   @supports (animation-timeline: view()) {
     .rig-figure.is-live {
       background-image: url("/rig/buildup.webp");
-      background-size: 2400% 100%; /* 24 frames side by side */
-      background-position-x: 0%;
-      animation: rig-buildup steps(24, jump-none) both;
+      background-size: 900% 500%; /* 9 columns x 5 rows */
+      background-position: 0% 0%;
+      animation: rig-buildup step-end both;
       animation-timeline: view();
-      animation-range: entry 0% cover 42%;
+      /* Completes once the figure is FULLY in view, so the build never
+         finishes off screen. entry 100% is exactly that point. */
+      animation-range: entry 12% entry 100%;
     }
   }
 }

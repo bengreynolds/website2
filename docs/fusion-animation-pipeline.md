@@ -151,6 +151,62 @@ Three things worth keeping:
    short of switching to `<img loading="lazy">`, which would break the
    percentage `background-size` the responsive sprite depends on.
 
+### Full assembly, 45 frames as a 9x5 grid
+
+The shipped animation is the complete build, not a module drop-in: bare corner
+legs, horizontal bars, platform rails, submodules, floor, side and top panels,
+doors, then panel connectors. It animates **children of the enclosure**, not
+just top-level occurrences, so the snapshot has to cover
+`enc.childOccurrences` too (246 transforms, not 31) or the restore is silently
+incomplete.
+
+Never move the enclosure occurrence itself while also moving its children;
+the transforms compose. Move the children only.
+
+```
+45 frames  460 x 460  ->  9x5 grid  4140 x 2300  1105 KB   poster 42 KB
+background-size: 900% 500%
+animation: rig-buildup step-end both
+```
+
+**A single strip cannot hold this.** 45 frames at 460 px is 20700 px, past the
+16384 px texture limit, so it has to be a 2D grid.
+
+**Keyframes are generated, one stop per frame, into `src/rig-buildup.css`.** Two
+chained `steps()` animations (columns with `iteration-count`, rows over the full
+range) is more compact but needs phase alignment across both axes: `steps(5,
+jump-none)` changes rows at fifths of *four* intervals while the columns wrap at
+fifths of *five*, so they drift. Explicit `step-end` stops cannot.
+
+**Trim static tail frames.** Measured frame-to-frame pixel change: only the last
+three transitions were under 0.35% different, so 48 captured frames became 45.
+Worth measuring rather than eyeballing a contact sheet, where the tail *looked*
+much more static than it was.
+
+**The poster is a mid-sequence frame (27), not the last.** The last frame is the
+finished closed enclosure. That is truthful but shows none of the work, and the
+poster is the entire image for anyone who cannot animate it. Frame 27 has the
+modules in, floor down, panels not yet closed.
+
+**Panel connectors are near-invisible at this scale.** Ethernet, USB,
+DisplayPort and the power switch are ~3 cm parts on a 42 cm box. They are in the
+sequence for completeness but contribute almost nothing visually.
+
+### MCP timeout does not mean the script failed
+
+The 48-frame run returned `Request timed out` to the client, but Fusion kept
+executing and wrote all 48 frames. Check the output directory before assuming a
+failure and re-running. Because the last frame returns every part to its
+original transform, the model had also already restored itself.
+
+### Figure placement in a case study
+
+The figure sits beside the prose, not above it: `.case-body--figure` becomes a
+two-column grid and the three prose blocks move into a `.case-text` wrapper.
+`animation-range: entry 12% entry 100%` completes the build exactly when the
+figure is fully in view, verified at `visibleFraction: 1`. An earlier range let
+it finish while the figure was still partly off screen.
+
 **Frame 0 must be worth looking at.** The first tuned pass built the rig
 sequentially, so frame 0 was a bare grey skeleton and the colourful modules only
 arrived later. Since frame 0 is the at-rest state a visitor sees before

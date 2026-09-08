@@ -127,6 +127,7 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
      the sprite has to be attached on open or it costs every visitor 648KB
      they may never look at. */
   const [figureLive, setFigureLive] = useState(false);
+  const hasFigure = project.figure === "buildup";
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -168,35 +169,37 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
         }}
       >
         <summary className="case-summary">Case study</summary>
-        <div className="case-body">
-          {project.figure === "buildup" ? (
+        <div className={`case-body ${hasFigure ? "case-body--figure" : ""}`}>
+          {hasFigure ? (
             <figure className="rig-figure-wrap">
               <div
                 className={`rig-figure ${figureLive ? "is-live" : ""}`}
                 role="img"
-                aria-label="Exploded view of the training rig collapsing into its assembled form: enclosure frame, mouse cage, tunnel module, three-axis pellet delivery, observation camera, and Jetson compute."
+                aria-label="Assembly sequence of the training rig, built up from bare corner legs through horizontal bars, platform rails, the cage, tunnel, pellet delivery, camera and Jetson modules, then the floor, side panels, doors and panel connectors."
               />
               <figcaption className="rig-figure-caption">
-                Enclosure and modules, assembly sequence. Scroll to assemble.
+                Full assembly sequence. Scroll to build.
               </figcaption>
             </figure>
           ) : null}
 
-          <div className="case-block">
-            <h4>Problem</h4>
-            <p>{project.challenge}</p>
-          </div>
-          <div className="case-block">
-            <h4>Approach</h4>
-            <p>{project.approach}</p>
-          </div>
-          <div className="case-block" style={{ gridColumn: "1 / -1" }}>
-            <h4>Implementation</h4>
-            <ul className="case-list">
-              {project.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
-              ))}
-            </ul>
+          <div className="case-text">
+            <div className="case-block">
+              <h4>Problem</h4>
+              <p>{project.challenge}</p>
+            </div>
+            <div className="case-block">
+              <h4>Approach</h4>
+              <p>{project.approach}</p>
+            </div>
+            <div className="case-block">
+              <h4>Implementation</h4>
+              <ul className="case-list">
+                {project.bullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </details>
