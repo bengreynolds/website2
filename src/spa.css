@@ -82,7 +82,7 @@
      the notch and home indicator on iOS rather than assuming zero inset. */
   --gutter-base: clamp(1.25rem, 4vw, 3rem);
   --gutter: max(var(--gutter-base), env(safe-area-inset-left, 0px));
-  --content-max: 1180px;
+  --content-max: 1440px;
   --measure: 66ch;
   --measure-narrow: 54ch;
   --section-y: clamp(4rem, 9vh, 7rem);
@@ -713,8 +713,10 @@ summary {
 
 @media (min-width: 56rem) {
   .case-body--figure {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    /* Figure gets the larger column now that the render is higher resolution. */
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
     align-items: start;
+    gap: clamp(1.5rem, 3vw, 2.75rem);
   }
 }
 
@@ -726,9 +728,11 @@ summary {
       background-position: 0% 0%;
       animation: rig-buildup step-end both;
       animation-timeline: view();
-      /* Completes once the figure is FULLY in view, so the build never
-         finishes off screen. entry 100% is exactly that point. */
-      animation-range: entry 12% entry 100%;
+      /* cover, not entry. "entry 100%" completes as soon as the figure is
+         fully in view, which for a figure revealed by opening a disclosure
+         happens immediately, leaving nothing left to scrub. cover spans the
+         figure's whole travel through the viewport. */
+      animation-range: cover 12% cover 78%;
     }
   }
 }

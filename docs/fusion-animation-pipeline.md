@@ -192,6 +192,27 @@ modules in, floor down, panels not yet closed.
 DisplayPort and the power switch are ~3 cm parts on a 42 cm box. They are in the
 sequence for completeness but contribute almost nothing visually.
 
+### Two bugs that only show up in the browser
+
+**Do not crop frames to a union bounding box.** It produced a 614 x 618 cell
+against a declared `aspect-ratio: 1/1`, and `background-size: 900% 500%` assumes
+each cell is exactly the element's box. A few pixels of mismatch mis-registers
+every cell and the render reads as cut off. Ship the **uncropped square render
+canvas** so the cell is always PX x PX and the aspect can never drift. The empty
+alpha margin costs almost nothing in WebP.
+
+**`animation-range: entry ... entry 100%` is wrong for a figure revealed by a
+disclosure.** It completes the moment the figure is fully in view, which for a
+figure inside a `<details>` the reader just opened is immediately, so scrolling
+does nothing at all. Use `cover`, which spans the figure's whole travel through
+the viewport: `cover 12% cover 78%` yields 18 distinct frames across the sweep
+and reaches both ends.
+
+**Offsets should be short when visibility is gated.** Parts hidden until their
+stage only need a small travel to read as arriving, and a short travel keeps
+them inside the frame. Full-length offsets clipped frames at the canvas edge.
+Scaling the offset table by 0.45 fixed it.
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
