@@ -22,6 +22,7 @@ Frame count: keep at or below 27 so the sprite fits one 16384px strip at 600px.
 
 import adsk.core
 import adsk.fusion
+import math
 import os
 
 # --- tune these -------------------------------------------------------------
@@ -30,8 +31,8 @@ N_FRAMES = 24
 PX = 600
 
 # Tuned over four passes. See docs/fusion-animation-pipeline.md section 5.
-VIEW_MARGIN = 1.38   # 1.9 wasted half the frame; 1.22 clipped the exploded state
-ELEVATION = 0.92     # scales the iso elevation. 0.42 went flat and unreadable.
+VIEW_MARGIN = 1.06   # fit is computed on the EXPLODED state, so barely any extra
+ELEVATION_DEG = 35   # degrees ABOVE the horizon, looking down. See below.
 
 # (component-name prefix, offset cm (x, y, z), window start, window end)
 # Y is the vertical axis in this model.
@@ -125,12 +126,22 @@ def run(_context: str):
     vp.camera = cam
     adsk.doEvents()
 
-    # Scale the elevation component of the iso direction.
+    # The view-orientation presets are Z-up. This model is Y-up, so
+    # IsoTopRight resolves to 35 degrees BELOW the horizon: a camera looking up
+    # at the rig from underneath. Do NOT scale the preset's dy to fix it, it is
+    # negative and scaling tilts further underneath. Keep only the preset's
+    # horizontal bearing and rebuild the elevation from an explicit angle.
     base = vp.camera
     tgt, eye = base.target, base.eye
     dx, dy, dz = eye.x - tgt.x, eye.y - tgt.y, eye.z - tgt.z
     dist = (dx * dx + dy * dy + dz * dz) ** 0.5
-    direction = adsk.core.Vector3D.create(dx, dy * ELEVATION, dz)
+    horiz = (dx * dx + dz * dz) ** 0.5
+    rad = math.radians(ELEVATION_DEG)
+    direction = adsk.core.Vector3D.create(
+        dx / horiz * math.cos(rad),
+        math.sin(rad),  # positive: eye above target, looking down
+        dz / horiz * math.cos(rad),
+    )
     direction.normalize()
     base.eye = adsk.core.Point3D.create(
         tgt.x + direction.x * dist, tgt.y + direction.y * dist, tgt.z + direction.z * dist
@@ -148,6 +159,11 @@ def run(_context: str):
     locked.viewExtents = locked.viewExtents * VIEW_MARGIN
     vp.camera = locked
     adsk.doEvents()
+
+    # Cheap guard against silently shipping a from-underneath run again.
+    assert vp.camera.eye.y > vp.camera.target.y, (
+        "camera is below the target: elevation sign is inverted"
+    )
 
     for i in range(N_FRAMES):
         t = i / float(N_FRAMES - 1)

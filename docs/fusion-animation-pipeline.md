@@ -318,11 +318,48 @@ Three specific lessons:
    41 x 55 cm of empty grey plate. The rig's contents cluster high and to the
    back, so the floor was dead space. Corner legs and rails define the volume
    without it.
-3. **Scale the iso elevation, do not replace the preset.** Take the preset
-   `eye - target` vector, multiply its Y component, renormalise, re-apply.
-   `0.42` is unreadably flat; `0.92` is right. Use
-   `cameraType = OrthographicCameraType` so it reads technical rather than
-   photographic.
+3. **Never scale the preset's elevation. Build the eye direction from an
+   explicit angle.** See the warning immediately below, which invalidated the
+   earlier approach. Use `cameraType = OrthographicCameraType` so it reads
+   technical rather than photographic.
+
+### The view-orientation presets are Z-up and this model is Y-up
+
+`ViewOrientations.IsoTopRightViewOrientation` on this assembly produces
+`eye.y - target.y = -121.03` against a distance of 209.63, i.e. **35.3 degrees
+_below_ the horizon**. The preset is "top" with respect to Fusion's Z-up
+convention; because this model's vertical axis is Y, the preset resolves to a
+camera looking **up at the rig from underneath**.
+
+That silently broke the first five captures, and worse, the fix at the time
+(multiplying `dy` by an `ELEVATION` factor) scaled a *negative* number, so
+raising the factor tilted the camera further underneath:
+
+| ELEVATION factor | Result |
+|---|---|
+| 0.92 | 33.0 deg below horizon |
+| 1.60 | 48.5 deg below horizon |
+| 2.40 | 59.5 deg below horizon |
+
+**Correct approach: ignore the preset's Y and construct the direction from a
+target angle**, keeping the preset's horizontal bearing:
+
+```python
+horiz = (dx*dx + dz*dz) ** 0.5
+rad = math.radians(35)                      # degrees above horizon, looking down
+nd = adsk.core.Vector3D.create(
+    dx / horiz * math.cos(rad),
+    math.sin(rad),                          # positive: eye above target
+    dz / horiz * math.cos(rad),
+)
+nd.normalize()
+```
+
+Measured: 25 deg requested gives 22.5 actual, 35 gives 31.3, 45 gives 42.3. The
+small shortfall is the orthographic fit adjusting; 35 is the adopted value.
+
+**Always assert the sign before capturing a run:**
+`assert vp.camera.eye.y > vp.camera.target.y`
 
 Measured output of the adopted pass: 24 transparent PNG at 600 px, mean 89.9 KB
 per frame, one frame clipping at the exploded extreme (acceptable, it is frame 0).
