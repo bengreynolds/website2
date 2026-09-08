@@ -724,15 +724,18 @@ summary {
   @supports (animation-timeline: view()) {
     .rig-figure.is-live {
       background-image: url("/rig/buildup.webp");
-      background-size: 900% 500%; /* 9 columns x 5 rows */
+      /* background-size is set in the GENERATED src/rig-buildup.css so it can
+         never disagree with the keyframe grid. */
       background-position: 0% 0%;
       animation: rig-buildup step-end both;
       animation-timeline: view();
       /* cover, not entry. "entry 100%" completes as soon as the figure is
          fully in view, which for a figure revealed by opening a disclosure
          happens immediately, leaving nothing left to scrub. cover spans the
-         figure's whole travel through the viewport. */
-      animation-range: cover 12% cover 78%;
+         figure's whole travel through the viewport, and using almost all of
+         it gives the 100-frame sequence the longest scrub available without
+         a sticky wrapper. */
+      animation-range: cover 2% cover 98%;
     }
   }
 }

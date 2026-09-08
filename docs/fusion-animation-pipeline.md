@@ -213,6 +213,54 @@ stage only need a small travel to read as arriving, and a short travel keeps
 them inside the frame. Full-length offsets clipped frames at the canvas edge.
 Scaling the offset table by 0.45 fixed it.
 
+### The 100-frame version, and where the frame budget goes
+
+```
+100 frames  cell 660 x 660  ->  10 x 10 grid  6600 x 6600  2.7 MB   poster 42 MB->42 KB
+background-size: 1000% 1000%      (owned by the GENERATED css, see below)
+```
+
+Four phases in the owner's order, with submodules inserted **top-down, one beat
+at a time**, because that is how the rig is actually built into an open-top
+enclosure:
+
+| Phase | Window | Notes |
+|---|---|---|
+| Frame | 0.00-0.20 | legs, top rails, cross bar, mounting rods, platform rails |
+| Submodules | 0.19-0.70 | 5 sequential beats, all entering straight down (+Y) |
+| Panels | 0.68-0.86 | floor, collection pan, sides, back, top |
+| Mounts, lids, doors | 0.83-0.955 | doors, guides, hinges, handle, cage lid, connectors |
+| Fasteners | 0.93-1.00 | last, per the owner's order |
+
+Submodules own the middle half of the timeline because that is the part worth
+watching. Five beats rather than eleven individual parts: cage plus bottle,
+tunnel plus step, pellet, camera plus webcam, Jetson plus blower. Eleven
+sequential slots would have given each about four frames.
+
+**`background-size` belongs in the generated file, not the stylesheet.** Going
+from a 9x5 to a 10x10 grid left `background-size: 900% 500%` behind in
+`spa.css`, which mis-registered every cell. It now lives in
+`src/rig-buildup.css` beside the keyframes it has to agree with, so a grid
+change cannot silently break it. Verified in the browser: 78 distinct frames
+across an 80-step sweep, **0 frames off-grid** (every computed position lands
+within 0.02% of a legal multiple of 100/9).
+
+**Nothing is static once the camera moves.** Measured frame-to-frame change on
+the 100-frame run: minimum 1.58%. The earlier static-tail trimming was only
+needed because the camera was locked; an orbiting camera makes every frame
+carry change, so no trimming is required.
+
+### Dynamic camera
+
+The camera is keyframed on (azimuth offset, elevation, extents multiplier) and
+interpolated with a smoothstep, keeping the preset's horizontal bearing as the
+base. It starts high and wide (44 degrees, 1.14x) to read the bare frame, drops
+to 26 degrees and pushes in to 0.96x for the submodule inserts, then pulls back
+out for panels and finishing. Total azimuth travel is 44 degrees.
+
+Elevation is still built from an explicit angle, never from the preset's `dy`
+(see the Z-up warning above).
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
