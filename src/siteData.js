@@ -11,6 +11,22 @@ export const resumeHref = "/Benjamin_Reynolds_Resume.pdf";
 export const heroStatement =
   "Scientific software, neuroscience automation, and hardware-integrated systems built for dependable real-world use.";
 
+/* Facts column beside the hero headline. Real data, kept short. */
+export const heroFacts = [
+  { label: "Based in", value: "Denver, Colorado" },
+  { label: "Availability", value: "Remote, hybrid, on-site, and travel-based roles" },
+  { label: "Current", value: "Intermediate Research Engineer, CU Anschutz" },
+  { label: "Focus", value: "Scientific software, automation, hardware integration" },
+];
+
+export const projectFilters = [
+  { id: "all", label: "All" },
+  { id: "software", label: "Software" },
+  { id: "automation", label: "Automation" },
+  { id: "data", label: "Data" },
+  { id: "hardware", label: "Hardware" },
+];
+
 export const aboutCards = [
   {
     title: "System Reliability",
