@@ -371,6 +371,78 @@ Safer shape for a retry:
   preserving.
 - Fewer bodies: filter to components above a minimum size first, then order.
 
+### Framing: fit on what is ACTUALLY VISIBLE
+
+The shipped build animation opened on a frame filling **1%** of the canvas: a
+single corner leg, off centre. Two independent causes, both worth remembering.
+
+**1. Do not stagger the opening stage.** Jittering the 14 frame-stage parts
+across the first 6% of the timeline meant frame 0 contained exactly one leg.
+Frame 0 is the at-rest state a scroll-driven figure sits on, so it has to be a
+composed image. All skeleton parts now share one window and arrive together.
+
+**2. Fit the camera on the model's NATIVE visibility.** Forcing every
+occurrence visible in order to compute the fit turns the normally-hidden
+**65 cm CAN harnesses** back on. Measured: fitted extents 109.4 with them on
+versus **80.1** with them off, a 37% inflation that shrank the subject to 20%
+of frame. Snapshot `isLightBulbOn` first, fit against that, and never assume
+"everything on" is the widest legitimate silhouette.
+
+Three occurrences are natively hidden in this model and must stay that way:
+`50916-CAN Bus Harness LONG-00`, `50915-CAN Bus Harness SHORT-00`,
+`blower_holder_shifted`.
+
+Result: frame 0 went from 1% fill to **68%**, the final frame from 43% and
+off-centre to **53% centred at (0.51, 0.51)**, with no frame touching an edge.
+Camera extents are also held near 1.0 across the whole path now; the previous
+keyframes zoomed out at both ends, which is what made both ends read as
+unfocused.
+
+### Part-number families map cleanly to materials
+
+Confirmed with the owner. Useful for colour-accurate renders:
+
+| Family | Kind | Render as |
+|---|---|---|
+| `1xxxx` | sub-assemblies | (container, no appearance) |
+| `2xxxx`, `3xxxx` | sheet metal, machined | light grey |
+| `4xxxx`, `7xxxx` | press-fit hardware, fasteners | polished steel |
+| `5xxxx` | purchased COTS | per part (servo black, magnet silver, rail steel) |
+| `6xxxx` | 3D printed | black |
+| `8xxxx` | PCB | green |
+
+Appearances already present in the design and usable without touching the
+material libraries: `Black`, `Anodized - Light Gray`, `Aluminum - Polished`,
+`Dark Green`, `Rubber - Black`, `Polycarbonate - Clear`, `Smooth - Light
+Orange`, `Cadet Blue`, `Canary`, `Chestnut`.
+
+### Pellet gantry: membership is explicit, never by height
+
+The owner confirmed the mechanism is a **nested gantry**: the Y carriage carries
+the X rail, which carries the Z rail, which carries the spoon. Frames are rigid
+*within* a stage but the stages stack.
+
+Height tiering gets this wrong and must not be used. `60598-X_frame` sits at
+Y=10.1 but is bolted to the **Y** carriage and carries the X rail, so it rides
+Y, not X. The same error repeats one level up with `60597-Yframe`. Correct
+membership:
+
+```
+FIXED     60590-Base_Pla, 50793-SSEB6-55_MAX x2, 60591-Pellet_Vat (the bucket
+          does not move), Pellet PCB Mounting Assy, base stepper, base limits
+RIDES Y   50793-SSEB6-55_SLIDE_MAX, 60598-X_frame_vmettetal, 50857-SSEB8-55
+          (the X rail), the stepper driving X
+RIDES X   50857-SSEB8-55_Slide_Carriage (the Y=10.0 instance),
+          60597-Yframe_vmettetal, 50857-SSEB8-55_Z-DEFAULT, stepper driving Z
+RIDES Z   50857-SSEB8-55_Slide_Carriage (the Y=14.0 instance),
+          60599-Pellet_Spoon_Table, 60600-Food_Cap, 50919-KPower P0025 Servo,
+          60670-Pellet Z Hard Stop, 60596-Servo_Mount, 50799-Limit Switch 90
+```
+
+Duplicate component names (two slide carriages, three steppers) are
+disambiguated by bbox centre height, which is the only legitimate use of height
+here.
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
