@@ -171,7 +171,13 @@ export const projects = [
         id: "tunnel",
         label: "Head-fix clamp",
         caption:
-          "The magnet swing engaging and releasing. Rotation is about the real shoulder-screw pivot.",
+          "The magnet swing engaging and releasing. Servo horn, push rod and swing are solved as the four-bar they are, off the real pivot axes; the swing stops at 28° because the linkage locks at 32°.",
+      },
+      {
+        id: "pcb",
+        label: "Control board",
+        caption:
+          "The board that drives the pellet module, called out group by group across its layout. Six motor and CAN connectors, then the drive and sensing hardware.",
       },
     ],
     summary:

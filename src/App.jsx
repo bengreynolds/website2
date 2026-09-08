@@ -130,10 +130,12 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
   const hasFigure = project.figure === "buildup";
   const demos = project.demos || [];
   const hasDemo = demos.length > 0;
-  /* Per-demo { runs, view }. Bumping runs remounts that figure, which is the
-     reliable way to restart a CSS animation; toggling a class alone does not.
-     view walks demo.views so one button can play several sprites in sequence. */
-  const [demoPlay, setDemoPlay] = useState({});
+  /* The demos share one figure and a row of buttons, so the case study stays
+     two balanced columns instead of a stack of four square figures.
+     runs remounts the figure, which is the reliable way to restart a CSS
+     animation; view walks demo.views so one press can play several sprites in
+     sequence. */
+  const [play, setPlay] = useState({ id: null, runs: 0, view: 0 });
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -191,41 +193,51 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
             </figure>
           ) : null}
 
-          {demos.map((demo) => {
-            const views = demo.views || [demo.id];
-            const { runs = 0, view = 0 } = demoPlay[demo.id] || {};
+          {hasDemo ? (() => {
+            const active = demos.find((d) => d.id === play.id) || demos[0];
+            const views = active.views || [active.id];
+            const running = play.id === active.id && play.runs > 0;
             return (
-              <figure className="demo-wrap" key={demo.id}>
+              <figure className="demo-wrap">
                 <div
-                  key={`${runs}-${view}`}
-                  data-demo={views[view]}
-                  className={`demo-figure ${runs ? "is-playing" : ""}`}
+                  key={`${active.id}-${play.runs}-${play.view}`}
+                  data-demo={running ? views[play.view] : views[0]}
+                  className={`demo-figure ${running ? "is-playing" : ""}`}
                   role="img"
-                  aria-label={`${demo.label}. ${demo.caption}`}
+                  aria-label={`${active.label}. ${active.caption}`}
                   onAnimationEnd={() => {
-                    if (view + 1 < views.length) {
-                      setDemoPlay((prev) => ({ ...prev, [demo.id]: { runs, view: view + 1 } }));
+                    if (running && play.view + 1 < views.length) {
+                      setPlay((prev) => ({ ...prev, view: prev.view + 1 }));
                     }
                   }}
                 />
                 <figcaption className="demo-caption">
-                  <button
-                    type="button"
-                    className="btn btn--quiet demo-button"
-                    onClick={() =>
-                      setDemoPlay((prev) => ({
-                        ...prev,
-                        [demo.id]: { runs: ((prev[demo.id] || {}).runs || 0) + 1, view: 0 },
-                      }))
-                    }
-                  >
-                    {runs ? `Replay ${demo.label.toLowerCase()}` : `Run ${demo.label.toLowerCase()}`}
-                  </button>
-                  <span>{demo.caption}</span>
+                  <div className="demo-switch">
+                    {demos.map((demo) => (
+                      <button
+                        key={demo.id}
+                        type="button"
+                        className={`btn btn--quiet demo-button ${
+                          demo.id === active.id ? "is-active" : ""
+                        }`}
+                        aria-pressed={demo.id === active.id}
+                        onClick={() =>
+                          setPlay((prev) => ({
+                            id: demo.id,
+                            runs: prev.id === demo.id ? prev.runs + 1 : 1,
+                            view: 0,
+                          }))
+                        }
+                      >
+                        {demo.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span>{active.caption}</span>
                 </figcaption>
               </figure>
             );
-          })}
+          })() : null}
           </div>
           ) : null}
 

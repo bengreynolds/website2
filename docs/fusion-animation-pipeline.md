@@ -312,13 +312,12 @@ Assets built and ready but deliberately NOT wired into the site:
 `public/rig/pellet-poster.webp`, and `src/pellet-demo.css` (time-based,
 button-triggered, 4 s).
 
-### Servo rotations are still unmodelled
+### Servo rotations: now modelled, from cylindrical faces
 
-`load_arm` and `barrier_arm` are servos on 0-120, and the scoop and release are
-*rotations*, not translations. Nothing in this pass rotates them, which is part
-of why the demo reads weakly: the visually distinctive motions are missing.
-Doing them needs each servo's pivot axis, which is not recorded anywhere in the
-model and would have to be derived from the arm geometry.
+An earlier pass left every servo rotation out, because no pivot axis is
+recorded in the model. They are recoverable: see *Read cylindrical faces to
+find shafts and pivots* below. Both the pellet scoop and the tunnel clamp now
+rotate about axes read straight off the geometry.
 
 ### PCB highlighting: how appearances actually resolve
 
@@ -443,6 +442,218 @@ Duplicate component names (two slide carriages, three steppers) are
 disambiguated by bbox centre height, which is the only legitimate use of height
 here.
 
+### Camera framing: project the corners, do not use the max axis span
+
+`Camera.viewExtents` on an orthographic camera is the **full width of a square
+frame**, in model units. Fitting with `viewExtents = maxAxisSpan * margin`
+clipped the pellet render on all four edges, because a box seen from an oblique
+angle projects wider than any of its own axes.
+
+The fit that works, now used by every capture:
+
+```python
+def basis(az, el):                     # az measured from +Z toward +X
+    ar, er = radians(az), radians(el)
+    dv = (cos(er)*sin(ar), sin(er), cos(er)*cos(ar))   # target -> eye
+    rn = hypot(dv[2], dv[0])
+    right = (dv[2]/rn, 0.0, -dv[0]/rn)                 # = up x dv, normalised
+    up = normalise(cross(dv, right))
+    return dv, right, up
+```
+
+Collect every corner the animation can reach, project onto `right` and `up`,
+then set `viewExtents = 2 * max(halfWidth, halfHeight) * 1.05`. Aim at the
+projected centre (`right*cu + up*cv + dv*cw`), not the bbox centre - they
+differ, and the difference is what pushes the subject off to one side.
+
+Verified against the rendered alpha: the subject lands at 12..495 of 540 px with
+no edge contact, on every frame of the run.
+
+**Sweep the whole path, not one pose.** Sample the timeline (40 steps is plenty)
+and transform each moving part's 8 bbox corners analytically - offset for a
+slider, rotate about the pivot for a hinge. Blanket-padding the static bbox
+instead cost 30% of subject size on the first tunnel pass.
+
+### isLightBulbOn is not ancestor-aware, and container bboxes include hidden children
+
+Two traps that both made the camera fit on geometry nobody can see.
+
+`Occurrence.isLightBulbOn` is that occurrence's own switch. Hiding a parent does
+not clear it on the children, and `Occurrence.isVisible` did not reflect the
+ancestor either. Compute effective visibility by walking `fullPathName`:
+
+```python
+hidden = {o.fullPathName for o in root.allOccurrences if not o.isLightBulbOn}
+def shown(o):
+    parts = o.fullPathName.split("+")
+    return not any("+".join(parts[:i+1]) in hidden for i in range(len(parts)))
+```
+
+And `Occurrence.boundingBox` on a *container* occurrence spans its hidden
+children too. Fitting on the pellet module's top-level occurrence returned a box
+reaching Y 29.8 - the hidden PCB enclosure. **Fit on visible leaves only**
+(`o.childOccurrences.count == 0` and `shown(o)`).
+
+### Appearances: what the shaded viewport actually honours
+
+- **Editing an appearance's colour does nothing.** Copying `Plastic - Matte
+  (Black)` and setting `surface_albedo` to three different charcoals produced
+  three identical renders; the property reads back changed. Three darkness
+  levels of `Plastic - Matte (Gray)` likewise rendered identically. Pick
+  appearances from the library by name; do not try to tune one.
+- **An occurrence-level override masks every body-level override beneath it.**
+  The PCB highlight silently did nothing until the board occurrence *and its
+  whole ancestor chain* were cleared with `occ.appearance = None` (the chain
+  carried a `Chestnut` on `Pellet PCB Mounting Assy`). Clear ancestors first,
+  then set `occ.bRepBodies.item(i).appearance`.
+- **Restore body overrides with `= None`**, which drops back to inheritance.
+  234 of 234 cleared cleanly and the appearance audit came back 0 mismatches.
+- **Apply an explicit base at the start of every run.** One capture inherited
+  the previous preview's all-orange state, so its travelling highlight
+  *cleared* components instead of lighting them. Frame 0 must be constructed,
+  never assumed.
+
+### Pure black is unusable, and a translucent vessel is worth it
+
+Colour accuracy and legibility fight each other, and there is a specific
+resolution for this model.
+
+`Plastic - Matte (Black)` on the printed parts renders as a flat silhouette: no
+shading, and the visible-edge lines are black too, so nothing separates
+adjacent parts. Four candidates compared at 440 px; **`Paint - Metallic (Dark
+Grey)`** reads as black plastic and keeps its shading. `Coating - Black Oxide`
+is too dark; `Plastic - Matte (Gray)` and `Paint - Enamel Glossy (Grey)` read
+as grey rather than black.
+
+The shipped palette:
+
+| Family | Appearance |
+|---|---|
+| printed `6xxxx` | `Paint - Metallic (Dark Grey)` |
+| the pellet vat `60591` | `Plastic - Translucent Matte (Gray)` |
+| machined / sheet `2xxxx` `3xxxx` | `Aluminum - Anodized Glossy (Grey)` |
+| fasteners `4xxxx` `7xxxx` | `Stainless Steel - Polished` |
+| rails `50793` `50857` | `Stainless Steel - Satin` |
+| steppers `50903` | `Steel - Satin` |
+| servos `50898` `50919` | `Plastic - Glossy (Black)` |
+| magnets `50901` | `Nickel - Polished` |
+| switches `50799` `50800` | `Plastic - Matte (Black)` |
+| PCB `8xxxx` | `Plastic - Matte (Green)` |
+
+The vat is the one deliberate departure from accuracy: the scoop dips inside it
+at the one moment the animation exists to show, and no camera angle sees in.
+Drawing it translucent is a technical-illustration convention, and the caption
+says so.
+
+A handful of small blue features survive every override - they are proxy-body
+overrides in the assembly context, which outrank an occurrence override. They
+read as anodised hardware at the joints and are worth leaving alone.
+
+### Read cylindrical faces to find shafts and pivots
+
+This model has no joints, so every axis has to come out of geometry. A part's
+largest cylindrical face is its shaft, bore or pivot:
+
+```python
+for body in occ.bRepBodies:
+    for f in body.faces:
+        if f.geometry.surfaceType == adsk.core.SurfaceTypes.CylinderSurfaceType:
+            cyl = adsk.core.Cylinder.cast(f.geometry)   # .axis, .origin, .radius
+```
+
+What that settled, after bbox proportions had failed on all of it:
+
+- The three pellet steppers: shaft along Z on the base (drives the base stage),
+  along X on the X frame, along Y on the lift frame. Two of those I had
+  assigned backwards from bbox proportions.
+- A real **19 mm bearing bore along X** shared by `60596-Servo_Mount` and
+  `50798-Ball Bearing`, at Y 14.70, Z -10.84. That is the scoop pivot, so the
+  scoop turns about its own axis instead of riding rigid.
+- The tunnel clamp's two axes: the servo and its horn share (Y 19.08, Z 3.46);
+  both `70710` shoulder screws give (Y 18.90, Z -2.98).
+
+Reading `component.bRepBodies` bounding boxes is cheap - 234 in one call, no
+crash. It is *proxy* bodies, and especially bbox **and** appearance together,
+that killed Fusion before. Cluster in component space; body indices match
+`occurrence.bRepBodies`, so the highlight still applies to proxies.
+
+### The tunnel clamp is a four-bar, and it closes exactly
+
+Servo horn (crank) -> rod-ends and spring (coupler) -> magnet swing (rocker),
+all planar in Y-Z at X about -10. Measured:
+
+| link | length (cm) |
+|---|---|
+| crank, horn axis to rod pin | 2.083 |
+| coupler, pin to pin | 6.048 |
+| rocker, swing axis to rod pin | 2.830 |
+| ground, crank axis to rocker axis | 6.443 |
+
+Drive the rocker and solve the crank by the cosine rule; take the `+acos`
+branch, which reproduces the modelled crank angle (-14.17 degrees) at rocker 0
+and so proves the pin estimates are self-consistent. Place the coupler from its
+two pin correspondences rather than rotating it about anything.
+
+The payoff is a limit the animation did not have to invent: **the linkage locks
+near -32 degrees**, where `|cos phi| > 1`. The owner's remembered 30 degrees of
+travel is the mechanism's own range. The shipped animation stops at -28.
+
+A 30 degree swing needs a 78 degree servo throw, which is why animating the
+swing alone looked wrong: the horn is the part that moves most.
+
+For the clamp animation keep the tunnel shell, floor, head bar, swing and its
+magnets, the servo, horn, rod-ends and spring. Hide the routed-wire components
+(`50830` `50835` `50888` `50902` - their bboxes envelope the whole module and
+also wreck any nearest-contact grouping), the PCB enclosure, the humidity
+sensing, the beads, and every fastener except the `70710` pivot pair. That is
+62 of 84 leaves hidden, and it is the difference between a mechanism and a pile
+of floating screws.
+
+### The PCB highlight: a travelling band, not a fill
+
+`80027-Pellet Module PCB` is 234 generically-named bodies. Body 233 is the
+substrate (11.4 x 10.8 x 0.16); highlighting it floods the frame, so it stays
+green. Cluster the remaining 233 by XY bbox gap <= 0.12 cm, which recovers 85
+real components, sort clusters by centre X, and pack them into 16 sequential
+groups of roughly equal body count.
+
+A two-group band that lights and goes dark behind it reads as a scan and,
+unlike a cumulative fill, ends on the same dark board the poster shows. Set
+only the changed bodies each frame (233 writes across the run, not 15,000). A
++/-8 degree turntable keeps consecutive frames from being identical during a
+group's dwell.
+
+### Verify sprites offline; the preview pane cannot be trusted for timing
+
+The Browser pane goes hidden between calls, and a hidden document freezes
+`document.timeline`, so CSS animations sit at `currentTime: 0` with
+`playState: "running"`. Screenshots can also come back blank or stale while the
+DOM is provably fine. Check `document.visibilityState` before believing any
+timing measurement.
+
+What is reliable, and worth running after every rebuild:
+
+- computed `background-size`, `animation-name` and `data-demo` per demo button
+- keyframe count against sheet dimensions against declared grid, off the files
+- every frame position landing on the grid step, and the last keyframe at
+  `100% 100%`
+- asset requests returning 200
+
+`scripts/build_demo_sprite.py` emits the sheet, the poster and the CSS from one
+place precisely so those checks cannot disagree.
+
+### Colour-accurate renders need a plate on the page
+
+Once the printed parts are actually dark, the figures disappear against the
+dark theme's ground. Both themes now paint the figure surface with `--plate`, a
+light sheet (`--n-100` on light, a dimmed `#c9d0d4` on dark) plus a hairline
+`--rule` border. It reads as a drawing plate rather than a glare panel, and it
+is the only reason the honest palette is shippable.
+
+Do **not** add padding or change `background-origin` on `.demo-figure`: the
+generated `background-size` percentages resolve against the padding box, so
+either would silently rescale every sprite grid.
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
@@ -472,7 +683,11 @@ the at-rest state; it was left as assembly because that is what was asked for.
 
 ---
 
-## 4. Open blocker: pellet delivery kinematics
+## 4. Pellet delivery kinematics (resolved)
+
+> This section records how the axes were derived. Membership is now an
+> explicit name list, not proximity - see *Pellet gantry: membership is
+> explicit, never by height*.
 
 `10388-Pellet Delivery System-01_MAX_Position` is a **flat** assembly: 91 direct
 children, almost all loose screws, with no per-stage sub-assemblies. Three
@@ -576,12 +791,12 @@ Reference for how these are consumed:
 
 ### Remaining risk
 
-`10388-Pellet Delivery System` is flat, so even with the axis definitions above
-nothing in the model records which of the 91 children ride which stage. The rail
-inference gives the axis and the carriage, but parts bolted to a carriage have to
-be found by proximity. Moving the wrong subset detaches screws visibly. If the
-inferred result looks wrong, the durable fix is to group the three stages as
-sub-assemblies in Fusion, which is worth doing to the CAD regardless.
+`10388-Pellet Delivery System` is flat, so nothing in the model records which of
+the 91 children ride which stage. Proximity alone got this wrong twice: it put
+the base plate and the vat on moving stages because they touch a carriage. All
+34 non-fastener parts are now named explicitly and only the 55 fasteners are
+assigned by nearest contact. The durable fix is still to group the three stages
+as sub-assemblies in Fusion, which is worth doing to the CAD regardless.
 
 PCBs to feature: **Pellet Module and Tunnel Module only** (`80027-Pellet Module
 PCB-02`, `80026-Tunnel Module PCB-01`). The other five boards are skipped.
