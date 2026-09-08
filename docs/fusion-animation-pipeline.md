@@ -617,11 +617,17 @@ green. Cluster the remaining 233 by XY bbox gap <= 0.12 cm, which recovers 85
 real components, sort clusters by centre X, and pack them into 16 sequential
 groups of roughly equal body count.
 
-A two-group band that lights and goes dark behind it reads as a scan and,
+A travelling band that lights and goes dark behind it reads as a scan and,
 unlike a cumulative fill, ends on the same dark board the poster shows. Set
 only the changed bodies each frame (233 writes across the run, not 15,000). A
 +/-8 degree turntable keeps consecutive frames from being identical during a
 group's dwell.
+
+Band width matters more than it sounds. Two groups of sixteen lit at a time was
+invisible at the 300 px the figure actually displays at - a few stray orange
+pixels per frame. **Four of sixteen** lights about a quarter of the board, so
+the big connectors get a clear moment and the sweep reads as deliberate. Judge
+this at display size, never on a full-resolution frame.
 
 ### Verify sprites offline; the preview pane cannot be trusted for timing
 
