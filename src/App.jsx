@@ -387,17 +387,27 @@ export default function App() {
               </div>
             </div>
 
-            {/* TODO(owner): a single real hero visual belongs here once a
-                render or bench photograph is available. See
-                future_website_recommendations.md P0. Target 4:5, ~900x1125. */}
-            <dl className="hero-facts rise" style={{ "--delay": "140ms" }}>
-              {heroFacts.map((fact) => (
-                <div className="fact" key={fact.label}>
-                  <dt className="fact-label">{fact.label}</dt>
-                  <dd className="fact-value">{fact.value}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="hero-aside">
+              <figure className="hero-figure-wrap rise" style={{ "--delay": "200ms" }}>
+                <div
+                  className="hero-figure"
+                  role="img"
+                  aria-label="Exploded view of the automated behavioral training rig assembling: enclosure frame, mouse cage, tunnel module, pellet delivery, observation camera, and Jetson compute."
+                />
+                <figcaption className="hero-figure-caption">
+                  Auto-trainer rig, assembly sequence
+                </figcaption>
+              </figure>
+
+              <dl className="hero-facts rise" style={{ "--delay": "140ms" }}>
+                {heroFacts.map((fact) => (
+                  <div className="fact" key={fact.label}>
+                    <dt className="fact-label">{fact.label}</dt>
+                    <dd className="fact-value">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
         </section>
 

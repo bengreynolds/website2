@@ -108,6 +108,49 @@ it *and every ancestor* has its bulb on. Walk `assemblyContext` upward.
 
 ---
 
+## 3b. Web integration, as shipped
+
+Live in `src/spa.css` under "rig build-up", markup in the hero of `src/App.jsx`.
+
+```
+frame 508 x 398   strip 12192 x 398   565 KB   poster 23 KB
+background-size: 2400% 100%          (24 frames side by side)
+animation-timing-function: steps(24, jump-none)
+```
+
+`steps(N, jump-none)` is the correct stepping function for a sprite: it yields
+exactly N discrete values including both 0% and 100%. Plain `steps(N)` never
+reaches the last frame.
+
+Three things worth keeping:
+
+1. **The poster carries real weight.** The strip is declared only inside
+   `@media (prefers-reduced-motion: no-preference)` + `@supports
+   (animation-timeline: scroll())`. Anyone outside that gets the 23 KB still of
+   the assembled rig and never downloads the 565 KB strip.
+2. **`scroll(root)`, not `view()`, for an above-the-fold figure.** A `view()`
+   timeline is already past its `entry` range at load for anything in the first
+   viewport, so it would show the final frame immediately.
+3. **The range has to finish while the figure is still on screen.** The figure
+   sits near the top of the page and starts leaving the viewport almost at once.
+   `animation-range: 0 72vh` was wrong: at 52% of the animation the figure had
+   already scrolled away, so the last half never got seen. `0 22vh` completes at
+   ~212 px of scroll with the figure still 78% visible.
+
+**Frame 0 must be worth looking at.** The first tuned pass built the rig
+sequentially, so frame 0 was a bare grey skeleton and the colourful modules only
+arrived later. Since frame 0 is the at-rest state a visitor sees before
+scrolling, the adopted version instead shows every module present at distinct
+offsets and collapses them together. Fit the camera on the **exploded** state and
+use a small `VIEW_MARGIN` (1.06); fitting the assembled state and padding out to
+1.5 leaves the subject tiny.
+
+Direction is currently exploded to assembled. Reversing it (land on the assembled
+rig, explode on scroll) is a one-line change and would put the stronger image in
+the at-rest state; it was left as assembly because that is what was asked for.
+
+---
+
 ## 4. Open blocker: pellet delivery kinematics
 
 `10388-Pellet Delivery System-01_MAX_Position` is a **flat** assembly: 91 direct
@@ -121,19 +164,53 @@ present:
 50857-SSEB8-55_Slide_Carriage (x2)
 ```
 
-Travel is **35 mm on each axis** (from the owner).
+### Owner-supplied motion spec
 
-The blocker is not the travel value, it is that nothing records *which parts ride
-which axis*. Moving the wrong subset detaches screws visibly and an engineer will
-notice. Options, best first:
+Not in the model, so it is recorded here.
 
-1. Group the three stages as sub-assemblies in Fusion. Makes the animation trivial
-   and is worth doing to the CAD regardless.
-2. Owner lists the parts riding each axis.
-3. Infer spatially from proximity to `60598-X_frame_vmettetal-02` /
-   `60597-Yframe_vmettetal-01`. Cheapest, and approximate.
-4. Drop the motion for this module and ship a turntable plus PCB reveal, which
-   needs no kinematics at all.
+**Pellet delivery, 35 mm travel on each axis.** Axis meanings, in the owner's
+terms:
+
+| Axis | Direction |
+|---|---|
+| X | Toward and away from the pellet bucket |
+| Y | Toward and away from the tunnel |
+| Z | Up and down (the last stage) |
+
+Method sanctioned by the owner: **infer the moving set from the SSEB slider
+rails.** For each SSEB rail, the long bounding-box dimension gives the travel
+axis, and the carriage plus everything mounted above it rides that axis. Relevant
+parts:
+
+```
+50793-SSEB6-55_MAX            50857-SSEB8-55
+50793-SSEB6-55_SLIDE_MAX      50857-SSEB8-55_Z-DEFAULT
+50857-SSEB8-55_Slide_Carriage (x2)
+```
+
+Three `50903-Thinker Motion Stepper Motor-00` instances confirm three axes.
+
+**Magnet swing, defined by end states rather than an angle:**
+
+- **100%** = magnets flush with the tunnel front face
+- **0%** = arm as straight as possible, magnets furthest from flush
+
+So the sweep is derived from the geometry between those two poses rather than a
+supplied angle. Parts: `10400-Magnet_Swing_Assy_Half_Inch_v3-00`,
+`60616-Magnet_Swing_v7-02`, `10396-Servo_Arm_Assy-00`, `50850-Servo_Arm-00`,
+`60658-Magnet Swing Force Sensor Contact-00`.
+
+### Remaining risk
+
+`10388-Pellet Delivery System` is flat, so even with the axis definitions above
+nothing in the model records which of the 91 children ride which stage. The rail
+inference gives the axis and the carriage, but parts bolted to a carriage have to
+be found by proximity. Moving the wrong subset detaches screws visibly. If the
+inferred result looks wrong, the durable fix is to group the three stages as
+sub-assemblies in Fusion, which is worth doing to the CAD regardless.
+
+PCBs to feature: **Pellet Module and Tunnel Module only** (`80027-Pellet Module
+PCB-02`, `80026-Tunnel Module PCB-01`). The other five boards are skipped.
 
 ---
 
