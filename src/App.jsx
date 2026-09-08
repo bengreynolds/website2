@@ -130,9 +130,10 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
   const hasFigure = project.figure === "buildup";
   const demos = project.demos || [];
   const hasDemo = demos.length > 0;
-  /* Per-demo counter. Bumping it remounts that figure, which is the reliable
-     way to restart a CSS animation; toggling a class alone does not. */
-  const [demoRuns, setDemoRuns] = useState({});
+  /* Per-demo { runs, view }. Bumping runs remounts that figure, which is the
+     reliable way to restart a CSS animation; toggling a class alone does not.
+     view walks demo.views so one button can play several sprites in sequence. */
+  const [demoPlay, setDemoPlay] = useState({});
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -191,22 +192,31 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
           ) : null}
 
           {demos.map((demo) => {
-            const runs = demoRuns[demo.id] || 0;
+            const views = demo.views || [demo.id];
+            const { runs = 0, view = 0 } = demoPlay[demo.id] || {};
             return (
               <figure className="demo-wrap" key={demo.id}>
                 <div
-                  key={runs}
-                  data-demo={demo.id}
+                  key={`${runs}-${view}`}
+                  data-demo={views[view]}
                   className={`demo-figure ${runs ? "is-playing" : ""}`}
                   role="img"
                   aria-label={`${demo.label}. ${demo.caption}`}
+                  onAnimationEnd={() => {
+                    if (view + 1 < views.length) {
+                      setDemoPlay((prev) => ({ ...prev, [demo.id]: { runs, view: view + 1 } }));
+                    }
+                  }}
                 />
                 <figcaption className="demo-caption">
                   <button
                     type="button"
                     className="btn btn--quiet demo-button"
                     onClick={() =>
-                      setDemoRuns((prev) => ({ ...prev, [demo.id]: (prev[demo.id] || 0) + 1 }))
+                      setDemoPlay((prev) => ({
+                        ...prev,
+                        [demo.id]: { runs: ((prev[demo.id] || {}).runs || 0) + 1, view: 0 },
+                      }))
                     }
                   >
                     {runs ? `Replay ${demo.label.toLowerCase()}` : `Run ${demo.label.toLowerCase()}`}

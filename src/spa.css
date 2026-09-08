@@ -58,6 +58,12 @@
      texture, not as a visible graph. */
   --grid-line: rgba(20, 26, 29, 0.045);
 
+  /* Plate behind CAD figures. The renders are colour-accurate, which means
+     mostly near-black printed plastic; on a dark ground they vanish. Both
+     themes therefore put them on a light sheet, dimmed in dark mode so it
+     reads as a drawing plate rather than a glare panel. */
+  --plate: var(--n-100);
+
   --focus-ring: var(--accent);
 
   /* Type */
@@ -113,6 +119,7 @@
   --decor: #6f7a82;
   --rule: #2a3338;
   --rule-strong: #3a444a;
+  --plate: #c9d0d4;
 
   --accent: #ff7a45;
   --accent-hover: #ff9469;
@@ -693,6 +700,8 @@ summary {
   background-position: center;
   background-size: contain;
   background-image: url("/rig/buildup-poster.webp");
+  background-color: var(--plate);
+  border: 1px solid var(--rule);
 }
 
 .rig-figure-caption {
@@ -731,12 +740,17 @@ summary {
 
 /* One base rule for every demo. The per-demo poster, grid and keyframes come
    from the generated src/demo-<id>.css files. */
+/* No padding and no background-origin change here: the generated
+   background-size percentages resolve against the padding box, so touching
+   either would silently rescale every sprite grid. */
 .demo-figure {
   width: 100%;
   aspect-ratio: 1 / 1;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+  background-color: var(--plate);
+  border: 1px solid var(--rule);
 }
 
 .demo-figure.is-playing {

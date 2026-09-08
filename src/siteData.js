@@ -160,9 +160,12 @@ export const projects = [
     demos: [
       {
         id: "pellet",
+        /* Two passes on one button: the module as installed, then the same
+           cycle close on the mechanism. */
+        views: ["pellet", "pellet-close"],
         label: "Pellet delivery",
         caption:
-          "One load and send cycle. Moves and timing are read from the rig's own motor config.",
+          "One load and send cycle, twice: the module as installed, then close on the mechanism. Every stage rides only its own rail, over the real 30 mm stroke. The vat is drawn translucent so the scoop stays visible inside it.",
       },
       {
         id: "tunnel",

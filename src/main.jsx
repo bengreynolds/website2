@@ -12,6 +12,7 @@ import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
 import "./demo-pellet.css";
+import "./demo-pellet-close.css";
 import "./demo-tunnel.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
