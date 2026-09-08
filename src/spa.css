@@ -757,13 +757,10 @@ summary {
   background-position: 0% 0%;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  /* The generated rules only attach a sprite under no-preference, so nothing
-     needs undoing here. Just hide the button, which would do nothing. */
-  .demo-button {
-    display: none;
-  }
-}
+/* Nothing to undo for reduced motion: the generated rules only attach a
+   sprite inside no-preference, so .is-playing keeps the poster. The buttons
+   stay, because with one shared figure they still switch which still and
+   which caption you are looking at. */
 
 .demo-caption {
   display: grid;
