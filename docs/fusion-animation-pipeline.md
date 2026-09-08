@@ -200,6 +200,59 @@ supplied angle. Parts: `10400-Magnet_Swing_Assy_Half_Inch_v3-00`,
 `60616-Magnet_Swing_v7-02`, `10396-Servo_Arm_Assy-00`, `50850-Servo_Arm-00`,
 `60658-Magnet Swing Force Sensor Contact-00`.
 
+### The real choreography, from the rig's own config
+
+The motion does not have to be invented. It is in the deployed config on the lab
+share, and this is the sequence a "Demo" animation should reproduce.
+
+Source of truth (live rig):
+`Z:\PHYS\ChristieLab\Data\JetsonAutoTrainer\Jetson_install\alogus_install_assets\configs\alogus_motors\`
+
+`load_pellet`, then `send_pellet`, then `release_pellet`:
+
+| # | Move | Value | Reading |
+|---|---|---|---|
+| 1 | `y` | 0 | retract away from the tunnel |
+| 2 | `barrier_arm` | 110 | open the barrier |
+| 3 | `x` | 32 | traverse toward the pellet vat |
+| 4 | `load_arm` | 5 | arm down into the vat |
+| 5 | `z` | 22 | raise |
+| 6 | `load_arm` | 84,25 | scoop |
+| 7 | `z` | 8.8 | lower |
+| 8 | `x` | 20 | traverse back |
+| 9 | `tone` | 5000, 0.3 | 5 kHz cue, 0.3 s |
+| 10 | `z` | -5.0 | \} `send` predefined |
+| 11 | `x` | 16.0 | \} |
+| 12 | `y` | 20.0 | \} extend toward the tunnel, presenting the pellet |
+| 13 | `barrier_arm` | 98 | release |
+| 14 | `tone` | 6000, 0.3 | 6 kHz cue, 0.3 s |
+
+Axis ranges from `motor_config.yaml`: `load` and `barrier` are servos on 0-120;
+`x`/`y`/`z` are steppers (microsteps 8; 48 steps/rev for x and y, 24 for z).
+`tunnel.magnet` is 0-100, which matches the owner's "100% flush with the tunnel
+face" definition. Three axis positions in the sequence (32, 22, 20) sit inside
+the stated 35 mm travel, so the stepper values read as millimetres.
+
+**Three cautions before animating from these numbers:**
+
+1. **Two calibrations exist.** `configs/move_config.yaml` and
+   `configs/alogus_motors/move_config.yaml` disagree (`load_arm` 20 vs 5, scoop
+   91 vs 84, cover 83 vs 87, release 93 vs 98). The `alogus_motors/` copy is the
+   live one.
+2. **Steps 10-12 come from a stale dev config.** The `send` action is not in the
+   `alogus_motors/` set; it resolves at runtime from `~/.alogus_config.yaml` on
+   the Jetson. The copy on the share is from Feb 2025 and uses different
+   conventions (negative z, `barrier` pinned to 50-51), so its numbers must not
+   be mixed with the live set. The *order* (z, then x, then y toward the tunnel)
+   is still the right structure.
+3. **`load_arm: 84,25` has an unexplained second value.** `tone: 5000,0.3` is
+   clearly frequency and duration, so `84,25` is probably position and
+   speed, but that is an inference.
+
+Reference for how these are consumed:
+`auto-trainer-alogus-dev/tools/pellet_delivery/model/app_model.py` builds
+`WhiskerMovement.from_dict(...)` for `load`, `home` and `send`.
+
 ### Remaining risk
 
 `10388-Pellet Delivery System` is flat, so even with the axis definitions above
