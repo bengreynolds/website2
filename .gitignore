@@ -3,6 +3,7 @@ dist/
 .vite/
 .vercel/
 agentic-docs/
+.playwright-mcp/
 .DS_Store
 *.log
 npm-debug.log*
