@@ -28,29 +28,36 @@ import os
 OUT = os.path.join(os.path.expanduser("~"), "fusion_frames", "hero")
 N_FRAMES = 24
 PX = 600
-VIEW_MARGIN = 1.30  # 1.9 was too loose; assembly filled only ~45% of frame
+
+# Tuned over four passes. See docs/fusion-animation-pipeline.md section 5.
+VIEW_MARGIN = 1.38   # 1.9 wasted half the frame; 1.22 clipped the exploded state
+ELEVATION = 0.92     # scales the iso elevation. 0.42 went flat and unreadable.
 
 # (component-name prefix, offset cm (x, y, z), window start, window end)
 # Y is the vertical axis in this model.
 PHASES = [
-    ("10421-Enclosure", (0, -32, 0), 0.00, 0.30),
-    ("70727_91292A118", (0, -22, 0), 0.06, 0.34),
-    ("50802-ALLENTOWN", (-38, 0, 0), 0.22, 0.48),
-    ("50895-Allentown", (-38, 0, 0), 0.26, 0.52),
-    ("10394-Mounted_Tunnel", (0, 0, 38), 0.38, 0.64),
-    ("10426-Mouse Step", (0, 0, 38), 0.42, 0.66),
-    ("10388-Pellet", (34, 0, 0), 0.50, 0.76),
-    ("blower", (0, 0, -32), 0.62, 0.86),
-    ("50804-Web_Cam", (0, 0, -32), 0.64, 0.88),
-    ("60603-Web_Cam_Mount", (0, 0, -32), 0.64, 0.88),
-    ("10420-Observation", (0, 38, 0), 0.72, 0.96),
-    ("10423-Jetson", (0, 0, -38), 0.78, 1.00),
+    ("10421-Enclosure", (0, -30, 0), 0.00, 0.20),
+    ("70727_91292A118", (0, -22, 0), 0.02, 0.22),
+    ("50802-ALLENTOWN", (-32, 0, 0), 0.14, 0.38),
+    ("50895-Allentown", (-32, 5, 0), 0.18, 0.42),
+    ("10394-Mounted_Tunnel", (0, 0, 32), 0.28, 0.52),
+    ("10426-Mouse Step", (0, 0, 32), 0.32, 0.56),
+    ("10388-Pellet", (32, 0, 0), 0.42, 0.66),
+    ("blower", (0, 0, -30), 0.52, 0.74),
+    ("50804-Web_Cam", (0, 0, -30), 0.54, 0.76),
+    ("60603-Web_Cam_Mount", (0, 0, -30), 0.54, 0.76),
+    ("10420-Observation", (0, 32, 0), 0.64, 0.88),
+    ("10423-Jetson", (0, 0, -32), 0.74, 1.00),
 ]
 
 HIDE_TOP = ["50858-Allentown Enclosure Lid-00"]
 
-# Children of 10421-Enclosure Assy-00. The first six are the skin. The last three
-# are interior blockers: the "platform rails" are 20x54cm plates, not rails.
+# Children of 10421-Enclosure Assy-00.
+#   1-6  the skin
+#   7-9  interior blockers ("platform rails" are 20x54cm plates, not rails)
+#   10-11 the floor. 41x55cm of empty grey plate read as ~40% of the frame and
+#         dominated the composition. The corner legs and rails still define the
+#         volume without it.
 HIDE_ENCLOSURE = [
     "30591-Side Panel_Solid-00",
     "30590-Side Panel_Solid Opposite-00",
@@ -61,6 +68,8 @@ HIDE_ENCLOSURE = [
     "30587-Platform_Rail_Left-00",
     "20566-Platform Rail Right-00 (1)",
     "10428-Water Shield Assy-00",
+    "30586-Collection_Pan-00",
+    "20557-Base_Panel-00 (1)",
 ]
 # ---------------------------------------------------------------------------
 
@@ -104,13 +113,35 @@ def run(_context: str):
         [o.component.name for o in occurrences if o.fullPathName not in assigned],
     )
 
+    was_visible = {o.fullPathName: o.isLightBulbOn for o in occurrences}
+
     # Lock the camera on the ASSEMBLED state so nothing rescales mid-sequence.
+    # Orthographic reads as technical rather than photographic.
     cam = vp.camera
+    cam.cameraType = adsk.core.CameraTypes.OrthographicCameraType
     cam.viewOrientation = adsk.core.ViewOrientations.IsoTopRightViewOrientation
     cam.isFitView = True
     cam.isSmoothTransition = False
     vp.camera = cam
     adsk.doEvents()
+
+    # Scale the elevation component of the iso direction.
+    base = vp.camera
+    tgt, eye = base.target, base.eye
+    dx, dy, dz = eye.x - tgt.x, eye.y - tgt.y, eye.z - tgt.z
+    dist = (dx * dx + dy * dy + dz * dz) ** 0.5
+    direction = adsk.core.Vector3D.create(dx, dy * ELEVATION, dz)
+    direction.normalize()
+    base.eye = adsk.core.Point3D.create(
+        tgt.x + direction.x * dist, tgt.y + direction.y * dist, tgt.z + direction.z * dist
+    )
+    base.target = tgt
+    base.upVector = adsk.core.Vector3D.create(0, 1, 0)
+    base.isFitView = True
+    base.isSmoothTransition = False
+    vp.camera = base
+    adsk.doEvents()
+
     locked = vp.camera
     locked.isFitView = False
     locked.isSmoothTransition = False
@@ -125,6 +156,11 @@ def run(_context: str):
             if not spec:
                 continue
             offset, start, end = spec
+            if not was_visible[occ.fullPathName]:
+                continue
+            # A part parked at its offset would otherwise float in frame for most
+            # of the sequence. Keep it hidden until its window opens.
+            occ.isLightBulbOn = t >= start - 1e-9
             if t <= start:
                 p = 0.0
             elif t >= end:

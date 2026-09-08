@@ -154,12 +154,35 @@ notice. Options, best first:
   `view()` timeline holds an element at its start state when it cannot advance, so
   a faded keyframe leaves content invisible in headless capture.
 
-### Composition notes from the first run
+### Composition, tuned over four passes
 
-- `viewExtents * 1.9` was too loose; the assembly filled only ~45% of the frame.
-  Use ~1.25-1.4 and let incoming parts enter from off-frame.
-- `IsoTopRight` is too top-down: the floor dominates the composition. Set a
-  shallower custom camera `eye` instead of using the preset.
+Final values are in `scripts/fusion/capture_assembly.py`. What each pass taught:
+
+| Pass | Change | Result |
+|---|---|---|
+| 1 | `viewExtents * 1.9`, `IsoTopRight`, skin only | Subject filled 33% x 47%. Platform rails still on, reading as a grey slab. |
+| 2 | margin 1.22, elevation x0.42, offsets 52-58 cm | Subject 75% wide but clipped, view went flat and unreadable, and parts parked at their offsets hovered in frame for most of the sequence. |
+| 3 | hide parts until their window opens | Fixed the hovering. Sequence finally reads. Floor still ~40% of the frame. |
+| 4 | hide the floor, elevation x0.92, compress the grey opening | **Adopted.** Subject 67% x 61%, one frame clipped at the exploded extreme. |
+
+Three specific lessons:
+
+1. **Gate visibility per frame, not just position.** With a fixed camera, a part
+   waiting at its offset is on screen the whole time. Set
+   `isLightBulbOn = (t >= window_start)` so parts appear as they are needed.
+2. **Hide the floor.** `20557-Base_Panel-00` plus `30586-Collection_Pan-00` is
+   41 x 55 cm of empty grey plate. The rig's contents cluster high and to the
+   back, so the floor was dead space. Corner legs and rails define the volume
+   without it.
+3. **Scale the iso elevation, do not replace the preset.** Take the preset
+   `eye - target` vector, multiply its Y component, renormalise, re-apply.
+   `0.42` is unreadably flat; `0.92` is right. Use
+   `cameraType = OrthographicCameraType` so it reads technical rather than
+   photographic.
+
+Measured output of the adopted pass: 24 transparent PNG at 600 px, mean 89.9 KB
+per frame, one frame clipping at the exploded extreme (acceptable, it is frame 0).
+Convert to WebP before shipping.
 
 ---
 
