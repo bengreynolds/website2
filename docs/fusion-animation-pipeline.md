@@ -139,10 +139,24 @@ notice. Options, best first:
 
 ## 5. Web delivery constraints
 
-- **Sprite strips cap at 16384 px** GPU texture width. At 600 px frames that is
-  **27 frames max** in a single strip. More than that needs a 2D grid.
-- Measured cost of the first run: 24 transparent PNG at 600 px = **1.27 MB raw,
-  mean 51.6 KB/frame**. Convert to WebP before shipping.
+- **Sprite strips cap at 16384 px** GPU texture width.
+- **Crop to the union alpha bbox across all frames before building the strip.**
+  The 600 x 600 captures only contain content in a 456 x 482 box, so a naive strip
+  spends a third of its payload on empty pixels. Cropping also shrinks the strip
+  from 14400 px to 10944 px, comfortably inside the texture limit, so 24 frames
+  need no 2D grid.
+- **Do not resample after cropping.** Measured: the native 482 px-tall strip is
+  540 KB, while resizing to 480 px produces 699 KB. Resampling introduces
+  high-frequency detail that costs more than the two pixels saved.
+- Measured final numbers for the 24-frame build-up:
+
+  | Form | Size |
+  |---|---|
+  | 24 transparent PNG at 600 px (raw capture) | 2158 KB |
+  | Cropped WebP strip, 10944 x 482, q82 | **540 KB** |
+
+  Serve a single cropped frame as a static poster for LCP and let the strip load
+  after, since the scroll animation starts at frame 0 anyway.
 - Context: the whole site is currently 163 KB JS + 22 KB CSS. Four of these
   animations at raw PNG weight would be 20-30x the entire page.
 - Therefore: **hero animation loads eagerly, module animations live inside the
