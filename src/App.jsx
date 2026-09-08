@@ -121,17 +121,21 @@ function useSectionSpy(setActive) {
    Work entry
    -------------------------------------------------------------------------- */
 
-const WorkEntry = memo(function WorkEntry({ project }) {
+const WorkEntry = memo(function WorkEntry({ project, index }) {
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
       <div className="work-entry-head">
+        <span className="work-num" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+
         <h3 className="work-title">
           <a className="work-anchor" href={`#project-${project.id}`}>
             {project.title}
           </a>
         </h3>
 
-        <div>
+        <div className="work-body">
           <p className="work-outcome">{project.result}</p>
           <p className="work-summary">{project.summary}</p>
 
@@ -409,7 +413,7 @@ export default function App() {
           </div>
         </section>
 
-        <section id="projects" className="section">
+        <section id="projects" className="section section--tinted">
           <div className="container">
             <div className="section-head reveal">
               <h2 className="section-title">Selected work</h2>
@@ -435,8 +439,8 @@ export default function App() {
 
             <div className="work-index">
               {filteredProjects.length > 0 ? (
-                filteredProjects.map((project) => (
-                  <WorkEntry key={project.id} project={project} />
+                filteredProjects.map((project, index) => (
+                  <WorkEntry key={project.id} project={project} index={index} />
                 ))
               ) : (
                 <div className="work-empty">
@@ -502,7 +506,7 @@ export default function App() {
           </div>
         </section>
 
-        <section id="capabilities" className="section">
+        <section id="capabilities" className="section section--tinted">
           <div className="container">
             <div className="section-head reveal">
               <h2 className="section-title">Capabilities</h2>
@@ -515,30 +519,28 @@ export default function App() {
               and keeping it there.
             </p>
 
-            <div className="cap-notes reveal">
-              {aboutCards.map((card) => (
-                <div className="cap-note" key={card.title}>
-                  <h3>{card.title}</h3>
-                  <p>{card.body}</p>
-                </div>
-              ))}
-            </div>
+            <div className="cap-body">
+              <div className="cap-notes reveal">
+                {aboutCards.map((card) => (
+                  <div className="cap-note" key={card.title}>
+                    <h3>{card.title}</h3>
+                    <p>{card.body}</p>
+                  </div>
+                ))}
+              </div>
 
-            <div className="cap-groups">
-              {skillGroups.map((group, index) => (
-                <div
-                  className="cap-group reveal"
-                  key={group.title}
-                  style={{ "--delay": `${index * 60}ms` }}
-                >
-                  <h3 className="cap-group-title">{group.title}</h3>
-                  <ul className="cap-items">
-                    {group.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              <div className="cap-groups">
+                {skillGroups.map((group) => (
+                  <div className="cap-group reveal" key={group.title}>
+                    <h3 className="cap-group-title">{group.title}</h3>
+                    <ul className="cap-items">
+                      {group.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

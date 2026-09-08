@@ -45,11 +45,17 @@
   --rule: var(--n-200);
   --rule-strong: var(--n-300);
 
-  /* Accent - burnt orange, preserved from the existing brand */
-  --accent: #c53f0b;
-  --accent-hover: #a3330a;
+  /* Accent - burnt orange, preserved from the existing brand. Tuned to clear
+     4.5:1 as text on the tinted ground, which is darker than --page and so
+     is the binding constraint. Darkening also helps the white-on-accent CTA. */
+  --accent: #b83a0a;
+  --accent-hover: #9a3008;
   --accent-wash: rgba(197, 63, 11, 0.08);
   --accent-contrast: #ffffff;
+
+  /* Drafting grid. Deliberately near-threshold: it should register as paper
+     texture, not as a visible graph. */
+  --grid-line: rgba(20, 26, 29, 0.045);
 
   --focus-ring: var(--accent);
 
@@ -111,6 +117,7 @@
   --accent-hover: #ff9469;
   --accent-wash: rgba(255, 122, 69, 0.14);
   --accent-contrast: #10161a;
+  --grid-line: rgba(238, 242, 244, 0.05);
 
   --focus-ring: var(--accent);
 }
@@ -271,14 +278,17 @@ summary {
   padding-inline: var(--gutter);
 }
 
+/* Sections alternate between two grounds of the same theme family, so the
+   page has a beat. Every adjacent pair differs in tone, which means the
+   tone change is the separator and no dividing rule is needed. */
 .section {
+  position: relative;
   padding-block: var(--section-y);
   scroll-margin-top: calc(var(--header-h) + 1rem);
-  border-top: 1px solid var(--rule);
 }
 
-.section:first-of-type {
-  border-top: 0;
+.section--tinted {
+  background: var(--surface-sunken);
 }
 
 /* Section headers stack vertically. No split-header, no eyebrow. */
@@ -592,10 +602,26 @@ summary {
 .hero {
   padding-top: clamp(3rem, 7vh, 5.5rem);
   padding-bottom: clamp(3.5rem, 8vh, 6rem);
-  border-top: 0;
+}
+
+/* Drafting grid, faded out downward so it reads as the top of a sheet
+   rather than a tiled background. Decorative only. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 34px 34px;
+  background-position: center top;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 78%);
+  pointer-events: none;
 }
 
 .hero-inner {
+  position: relative;
   display: grid;
   gap: clamp(2.5rem, 5vw, 4rem);
   grid-template-columns: minmax(0, 1fr);
@@ -728,20 +754,40 @@ summary {
 
 .work-entry-head {
   display: grid;
-  gap: clamp(1rem, 2.5vw, 2.5rem);
+  gap: 0.75rem clamp(1rem, 2.5vw, 2.5rem);
   align-items: start;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
 }
 
 @media (min-width: 56rem) {
   .work-entry-head {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-columns: 3rem minmax(0, 4.6fr) minmax(0, 6fr);
   }
+}
+
+/* Figure number. This is an index of work, so the entries are numbered the
+   way items in a technical document are. */
+.work-num {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  padding-top: 0.35em;
+  letter-spacing: 0.02em;
 }
 
 .work-title {
   font-size: var(--step-2);
   letter-spacing: -0.022em;
   max-width: 24ch;
+}
+
+/* At mobile the number holds column one and everything else stacks under
+   the title in column two. */
+@media (max-width: 55.99rem) {
+  .work-body {
+    grid-column: 2;
+  }
 }
 
 .work-anchor {
@@ -765,10 +811,14 @@ summary {
   max-width: var(--measure);
 }
 
+/* Spec plate: ruled off from the prose above so the stack and skills read
+   as tabulated data rather than more sentences. */
 .work-meta {
   margin-top: 1.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
   display: grid;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .work-meta-row {
@@ -1068,10 +1118,23 @@ summary {
 
 /* The three focus notes are a single hairline-separated column, not
    three equal cards. */
+/* Two tracks: how the work is approached on the left, what it is built with
+   on the right. Shortens a section that was one long vertical stack. */
+.cap-body {
+  margin-top: clamp(2.25rem, 4.5vw, 3.25rem);
+  display: grid;
+  gap: clamp(2.25rem, 4vw, 3.5rem) clamp(2.5rem, 6vw, 5rem);
+  align-items: start;
+}
+
+@media (min-width: 64rem) {
+  .cap-body {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
+  }
+}
+
 .cap-notes {
-  margin-top: clamp(2.25rem, 4vw, 3rem);
-  max-width: var(--measure);
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .cap-note {
@@ -1091,12 +1154,11 @@ summary {
 }
 
 .cap-groups {
-  margin-top: clamp(2.75rem, 5vw, 4rem);
   display: grid;
-  gap: clamp(1.75rem, 3.5vw, 2.75rem) clamp(2rem, 5vw, 4rem);
+  gap: clamp(1.5rem, 3vw, 2.25rem) clamp(2rem, 4vw, 3rem);
 }
 
-@media (min-width: 52rem) {
+@media (min-width: 40rem) and (max-width: 63.99rem) {
   .cap-groups {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1292,6 +1354,9 @@ summary {
 @media print {
   :root {
     --page: #ffffff;
+    /* Tinted sections must not print as grey blocks. */
+    --surface-sunken: #ffffff;
+    --grid-line: transparent;
     --text: #000000;
     --text-muted: #333333;
     --text-subtle: #555555;
