@@ -729,29 +729,23 @@ summary {
   margin: 0;
 }
 
-.pellet-figure {
+/* One base rule for every demo. The per-demo poster, grid and keyframes come
+   from the generated src/demo-<id>.css files. */
+.demo-figure {
   width: 100%;
   aspect-ratio: 1 / 1;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-image: url("/rig/pellet-poster.webp");
 }
 
-.pellet-figure.is-playing {
-  background-image: url("/rig/pellet.webp");
+.demo-figure.is-playing {
   background-position: 0% 0%;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Never animate: the poster stays, and the button is hidden since it
-     would do nothing. */
-  .pellet-figure.is-playing {
-    background-image: url("/rig/pellet-poster.webp");
-    background-size: contain;
-    animation: none;
-  }
-
+  /* The generated rules only attach a sprite under no-preference, so nothing
+     needs undoing here. Just hide the button, which would do nothing. */
   .demo-button {
     display: none;
   }

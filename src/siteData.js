@@ -157,7 +157,20 @@ export const projects = [
     tags: ["automation", "hardware", "data", "software"],
     featured: true,
     figure: "buildup",
-    demo: "pellet",
+    demos: [
+      {
+        id: "pellet",
+        label: "Pellet delivery",
+        caption:
+          "One load and send cycle. Moves and timing are read from the rig's own motor config.",
+      },
+      {
+        id: "tunnel",
+        label: "Head-fix clamp",
+        caption:
+          "The magnet swing engaging and releasing. Rotation is about the real shoulder-screw pivot.",
+      },
+    ],
     summary:
       "A self-operating neuroscience rig. I designed the enclosure and its mechanisms, then integrated synchronized cameras, a three-axis pellet delivery, and machine-learning tracking into a loop that runs training sessions with nobody in the room.",
     challenge:

@@ -128,10 +128,11 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
      they may never look at. */
   const [figureLive, setFigureLive] = useState(false);
   const hasFigure = project.figure === "buildup";
-  const hasDemo = project.demo === "pellet";
-  /* Counter, not a boolean: bumping it remounts the element, which is the
-     reliable way to restart a CSS animation from the beginning. */
-  const [demoRun, setDemoRun] = useState(0);
+  const demos = project.demos || [];
+  const hasDemo = demos.length > 0;
+  /* Per-demo counter. Bumping it remounts that figure, which is the reliable
+     way to restart a CSS animation; toggling a class alone does not. */
+  const [demoRuns, setDemoRuns] = useState({});
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -189,29 +190,32 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
             </figure>
           ) : null}
 
-          {hasDemo ? (
-            <figure className="demo-wrap">
-              <div
-                key={demoRun}
-                className={`pellet-figure ${demoRun ? "is-playing" : ""}`}
-                role="img"
-                aria-label="Pellet delivery mechanism running one cycle: the spoon traverses to the pellet vat, raises, scoops, lowers, returns, then extends toward the tunnel and releases."
-              />
-              <figcaption className="demo-caption">
-                <button
-                  type="button"
-                  className="btn btn--quiet demo-button"
-                  onClick={() => setDemoRun((n) => n + 1)}
-                >
-                  {demoRun ? "Replay" : "Run demo"}
-                </button>
-                <span>
-                  Pellet delivery, one load and send cycle. Motion and timing come
-                  from the rig&rsquo;s own motor config.
-                </span>
-              </figcaption>
-            </figure>
-          ) : null}
+          {demos.map((demo) => {
+            const runs = demoRuns[demo.id] || 0;
+            return (
+              <figure className="demo-wrap" key={demo.id}>
+                <div
+                  key={runs}
+                  data-demo={demo.id}
+                  className={`demo-figure ${runs ? "is-playing" : ""}`}
+                  role="img"
+                  aria-label={`${demo.label}. ${demo.caption}`}
+                />
+                <figcaption className="demo-caption">
+                  <button
+                    type="button"
+                    className="btn btn--quiet demo-button"
+                    onClick={() =>
+                      setDemoRuns((prev) => ({ ...prev, [demo.id]: (prev[demo.id] || 0) + 1 }))
+                    }
+                  >
+                    {runs ? `Replay ${demo.label.toLowerCase()}` : `Run ${demo.label.toLowerCase()}`}
+                  </button>
+                  <span>{demo.caption}</span>
+                </figcaption>
+              </figure>
+            );
+          })}
           </div>
           ) : null}
 
