@@ -126,16 +126,30 @@ Three things worth keeping:
 
 1. **The poster carries real weight.** The strip is declared only inside
    `@media (prefers-reduced-motion: no-preference)` + `@supports
-   (animation-timeline: scroll())`. Anyone outside that gets the 23 KB still of
-   the assembled rig and never downloads the 565 KB strip.
-2. **`scroll(root)`, not `view()`, for an above-the-fold figure.** A `view()`
-   timeline is already past its `entry` range at load for anything in the first
-   viewport, so it would show the final frame immediately.
-3. **The range has to finish while the figure is still on screen.** The figure
-   sits near the top of the page and starts leaving the viewport almost at once.
-   `animation-range: 0 72vh` was wrong: at 52% of the animation the figure had
-   already scrolled away, so the last half never got seen. `0 22vh` completes at
-   ~212 px of scroll with the figure still 78% visible.
+   (animation-timeline: ...)`. Anyone outside that gets the ~25 KB still of the
+   assembled rig and never downloads the strip.
+2. **Timeline choice depends on where the figure sits, and it is not
+   interchangeable.**
+   - Below the fold: `view()`. The timeline is relative to the figure.
+   - Above the fold: `scroll(root)`. A `view()` timeline is already past its
+     `entry` range at load for anything in the first viewport, so it would show
+     the final frame immediately.
+
+   The figure moved from the hero into the project case study during this work,
+   which meant switching from `scroll(root) 0 22vh` to
+   `view() entry 0% cover 42%`. Verified scrubbing 0 -> 26 -> 52 -> 78 -> 100%.
+3. **For an above-the-fold figure, the range must finish while it is still on
+   screen.** `animation-range: 0 72vh` was wrong: at 52% of the animation the
+   figure had already scrolled away, so the last half never got seen. `0 22vh`
+   completed at ~212 px with the figure still 78% visible.
+4. **A closed `<details>` does NOT stop a CSS background from being fetched.**
+   Measured: the strip loaded before the case study was ever opened, so
+   "put it in a disclosure for free lazy-loading" is false. The strip URL is
+   gated behind a `.is-live` class that React adds on the `toggle` event.
+   Confirmed: poster only before open, strip fetched on open. CSS backgrounds
+   have no declarative lazy-load, so gating on an event is the only option
+   short of switching to `<img loading="lazy">`, which would break the
+   percentage `background-size` the responsive sprite depends on.
 
 **Frame 0 must be worth looking at.** The first tuned pass built the rig
 sequentially, so frame 0 was a bare grey skeleton and the colourful modules only

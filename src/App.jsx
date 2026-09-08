@@ -123,6 +123,11 @@ function useSectionSpy(setActive) {
    -------------------------------------------------------------------------- */
 
 const WorkEntry = memo(function WorkEntry({ project, index }) {
+  /* A closed <details> does NOT stop a CSS background from being fetched, so
+     the sprite has to be attached on open or it costs every visitor 648KB
+     they may never look at. */
+  const [figureLive, setFigureLive] = useState(false);
+
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
       <div className="work-entry-head">
@@ -156,9 +161,27 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
         </div>
       </div>
 
-      <details className="case">
+      <details
+        className="case"
+        onToggle={(event) => {
+          if (event.currentTarget.open) setFigureLive(true);
+        }}
+      >
         <summary className="case-summary">Case study</summary>
         <div className="case-body">
+          {project.figure === "buildup" ? (
+            <figure className="rig-figure-wrap">
+              <div
+                className={`rig-figure ${figureLive ? "is-live" : ""}`}
+                role="img"
+                aria-label="Exploded view of the training rig collapsing into its assembled form: enclosure frame, mouse cage, tunnel module, three-axis pellet delivery, observation camera, and Jetson compute."
+              />
+              <figcaption className="rig-figure-caption">
+                Enclosure and modules, assembly sequence. Scroll to assemble.
+              </figcaption>
+            </figure>
+          ) : null}
+
           <div className="case-block">
             <h4>Problem</h4>
             <p>{project.challenge}</p>
@@ -387,27 +410,14 @@ export default function App() {
               </div>
             </div>
 
-            <div className="hero-aside">
-              <figure className="hero-figure-wrap rise" style={{ "--delay": "200ms" }}>
-                <div
-                  className="hero-figure"
-                  role="img"
-                  aria-label="Exploded view of the automated behavioral training rig assembling: enclosure frame, mouse cage, tunnel module, pellet delivery, observation camera, and Jetson compute."
-                />
-                <figcaption className="hero-figure-caption">
-                  Auto-trainer rig, assembly sequence
-                </figcaption>
-              </figure>
-
-              <dl className="hero-facts rise" style={{ "--delay": "140ms" }}>
-                {heroFacts.map((fact) => (
-                  <div className="fact" key={fact.label}>
-                    <dt className="fact-label">{fact.label}</dt>
-                    <dd className="fact-value">{fact.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            <dl className="hero-facts rise" style={{ "--delay": "140ms" }}>
+              {heroFacts.map((fact) => (
+                <div className="fact" key={fact.label}>
+                  <dt className="fact-label">{fact.label}</dt>
+                  <dd className="fact-value">{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 

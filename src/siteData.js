@@ -152,23 +152,46 @@ export const projects = [
   },
   {
     id: "automated-multicamera-training-control-system",
-    title: "Closed-Loop Behavioral Training and Multi-Camera Acquisition",
+    title: "Autonomous Behavioral Training Rig",
     category: "automation",
-    tags: ["automation", "hardware", "data"],
+    tags: ["automation", "hardware", "data", "software"],
+    featured: true,
+    figure: "buildup",
+    summary:
+      "A self-operating neuroscience rig. I designed the enclosure and its mechanisms, then integrated synchronized cameras, a three-axis pellet delivery, and machine-learning tracking into a loop that runs training sessions with nobody in the room.",
+    challenge:
+      "Reach training needed an operator present for every session, which capped throughput and made results depend on who was running the rig.",
+    approach:
+      "Designed the enclosure, pellet mechanism, and mounts in CAD, then integrated multi-camera acquisition, DeepLabCut tracking, CAN bus motor control, and load-cell sensing into a closed loop with tone cues, barrier servos, and recovery paths for unattended overnight operation.",
+    role: "Designed the enclosure and mechanisms in CAD, and built, deployed, and maintain the integration that runs on them.",
+    tools: ["Fusion 360", "Python", "DeepLabCut", "CAN bus"],
+    bullets: [
+      "Designed a 215-part enclosure carrying every module, cable route, and panel connector.",
+      "Built a three-axis pellet delivery with servo scoop and barrier, driven over CAN.",
+      "Synchronized multi-camera capture with tracking and hardware control.",
+      "Closed the loop on detected movement, with load-cell and presence sensing as guards.",
+      "Designed repeatable startup, validation, and recovery so sessions survive being left alone.",
+    ],
+  },
+  {
+    id: "reachaq-acquisition-platform",
+    title: "reachAQ Acquisition Platform",
+    category: "software",
+    tags: ["software", "data", "automation"],
     featured: true,
     summary:
-      "An automated rig synchronizing multi-camera capture, machine-learning tracking, and control hardware, cutting the supervision long training sessions used to need.",
+      "The autonomous trainer's codebase re-adapted back into an operator-run acquisition system, moved off embedded hardware onto workstations with laboratory DAQ instrumentation.",
     challenge:
-      "Coordinating video, tracking, and physical devices reliably while reducing the manual supervision required during live operation.",
+      "The operator-run reach-training system I helped build first was superseded by the autonomous trainer, which handled sessions, recovery, and data far more rigorously. Those improvements were locked to Jetson hardware and to running unattended, so operator-driven work could not benefit from them.",
     approach:
-      "Integrated acquisition, DeepLabCut tracking, CAN bus control, and operator safeguards into a closed-loop workflow with deployment checks.",
-    role: "Built the integration logic and supported deployment, validation, maintenance, and daily operation.",
-    tools: ["Python", "DeepLabCut", "CAN bus", "Multi-camera capture"],
+      "Took the trainer's module set as the base rather than forking a copy, and re-adapted it for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
+    role: "Led the re-platforming, the instrumentation swap, and the reproducible offline install path.",
+    tools: ["Python", "NI-DAQ / PXI", "PEAK CAN", "FLIR Spinnaker"],
     bullets: [
-      "Synchronized camera capture with tracking and hardware control.",
-      "Implemented closed-loop responses from detected movement.",
-      "Designed repeatable startup and validation procedures.",
-      "Maintained practical recovery paths for live research use.",
+      "Carried the trainer's core, video, device, inference, and behavior modules onto a new platform.",
+      "Replaced Jetson-native CAN with PEAK CAN and added NI-DAQ and PXI acquisition.",
+      "Packaged a staged, checksum-verified offline install for workstations with restricted networking.",
+      "Documented the build so a second rig can be reproduced without the original builder present.",
     ],
   },
   {

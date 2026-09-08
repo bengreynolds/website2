@@ -631,9 +631,8 @@ summary {
 
 @media (min-width: 62rem) {
   .hero-inner {
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-    gap: clamp(2.5rem, 5vw, 4.5rem);
-    align-items: center;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(3rem, 6vw, 6rem);
   }
 }
 
@@ -666,39 +665,39 @@ summary {
 }
 
 /* --- rig build-up -------------------------------------------------------
-   A 24-frame sprite strip scrubbed by document scroll. Frame 0 is the
-   exploded rig, frame 23 is assembled.
+   A 24-frame sprite strip scrubbed by scroll. Frame 0 is the exploded rig,
+   frame 23 is assembled.
 
-   The poster is not just a placeholder: it is the entire image for anyone
-   who cannot animate this, so only browsers with scroll-driven animation
-   pay for the 540KB strip. Everyone else keeps a 30KB still of the
-   finished rig.
+   Lives inside the project's <details> case study. A closed <details> does
+   NOT prevent a CSS background from being fetched (measured: the strip loaded
+   before the details was opened), so the strip URL is gated behind .is-live,
+   which React adds on the toggle event. Only the 23KB poster loads up front.
 
-   Uses scroll(root) rather than view() deliberately. The figure sits above
-   the fold, so a view() timeline would already be past its entry range at
-   load and would show the assembled state immediately.
+   view(), not scroll(root), because this sits far below the fold: the
+   timeline has to be relative to the figure, not the document. (The reverse
+   was true when this was in the hero, where view() would already have been
+   past its entry range at load.)
+
+   The poster is the whole image for anyone who cannot animate it, so only
+   browsers with scroll-driven animation pay for the strip.
    -------------------------------------------------------------------- */
 
-.hero-aside {
-  display: grid;
-  gap: clamp(1.5rem, 3vw, 2.25rem);
-  align-content: start;
+.rig-figure-wrap {
+  grid-column: 1 / -1;
+  margin: 0 0 clamp(0.75rem, 2vw, 1.5rem);
 }
 
-.hero-figure-wrap {
-  margin: 0;
-}
-
-.hero-figure {
+.rig-figure {
   width: 100%;
-  aspect-ratio: 508 / 398;
+  max-width: 40rem;
+  aspect-ratio: 520 / 446;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
   background-image: url("/rig/buildup-poster.webp");
 }
 
-.hero-figure-caption {
+.rig-figure-caption {
   margin-top: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
@@ -717,18 +716,14 @@ summary {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: scroll()) {
-    .hero-figure {
+  @supports (animation-timeline: view()) {
+    .rig-figure.is-live {
       background-image: url("/rig/buildup.webp");
       background-size: 2400% 100%; /* 24 frames side by side */
       background-position-x: 0%;
       animation: rig-buildup steps(24, jump-none) both;
-      animation-timeline: scroll(root block);
-      /* Must finish while the figure is still on screen. The figure sits near
-         the top of the page, so it starts leaving the viewport almost
-         immediately; a longer range means the last frames play after it has
-         already scrolled past. 72vh was wrong for exactly that reason. */
-      animation-range: 0 22vh;
+      animation-timeline: view();
+      animation-range: entry 0% cover 42%;
     }
   }
 }
