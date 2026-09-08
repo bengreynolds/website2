@@ -261,6 +261,65 @@ out for panels and finishing. Total azimuth travel is 44 degrees.
 Elevation is still built from an explicit angle, never from the preset's `dy`
 (see the Z-up warning above).
 
+### Pellet delivery: kinematics solved, legibility not
+
+The axis mapping is settled, derived from rail geometry rather than guessed:
+
+| Machine axis | Owner's description | Model direction | Rail | Rail height Y |
+|---|---|---|---|---|
+| X | to/from the pellet vat | model **+X** | `50857-SSEB8-55` | 10.0 |
+| Y | to/from the tunnel | model **+Z** | `50793-SSEB6-55_MAX` x2 | 8.7 |
+| Z | up/down | model **+Y** | `50857-SSEB8-55_Z-DEFAULT` | 14.6 |
+
+Corroborated two ways: the tunnel sits +12.7 cm in model-Z from the pellet
+module, and the vat +7 cm in model-X. Rail heights give the nesting: **Y carries
+X carries Z carries the spoon.**
+
+Stage membership for the 91 flat children, by bbox centre height Y, with
+overrides:
+
+```
+Y < 8.75                    fixed (base plate, base steppers, Y rails)
+8.75 <= Y < 9.6             rides machine-Y
+9.6  <= Y < 12.5            rides machine-Y + X
+Y >= 12.5                   rides machine-Y + X + Z
+fixed by name:  Base_Pla, SSEB6-55_MAX, Pellet_Vat (the bucket does not move),
+                Pellet PCB Mounting Assy, Base End Stop, PCB Enclosure Panel
+forced to X:    SSEB8-55_Z-DEFAULT, Yframe_vmettetal   <- bolted TO the X stage;
+                only their carriage rides Z, so height tiering puts them one
+                stage too deep
+```
+
+Composition: a part on stage Z translates by all three; on X by machine Y and X;
+on Y by machine Y only.
+
+**Fit the camera AT the final angle, not at the preset angle.** Computing
+`viewExtents` from a fit at the preset (below-horizon) bearing and then applying
+those extents at a 26 degree elevation left the subject at 36% of the frame.
+Set eye/target first, then `isFitView = True`, then read the extents back. Fixed
+it to 47%.
+
+**Open problem: the motion is correct but not legible.** 32 mm of travel on a
+200 mm module is a small movement, and at sprite scale the module reads as a
+dark mass. The kinematics and choreography are right; the presentation is not
+persuasive. Options before shipping it: frame much tighter on the spoon and vat
+rather than the whole module, exaggerate travel (dishonest, and an engineer
+would notice), or animate the load and barrier servo rotations, which are the
+motions that actually look like scooping.
+
+Assets built and ready but deliberately NOT wired into the site:
+`public/rig/pellet.webp` (100 frames, 10x10, 560px cells, 1.5 MB),
+`public/rig/pellet-poster.webp`, and `src/pellet-demo.css` (time-based,
+button-triggered, 4 s).
+
+### Servo rotations are still unmodelled
+
+`load_arm` and `barrier_arm` are servos on 0-120, and the scoop and release are
+*rotations*, not translations. Nothing in this pass rotates them, which is part
+of why the demo reads weakly: the visually distinctive motions are missing.
+Doing them needs each servo's pivot axis, which is not recorded anywhere in the
+model and would have to be derived from the arm geometry.
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
