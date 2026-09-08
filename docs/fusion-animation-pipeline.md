@@ -320,6 +320,57 @@ of why the demo reads weakly: the visually distinctive motions are missing.
 Doing them needs each servo's pivot axis, which is not recorded anywhere in the
 model and would have to be derived from the arm geometry.
 
+### PCB highlighting: how appearances actually resolve
+
+Both boards are populated with discrete geometry, so per-component highlighting
+is possible: `80027-Pellet Module PCB-02` has **234 bodies**,
+`80026-Tunnel Module PCB-01` has **129**.
+
+Three things have to be right or nothing highlights:
+
+1. **Clear the appearance override on the whole ANCESTOR CHAIN, not just the
+   board.** Both `80027-Pellet Module PCB-02` and its parent
+   `Pellet PCB Mounting Assy` carry a `Chestnut` override, and an ancestor
+   override masks every body appearance beneath it. Setting
+   `occ.appearance = None` on the board alone **silently does nothing**: it
+   still reports `Chestnut`, with no exception raised. Walk `assemblyContext`
+   upward and clear each one, then assert `occ.appearance is None`.
+   Clearing it also turns the board light grey, which gives highlights far
+   better contrast than orange-on-chestnut would have.
+2. **Set appearance on `occurrence.bRepBodies` (the instance proxies), not
+   `component.bRepBodies`.** Both accept the assignment, but the proxies scope
+   the change to this instance.
+3. **Exclude the substrate.** The board itself is a single body spanning the
+   whole outline. Highlighting it floods the frame the instant the sweep passes
+   its centroid: measured 1.6k orange pixels at frame 16 jumping to 122k at
+   frame 32. Treat any body whose in-plane footprint exceeds ~25% of the board
+   as substrate rather than as a component.
+
+**Performance:** re-setting all 234 body appearances every frame ran at roughly
+**one minute per frame**. Only touching the bodies the sweep front crosses in
+that frame (about four) brought a 64-frame run down to a couple of minutes.
+
+### Fusion crashed on the PCB run: heavy proxy-body traffic is a real limit
+
+The final PCB attempt never wrote a frame and took Fusion down with it. The
+setup phase reads `boundingBox` and `appearance` for ~234 **proxy** bodies and
+stores them for restore, which is a lot of API traffic before the loop even
+starts; Fusion is single-threaded, so an MCP read issued meanwhile also times
+out, which looks like a hang rather than a crash.
+
+**The saved document survived because the scripts never save.** A crash
+discards the in-memory modifications, so the cloud copy stays clean. On restart,
+**decline** any offer to recover unsaved changes: recovering restores whatever
+state the script died in.
+
+Safer shape for a retry:
+- Split it. One call to collect and persist the body order to JSON, a second to
+  capture. The capture then needs no bulk reads.
+- Skip the per-body appearance backup entirely. Clearing the ancestor chain and
+  restoring that is enough, since the bodies had no individual overrides worth
+  preserving.
+- Fewer bodies: filter to components above a minimum size first, then order.
+
 ### MCP timeout does not mean the script failed
 
 The 48-frame run returned `Request timed out` to the client, but Fusion kept
