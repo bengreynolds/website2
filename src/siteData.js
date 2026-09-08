@@ -8,15 +8,21 @@ export const navigation = [
 
 export const resumeHref = "/Benjamin_Reynolds_Resume.pdf";
 
-export const heroStatement =
-  "Scientific software, neuroscience automation, and hardware-integrated systems built for dependable real-world use.";
+/* Positioning. "R&D Engineer" is the plain description of the work; the
+   employed title lives in heroFacts and in the experience entry so the site
+   never claims a title that a reference check would contradict. */
+export const roleLabel = "R&D Engineer";
 
-/* Facts column beside the hero headline. Real data, kept short. */
+export const heroStatement =
+  "Automation, instrumentation, and data systems for research, built to run reliably for the people who depend on them.";
+
+/* Facts column beside the hero headline. These are the only place location,
+   availability, and current role appear, so nothing restates them later. */
 export const heroFacts = [
-  { label: "Based in", value: "Denver, Colorado" },
-  { label: "Availability", value: "Remote, hybrid, on-site, and travel-based roles" },
   { label: "Current", value: "Intermediate Research Engineer, CU Anschutz" },
-  { label: "Focus", value: "Scientific software, automation, hardware integration" },
+  { label: "Based in", value: "Denver, Colorado" },
+  { label: "Open to", value: "Systems R&D and research engineering roles" },
+  { label: "Setting", value: "Remote, hybrid, on-site, or travel" },
 ];
 
 export const projectFilters = [
@@ -27,94 +33,58 @@ export const projectFilters = [
   { id: "hardware", label: "Hardware" },
 ];
 
+/* Three kinds of work, usually on the same project. */
 export const aboutCards = [
   {
-    title: "System Reliability",
-    body: "Validation, documentation, recovery paths, and packaging support dependable operation from prototype through launch.",
+    title: "Systems that hold up",
+    body: "Validation, recovery paths, documentation, and packaging, so a system survives contact with daily use.",
   },
   {
-    title: "Software Tooling",
-    body: "Python, scientific computing, computer vision, desktop interfaces, and validated data-conversion workflows.",
+    title: "Software and data",
+    body: "Scientific Python, desktop applications, computer vision, and validated conversion between data formats.",
   },
   {
-    title: "Physical Build Work",
-    body: "CAD, KiCad, electronics, assistive-device prototyping, embedded setup, fabrication, and hardware maintenance.",
+    title: "Hardware and integration",
+    body: "CAD, PCB layout, electronics, embedded control, and the wiring between software and physical devices.",
   },
 ];
 
+/* Primary tools only. The resume carries the exhaustive list. */
 export const skillGroups = [
   {
-    title: "Scientific software and data",
-    items: [
-      "Python",
-      "NumPy",
-      "SciPy",
-      "Pandas",
-      "OpenCV",
-      "PySide6",
-      "Scientific data standards",
-      "Metadata validation",
-      "Reproducible workflows",
-    ],
+    title: "Software and data",
+    items: ["Python", "NumPy / SciPy", "Pandas", "OpenCV", "PySide6", "NWB"],
   },
   {
     title: "Automation and acquisition",
     items: [
       "DeepLabCut",
-      "Multi-camera Capture",
-      "Closed-loop Control",
-      "Frame Synchronization",
-      "TTL Trigger Timing",
-      "CAN Bus",
-      "Camera Alignment",
-      "Frame-drop Detection",
-      "Session Recovery",
+      "Multi-camera capture",
+      "Closed-loop control",
+      "Frame and TTL sync",
+      "CAN bus",
     ],
   },
   {
     title: "Deployment and systems",
-    items: [
-      "Linux",
-      "Windows",
-      "Docker",
-      "GitHub",
-      "Conda",
-      "CMake",
-      "PyInstaller",
-      "Application Deployment",
-      "Release Builds",
-    ],
+    items: ["Linux", "Windows", "Docker", "Conda", "PyInstaller", "Git"],
   },
   {
-    title: "Hardware and product development",
-    items: [
-      "KiCad",
-      "Autodesk Inventor",
-      "AutoCAD",
-      "Fusion 360",
-      "SolidWorks",
-      "Adobe Illustrator",
-      "PCB Layout",
-      "Enclosure Design",
-      "Cable Harnessing",
-      "Soldering",
-      "Repair and Rework",
-      "Prototyping",
-      "Bench Testing",
-    ],
+    title: "Hardware",
+    items: ["KiCad", "Fusion 360", "SolidWorks", "PCB layout", "Bench testing"],
   },
 ];
 
 export const experience = [
   {
     role: "Intermediate Research Engineer",
-    org: "University of Colorado Anschutz - Department of Physiology & Biophysics",
+    org: "CU Anschutz - Physiology & Biophysics",
     dates: "Nov 2023 - Present",
     bullets: [
       "Build automated neuroscience systems, scientific data pipelines, desktop tools, and analysis workflows.",
-      "Support users with hardware/software troubleshooting, deployment validation, and handoffs.",
+      "Support users through hardware and software troubleshooting, deployment validation, and handoffs.",
       "Lead upgrade cycles with vendors, testing gates, and maintenance planning.",
-      "Own rig infrastructure, inventory, preventive maintenance, and SOPs.",
+      "Own rig infrastructure, preventive maintenance, and SOPs.",
     ],
   },
   {
@@ -128,40 +98,36 @@ export const experience = [
     ],
   },
   {
+    role: "Lead Engineer & Project Manager",
+    org: "Senior Design, University of Colorado Denver",
+    dates: "Aug 2022 - May 2023",
+    bullets: [
+      "Directed development of a quick-release mechanism for enteral gastrostomy tubes.",
+      "Managed design, prototyping, manufacturing, and validation testing.",
+      "Delivered a clinically viable mechanism through a full build and test cycle.",
+    ],
+  },
+  {
     role: "Web Developer & Database Framework Architect",
     org: "Peak Leadership Frameworks",
     dates: "May 2022 - Sep 2022",
     bullets: [
       "Built secure web applications with SQL Server, Caspio, HTML, and JavaScript.",
       "Implemented encryption, authentication, and modular database frameworks.",
-      "Delivered scalable infrastructure for organizational program management.",
-    ],
-  },
-  {
-    role: "Senior Design Project - Lead Engineer & Project Manager",
-    org: "University of Colorado Denver",
-    dates: "Aug 2022 - May 2023",
-    bullets: [
-      "Directed development of a quick-release mechanism for enteral gastrostomy tubes.",
-      "Managed design, prototyping, manufacturing, and validation testing.",
-      "Delivered a clinically viable, industry-aligned mechanism with a strong physical build and test cycle.",
     ],
   },
 ];
 
 export const education = [
   {
-    title: "University of Colorado Denver - Anschutz Medical Campus",
+    title: "University of Colorado Denver | Anschutz Medical Campus",
     subtitle: "B.S. Bioengineering",
-    body: "Graduated May 2023 | GPA 3.7 | Dean's List (2021-2023) - CEDC Design Expo Winner",
-  },
-  {
-    title: "Christie Lab - CU Anschutz",
-    subtitle: "Research Engineering Residency",
-    body: "Hands-on automation, systems maintenance, and operations work.",
+    body: "Graduated 2023. CEDC Design Expo winner.",
   },
 ];
 
+/* Each entry carries one description line, the contribution, and the stack.
+   Problem, approach, and implementation sit behind the disclosure. */
 export const projects = [
   {
     id: "scientific-data-standardization-platform",
@@ -170,19 +136,17 @@ export const projects = [
     tags: ["software", "data"],
     featured: true,
     summary:
-      "Desktop software that converts mixed neuroscience acquisition files into a consistent, validated research format for long-term access, review, and reuse.",
-    challenge: "Neuroscience data arrived in incompatible formats with inconsistent metadata, making validation, sharing, and long-term reuse difficult.",
-    constraints: "Multiple source formats, metadata conflicts, strict validation requirements, and the need to preserve traceability throughout conversion.",
-    approach: "Designed a staged PySide6 workflow for import, metadata review, mapping, file assembly, provenance tracking, recovery, and validation against the Neurodata Without Borders (NWB) standard.",
-    result: "Created a repeatable conversion process that makes complex datasets easier to audit, standardize, share, and trust.",
+      "Desktop software that converts mixed neuroscience recordings into one validated format, so complex datasets stay auditable and safe to share.",
+    challenge:
+      "Neuroscience data arrived in incompatible formats with inconsistent metadata, making validation, sharing, and long-term reuse difficult.",
+    approach:
+      "Designed a staged PySide6 workflow for import, metadata review, mapping, file assembly, provenance tracking, recovery, and validation against the Neurodata Without Borders standard.",
     role: "Designed the desktop workflow, conversion architecture, metadata controls, and validation safeguards.",
-    tools: ["Python", "PySide6", "Scientific data conversion", "Metadata validation"],
-    skills: ["Desktop software", "Data modeling", "Validation", "Metadata workflows"],
+    tools: ["Python", "PySide6", "NWB", "Metadata validation"],
     bullets: [
       "Grouped related recording files into reviewable sessions.",
       "Added metadata conflict review before file assembly.",
-      "Supported standard, custom, and hybrid conversion paths.",
-      "Validated NWB output through PyNWB and NeuroConv workflows.",
+      "Validated output through PyNWB and NeuroConv workflows.",
       "Preserved provenance and recovery information for auditability.",
     ],
   },
@@ -193,14 +157,13 @@ export const projects = [
     tags: ["automation", "hardware", "data"],
     featured: true,
     summary:
-      "An automated neuroscience system coordinating synchronized video, machine-learning tracking, control hardware, and responsive behavioral training during long-running sessions.",
-    challenge: "Coordinate video, tracking, and physical devices reliably while reducing the amount of manual supervision required during live operation.",
-    constraints: "Multi-device timing, continuous uptime, active research use, repeatable setup, and existing institutional hardware.",
-    approach: "Integrated acquisition, DeepLabCut tracking, CAN bus control, and operator safeguards into a closed-loop workflow with deployment checks.",
-    result: "Reduced manual intervention and improved the repeatability of multi-device training and recording sessions.",
+      "An automated rig synchronizing multi-camera capture, machine-learning tracking, and control hardware, cutting the supervision long training sessions used to need.",
+    challenge:
+      "Coordinating video, tracking, and physical devices reliably while reducing the manual supervision required during live operation.",
+    approach:
+      "Integrated acquisition, DeepLabCut tracking, CAN bus control, and operator safeguards into a closed-loop workflow with deployment checks.",
     role: "Built the integration logic and supported deployment, validation, maintenance, and daily operation.",
-    tools: ["Python", "DeepLabCut", "CAN bus", "Multi-camera capture", "Embedded control"],
-    skills: ["Systems integration", "Automation", "Device synchronization", "Operational reliability"],
+    tools: ["Python", "DeepLabCut", "CAN bus", "Multi-camera capture"],
     bullets: [
       "Synchronized camera capture with tracking and hardware control.",
       "Implemented closed-loop responses from detected movement.",
@@ -215,14 +178,13 @@ export const projects = [
     tags: ["data", "software"],
     featured: true,
     summary:
-      "Software that transforms recorded reach-to-grasp movement data into structured, comparable results through both graphical and command-line workflows.",
-    challenge: "Convert raw recordings into consistent outputs that could be compared across sessions, reviewed by researchers, and reused downstream.",
-    constraints: "Different session types, variable recording quality, multi-session processing, and support for both interactive and automated use.",
-    approach: "Built GUI and CLI workflows for processing, aggregation, structured export, and NWB-compatible data handling when standardized neuroscience interchange was required.",
-    result: "Created a repeatable path from raw recordings to reviewable analysis outputs and standardized handoffs.",
-    role: "Developed the processing workflow, multi-session aggregation, user interface, and export structure.",
-    tools: ["Python", "Desktop GUI", "Command line", "Structured data export"],
-    skills: ["Data processing", "Motion analysis", "Workflow design", "Reproducible reporting"],
+      "GUI and command-line tools that turn raw reach-to-grasp recordings into results comparable across sessions.",
+    challenge:
+      "Raw recordings needed to become consistent outputs that could be compared across sessions, reviewed by researchers, and reused downstream.",
+    approach:
+      "Built GUI and CLI workflows for processing, aggregation, structured export, and NWB-compatible handling where standardized interchange was required.",
+    role: "Developed the processing workflow, multi-session aggregation, interface, and export structure.",
+    tools: ["Python", "Desktop GUI", "Command line", "Structured export"],
     bullets: [
       "Supported interactive and headless processing.",
       "Aggregated results across multiple recording sessions.",
@@ -236,18 +198,16 @@ export const projects = [
     category: "software",
     tags: ["software", "automation"],
     summary:
-      "A shared set of installers, updaters, launchers, conversion utilities, and recovery tools for deploying technical applications to non-developer users.",
-    challenge: "Make a growing internal software portfolio installable, updateable, and supportable without repeated manual configuration.",
-    constraints: "Mixed user skill levels, changing Windows environments, dependency conflicts, and the need for stable launches and rollback options.",
-    approach: "Combined environment-aware installers, update flows, launch checks, and support utilities into a consistent deployment toolkit.",
-    result: "Reduced setup friction for users and made application releases, updates, and support easier to maintain.",
+      "Installers, updaters, and recovery tools that let non-developers run internal research software without setup help.",
+    challenge:
+      "A growing internal software portfolio had to be installable, updateable, and supportable without repeated manual configuration.",
+    approach:
+      "Combined environment-aware installers, update flows, launch checks, and support utilities into a consistent deployment toolkit.",
     role: "Owned release packaging, environment management, launch behavior, and support tooling.",
-    tools: ["Python", "PyInstaller", "Conda", "PowerShell", "GitHub"],
-    skills: ["Release engineering", "Environment management", "User support", "Recovery design"],
+    tools: ["Python", "PyInstaller", "Conda", "Git"],
     bullets: [
       "Built installer, updater, and launcher workflows.",
       "Added environment checks and recoverable startup behavior.",
-      "Supported model conversion and camera configuration utilities.",
       "Standardized release and support patterns across applications.",
     ],
   },
@@ -257,14 +217,13 @@ export const projects = [
     category: "software",
     tags: ["software", "hardware", "data"],
     summary:
-      "A desktop utility that detects timing mismatches between camera recordings, previews corrections, and protects original data during recovery.",
-    challenge: "Correct camera alignment problems without hiding dropped frames, overwriting source files, or introducing new timing errors.",
-    constraints: "Paired recordings, frame-count mismatches, large files, operator trust, and the need for reversible changes.",
-    approach: "Implemented visual previews, dry-run mode, backup and undo, mismatch detection, and post-process verification.",
-    result: "Created a safer correction workflow that catches recording problems before they affect later analysis.",
+      "A utility that catches timing mismatches between paired camera recordings and previews fixes before touching the originals.",
+    challenge:
+      "Camera alignment problems had to be corrected without hiding dropped frames, overwriting source files, or introducing new timing errors.",
+    approach:
+      "Implemented visual previews, dry-run mode, backup and undo, mismatch detection, and post-process verification.",
     role: "Designed the operator-facing correction, recovery, and validation workflow.",
     tools: ["Python", "OpenCV", "Desktop GUI", "File validation"],
-    skills: ["Computer vision", "Defensive file operations", "Validation", "User-centered tooling"],
     bullets: [
       "Previewed proposed alignment changes before writing files.",
       "Added dry-run, backup, undo, and post-process verification.",
@@ -278,17 +237,15 @@ export const projects = [
     category: "hardware",
     tags: ["hardware", "automation"],
     summary:
-      "A physical test system for prosthetic sensation research that delivers controlled haptic stimulation and uses load-cell feedback to verify force, timing, and repeatability.",
-    challenge: "Create a consistent method for evaluating tactile response hardware under controlled, measurable conditions.",
-    constraints: "Measurement fidelity, timing stability, mechanical repeatability, straightforward calibration, and safe bench operation.",
-    approach: "Combined mechanical design, frequency control, sensing, electronics, and load-cell feedback into a calibrated test workflow.",
-    result: "Produced a repeatable platform for comparing prosthetic sensation hardware under controlled test conditions.",
+      "A calibrated bench delivering controlled haptic stimulation, with load-cell feedback verifying force, timing, and repeatability.",
+    challenge:
+      "Evaluating tactile response hardware required a consistent method under controlled, measurable conditions.",
+    approach:
+      "Combined mechanical design, frequency control, sensing, electronics, and load-cell feedback into a calibrated test workflow.",
     role: "Led the mechanical and electrical integration, calibration strategy, and validation workflow.",
     tools: ["CAD", "Load-cell sensing", "Embedded control", "Electronics"],
-    skills: ["Mechanical integration", "Electrical integration", "Calibration", "Test design"],
     bullets: [
       "Designed mechanical fixtures for repeatable device placement.",
-      "Used load-cell feedback for measured validation.",
       "Integrated stimulation control, sensing, and calibration.",
       "Structured the bench workflow around repeatable test conditions.",
     ],
@@ -296,9 +253,17 @@ export const projects = [
 ];
 
 export const contactLinks = [
-  { label: "Email", icon: "mail", href: "mailto:Benjamin.g.reynolds@ucdenver.edu", value: "Benjamin.g.reynolds@ucdenver.edu" },
-  { label: "Phone", icon: "phone", href: "tel:+13035472170", value: "303-547-2170" },
-  { label: "LinkedIn", icon: "linkedin", href: "https://www.linkedin.com/in/benjamin-reynolds", value: "LinkedIn" },
-  { label: "GitHub", icon: "github", href: "https://github.com/bengreynolds", value: "github.com/bengreynolds" },
-  { label: "Resume", icon: "download", href: resumeHref, value: "Download resume (PDF)", download: true },
+  {
+    label: "Email",
+    href: "mailto:Benjamin.g.reynolds@ucdenver.edu",
+    value: "Benjamin.g.reynolds@ucdenver.edu",
+  },
+  { label: "Phone", href: "tel:+13035472170", value: "303-547-2170" },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/benjamin-reynolds",
+    value: "linkedin.com/in/benjamin-reynolds",
+  },
+  { label: "GitHub", href: "https://github.com/bengreynolds", value: "github.com/bengreynolds" },
+  { label: "Resume", href: resumeHref, value: "Download resume (PDF)", download: true },
 ];

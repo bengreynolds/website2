@@ -25,8 +25,9 @@
   --n-200: #e0e4e7;
   --n-300: #c8ced3;
   --n-400: #98a2aa;
-  /* n-500 is tuned to clear 4.5:1 on --page, not picked for evenness. */
-  --n-500: #626c74;
+  /* n-500 is tuned to clear 4.5:1 on the tinted ground, which is darker than
+     --page and so is the binding constraint. Not picked for evenness. */
+  --n-500: #5b656d;
   --n-600: #4d565d;
   --n-700: #343c42;
   --n-800: #21272b;
@@ -805,9 +806,9 @@ summary {
   text-wrap: pretty;
 }
 
-.work-summary {
-  margin-top: 0.85rem;
+.work-meta-text {
   color: var(--text-muted);
+  font-size: var(--step--1);
   max-width: var(--measure);
 }
 
@@ -1191,6 +1192,13 @@ summary {
   content: "/";
   margin-left: 0.55rem;
   color: var(--decor);
+}
+
+/* Points the exhaustive tool list at the resume instead of printing it. */
+.cap-footnote {
+  margin-top: 0.35rem;
+  font-size: var(--step--1);
+  color: var(--text-subtle);
 }
 
 /* --------------------------------------------------------------------------

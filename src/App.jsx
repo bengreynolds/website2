@@ -10,6 +10,7 @@ import {
   projectFilters,
   projects,
   resumeHref,
+  roleLabel,
   skillGroups,
 } from "./siteData";
 
@@ -136,23 +137,18 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
         </h3>
 
         <div className="work-body">
-          <p className="work-outcome">{project.result}</p>
-          <p className="work-summary">{project.summary}</p>
+          <p className="work-outcome">{project.summary}</p>
 
           <div className="work-meta">
+            <div className="work-meta-row">
+              <span className="work-meta-label">Role</span>
+              <p className="work-meta-text">{project.role}</p>
+            </div>
             <div className="work-meta-row">
               <span className="work-meta-label">Stack</span>
               <ul className="work-meta-items">
                 {project.tools.map((tool) => (
                   <li key={tool}>{tool}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="work-meta-row">
-              <span className="work-meta-label">Skills</span>
-              <ul className="work-meta-items">
-                {project.skills.map((skill) => (
-                  <li key={skill}>{skill}</li>
                 ))}
               </ul>
             </div>
@@ -168,16 +164,8 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
             <p>{project.challenge}</p>
           </div>
           <div className="case-block">
-            <h4>Constraints</h4>
-            <p>{project.constraints}</p>
-          </div>
-          <div className="case-block">
             <h4>Approach</h4>
             <p>{project.approach}</p>
-          </div>
-          <div className="case-block">
-            <h4>Contribution</h4>
-            <p>{project.role}</p>
           </div>
           <div className="case-block" style={{ gridColumn: "1 / -1" }}>
             <h4>Implementation</h4>
@@ -374,7 +362,7 @@ export default function App() {
         <section id="home" className="section hero">
           <div className="container hero-inner">
             <div>
-              <span className="label role-label rise">Research Systems Engineer</span>
+              <span className="label role-label rise">{roleLabel}</span>
               <h1 className="hero-name rise" style={{ "--delay": "60ms" }}>
                 Benjamin Reynolds
               </h1>
@@ -418,8 +406,8 @@ export default function App() {
             <div className="section-head reveal">
               <h2 className="section-title">Selected work</h2>
               <p className="section-lead">
-                Six systems taken from problem to dependable operation. Outcomes first,
-                with the engineering detail one click away.
+                Systems taken from problem to dependable operation. What each one is and
+                what I did on it, with the engineering detail one click away.
               </p>
             </div>
 
@@ -461,7 +449,8 @@ export default function App() {
             <div className="section-head reveal">
               <h2 className="section-title">Experience</h2>
               <p className="section-lead">
-                Research engineering, hardware delivery, and web infrastructure roles.
+                Research engineering, hardware development, and software delivery. Full
+                history is in the resume.
               </p>
             </div>
 
@@ -513,10 +502,8 @@ export default function App() {
             </div>
 
             <p className="cap-intro reveal">
-              Work spans scientific Python, desktop applications, acquisition and control,
-              packaging, CAD, electronics, documentation, troubleshooting, recovery, and
-              handoff. The through line is getting a system from prototype into daily use
-              and keeping it there.
+              Three kinds of work, usually on the same project. Getting a system from
+              prototype into daily use tends to need all of them.
             </p>
 
             <div className="cap-body">
@@ -540,6 +527,13 @@ export default function App() {
                     </ul>
                   </div>
                 ))}
+                <p className="cap-footnote">
+                  Primary tools only. The{" "}
+                  <a className="link" href={resumeHref} download>
+                    resume
+                  </a>{" "}
+                  carries the full list.
+                </p>
               </div>
             </div>
           </div>
@@ -550,9 +544,8 @@ export default function App() {
             <div className="reveal">
               <h2 className="contact-title">Start a technical conversation</h2>
               <p className="contact-lede">
-                Available for systems engineering roles in scientific software, automation,
-                hardware integration, and technical delivery. Denver, Colorado, and open to
-                remote, hybrid, on-site, and travel-based work.
+                Email is the most reliable route. The resume carries the full role history
+                and tool list.
               </p>
             </div>
 
@@ -584,7 +577,7 @@ export default function App() {
       <footer className="site-foot">
         <div className="container foot-inner">
           <span>&copy; {new Date().getFullYear()} Benjamin Reynolds</span>
-          <span>Denver, Colorado</span>
+          <span>{roleLabel}</span>
         </div>
       </footer>
     </div>
