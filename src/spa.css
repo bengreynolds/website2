@@ -704,6 +704,81 @@ summary {
   color: var(--text-subtle);
 }
 
+/* --- pellet demo -------------------------------------------------------
+   Button-triggered, time-based (not scroll-driven), so it runs on demand.
+
+   Sprite is a background so it scales responsively, which means it cannot
+   be declaratively lazy-loaded. The 1.5MB grid URL is therefore attached
+   only by .is-playing, i.e. on the first click. Until then the ~23KB
+   poster is the whole image.
+
+   background-size and the keyframes both live in the GENERATED
+   src/pellet-demo.css so a grid change cannot desync them.
+   -------------------------------------------------------------------- */
+
+/* Both figures share one grid column; the prose keeps the other. Without
+   this wrapper the grid auto-places three children and the text drops to a
+   second row underneath. */
+.case-figures {
+  display: grid;
+  gap: clamp(1.75rem, 3.5vw, 2.75rem);
+  align-content: start;
+}
+
+.demo-wrap {
+  margin: 0;
+}
+
+.pellet-figure {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("/rig/pellet-poster.webp");
+}
+
+.pellet-figure.is-playing {
+  background-image: url("/rig/pellet.webp");
+  background-position: 0% 0%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Never animate: the poster stays, and the button is hidden since it
+     would do nothing. */
+  .pellet-figure.is-playing {
+    background-image: url("/rig/pellet-poster.webp");
+    background-size: contain;
+    animation: none;
+  }
+
+  .demo-button {
+    display: none;
+  }
+}
+
+.demo-caption {
+  display: grid;
+  justify-items: start;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+}
+
+.demo-caption span {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  max-width: 46ch;
+}
+
+.demo-button {
+  min-height: 2.25rem;
+  padding-inline: 1rem;
+  font-size: var(--step--1);
+}
+
 /* Figure beside the prose rather than stacked on top of it. */
 .case-text {
   display: grid;

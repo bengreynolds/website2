@@ -128,6 +128,10 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
      they may never look at. */
   const [figureLive, setFigureLive] = useState(false);
   const hasFigure = project.figure === "buildup";
+  const hasDemo = project.demo === "pellet";
+  /* Counter, not a boolean: bumping it remounts the element, which is the
+     reliable way to restart a CSS animation from the beginning. */
+  const [demoRun, setDemoRun] = useState(0);
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -170,6 +174,8 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
       >
         <summary className="case-summary">Case study</summary>
         <div className={`case-body ${hasFigure ? "case-body--figure" : ""}`}>
+          {hasFigure || hasDemo ? (
+          <div className="case-figures">
           {hasFigure ? (
             <figure className="rig-figure-wrap">
               <div
@@ -181,6 +187,32 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
                 Full assembly sequence. Scroll to build.
               </figcaption>
             </figure>
+          ) : null}
+
+          {hasDemo ? (
+            <figure className="demo-wrap">
+              <div
+                key={demoRun}
+                className={`pellet-figure ${demoRun ? "is-playing" : ""}`}
+                role="img"
+                aria-label="Pellet delivery mechanism running one cycle: the spoon traverses to the pellet vat, raises, scoops, lowers, returns, then extends toward the tunnel and releases."
+              />
+              <figcaption className="demo-caption">
+                <button
+                  type="button"
+                  className="btn btn--quiet demo-button"
+                  onClick={() => setDemoRun((n) => n + 1)}
+                >
+                  {demoRun ? "Replay" : "Run demo"}
+                </button>
+                <span>
+                  Pellet delivery, one load and send cycle. Motion and timing come
+                  from the rig&rsquo;s own motor config.
+                </span>
+              </figcaption>
+            </figure>
+          ) : null}
+          </div>
           ) : null}
 
           <div className="case-text">

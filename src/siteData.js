@@ -157,6 +157,7 @@ export const projects = [
     tags: ["automation", "hardware", "data", "software"],
     featured: true,
     figure: "buildup",
+    demo: "pellet",
     summary:
       "A self-operating neuroscience rig. I designed the enclosure and its mechanisms, then integrated synchronized cameras, a three-axis pellet delivery, and machine-learning tracking into a loop that runs training sessions with nobody in the room.",
     challenge:

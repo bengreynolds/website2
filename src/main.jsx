@@ -11,6 +11,7 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
+import "./pellet-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
