@@ -157,35 +157,113 @@ export const projects = [
         kind: "pipeline",
         id: "nwb-pipeline",
         label: "Conversion pipeline",
+        /* Window chrome for the walkthrough. Both are taken from the run
+           itself - the app stamps "nwbforge:2025-03-14_M241_run1" as the
+           identifier at normalize - rather than invented for the demo. */
+        app: "NWB Forge",
+        session: "2025-03-14 · M241 · run1",
+        /* How long a stage sits still and readable before the pointer starts
+           moving. The full cycle is this plus the pointer's travel and click,
+           so ~3.6s here lands each stage near five seconds and the whole run
+           around half a minute - a walkthrough you can actually read, rather
+           than a slideshow that outruns you. */
+        dwell: 3600,
         caption:
           "One hybrid session, stepped through the way the app runs it. Ten files off a SpikeGLX amplifier, a camera and the lab's own bookkeeping become one validated NWB file. The write stays blocked at validation until two metadata conflicts are resolved on the record.",
         stages: [
           {
             id: "sources",
             label: "Sources",
+            status: "Scanning session · 10 files · 2 KB to 41.2 GB",
             note: "Ten files, two acquisition systems and the lab's own notes, no shared metadata.",
+            /* Not a plain list: the point of this stage is that the inputs
+               have nothing in common, and a flat list of ten filenames hides
+               both halves of that. Size is the loudest part - 41.2 GB and
+               2 KB are the same number of characters as text - so bytes is a
+               number the renderer can draw, and provenance is a real grouping
+               rather than a prefix inside a string. */
             view: {
-              type: "list",
+              type: "sources",
+              groups: [
+                { id: "spikeglx", label: "SpikeGLX", kind: "acquisition" },
+                { id: "camera", label: "Camera rig", kind: "acquisition" },
+                { id: "derived", label: "Derived", kind: "derived" },
+                { id: "records", label: "Lab records", kind: "records" },
+              ],
               rows: [
-                { name: "run1_g0_t0.imec0.ap.bin", meta: "SpikeGLX · 41.2 GB" },
-                { name: "run1_g0_t0.imec0.ap.meta", meta: "SpikeGLX · 14 KB" },
-                { name: "run1_g0_t0.imec0.lf.bin", meta: "SpikeGLX · 3.4 GB" },
-                { name: "run1_g0_t0.imec0.lf.meta", meta: "SpikeGLX · 14 KB" },
-                { name: "phy_output/", meta: "Phy · 212 MB" },
-                { name: "cam0_2025-03-14.mp4", meta: "Video · 8.9 GB" },
+                {
+                  name: "run1_g0_t0.imec0.ap.bin",
+                  group: "spikeglx",
+                  size: "41.2 GB",
+                  bytes: 41200000000,
+                },
+                {
+                  name: "run1_g0_t0.imec0.ap.meta",
+                  group: "spikeglx",
+                  size: "14 KB",
+                  bytes: 14000,
+                },
+                {
+                  name: "run1_g0_t0.imec0.lf.bin",
+                  group: "spikeglx",
+                  size: "3.4 GB",
+                  bytes: 3400000000,
+                },
+                {
+                  name: "run1_g0_t0.imec0.lf.meta",
+                  group: "spikeglx",
+                  size: "14 KB",
+                  bytes: 14000,
+                },
+                {
+                  name: "cam0_2025-03-14.mp4",
+                  group: "camera",
+                  source: "Video",
+                  size: "8.9 GB",
+                  bytes: 8900000000,
+                },
+                {
+                  name: "phy_output/",
+                  group: "derived",
+                  source: "Phy",
+                  size: "212 MB",
+                  bytes: 212000000,
+                },
                 {
                   name: "cam0DLC_resnet50_reachMar14.h5",
-                  meta: "DeepLabCut · 47 MB",
+                  group: "derived",
+                  source: "DeepLabCut",
+                  size: "47 MB",
+                  bytes: 47000000,
                 },
-                { name: "trials_run1.csv", meta: "Tabular · 62 KB" },
-                { name: "notes_run1.txt", meta: "Free text · 2 KB" },
-                { name: "rig_config.yaml", meta: "Config · 6 KB" },
+                {
+                  name: "trials_run1.csv",
+                  group: "records",
+                  source: "Tabular",
+                  size: "62 KB",
+                  bytes: 62000,
+                },
+                {
+                  name: "notes_run1.txt",
+                  group: "records",
+                  source: "Free text",
+                  size: "2 KB",
+                  bytes: 2000,
+                },
+                {
+                  name: "rig_config.yaml",
+                  group: "records",
+                  source: "Config",
+                  size: "6 KB",
+                  bytes: 6000,
+                },
               ],
             },
           },
           {
             id: "group",
             label: "Group",
+            status: "3 datasets proposed · 2 supported routes, 1 custom",
             note: "Heuristic grouping proposes three datasets and suggests a pathway. Supported and custom routes in one session is what makes this session hybrid.",
             view: {
               type: "groups",
@@ -214,6 +292,7 @@ export const projects = [
           {
             id: "normalize",
             label: "Normalize",
+            status: "Metadata extracted · 2 fields disagree across sources",
             note: "Metadata is extracted per source and standardized. Two fields disagree across sources, which is the whole reason a review gate exists.",
             view: {
               type: "status",
@@ -249,6 +328,7 @@ export const projects = [
           {
             id: "map",
             label: "Map",
+            status: "7 containers planned · 3 metadata files consumed",
             note: "A rule-based plan for where each source lands. Seven rows for ten files is right: the three metadata files were consumed at normalize and get no container of their own.",
             view: {
               type: "mapping",
@@ -290,6 +370,7 @@ export const projects = [
           {
             id: "validate",
             label: "Validate",
+            status: "Blocked · 4 checks pass, 1 review, 1 conflict",
             note: "Artifact policy, schema and NWB Inspector run before anything is written. Outcome: blocked. Nothing is written.",
             view: {
               type: "status",
@@ -322,6 +403,7 @@ export const projects = [
           {
             id: "review",
             label: "Review",
+            status: "2 conflicts resolved · decisions persisted",
             note: "The gate. A person resolves each conflict, the species check is acknowledged, and both decisions are persisted to the session snapshot. Outcome clears to pass.",
             view: {
               type: "conflicts",
@@ -346,6 +428,7 @@ export const projects = [
           {
             id: "assemble",
             label: "Assemble",
+            status: "session.nwb written · NWB 2.7.0 · 6 checks pass",
             note: "PyNWB writes the file, and the evidence is written beside it.",
             view: {
               type: "list",
@@ -370,6 +453,9 @@ export const projects = [
     tags: ["automation", "hardware", "data", "software"],
     featured: true,
     figure: "buildup",
+    /* Frame count of the generated sprite, used to map wheel notches to
+       frames. Must match the grid in src/rig-buildup.css. */
+    figureFrames: 100,
     figureLabel:
       "Assembly sequence of the training rig, built up from bare corner legs through horizontal bars, platform rails, the cage, tunnel, pellet delivery, camera and Jetson modules, then the floor, side panels, doors and panel connectors.",
     demos: [
@@ -482,6 +568,8 @@ export const projects = [
     category: "hardware",
     tags: ["hardware", "automation"],
     figure: "prosthetic-build",
+    /* Must match the grid in src/rig-prosthetic-build.css. */
+    figureFrames: 196,
     figureLabel:
       "Assembly sequence of the prosthetic sensation test bench. The base sheet stays fixed while every other phase descends onto it: extruded corner posts and cross members, the seesaw shaft supports and bearings, the rotary shaft, the plank, the transducer and its plunger, the shim flexure carrying the load cell and dowel, the amplifier, the control electronics, then the top sheet and standing mat.",
     demos: [
@@ -513,6 +601,24 @@ export const projects = [
     title: "Multi-Solution Lickometer",
     category: "hardware",
     tags: ["hardware", "automation", "software"],
+    demos: [
+      {
+        id: "lickrevolver-build",
+        label: "Assembly",
+        caption:
+          "The rig built up from the floor and T-slot frame, through the servo drive and its gear train, the eight-vial carousel, the fluid path, the shutter servo and solenoid valve, the control board and wiring, and finally the lid. Colour groups the parts that go on together, and the enclosure is drawn translucent so each stage stays visible inside it.",
+      },
+      {
+        id: "lickrevolver-trial",
+        /* Two figures, one button: the trial in context and the spout
+           mechanism close up. Both sprites are 81 frames over the same
+           duration, so they stay frame-locked. */
+        ids: ["lickrevolver-trial", "lickrevolver-trial-close"],
+        label: "One trial",
+        caption:
+          "A single trial, timed from the rig's own firmware and config rather than estimated. The carousel indexes 45° per vial to the requested solution and waits for the main lick; that lick advances it a further 150° and swings the spout clear of the box, 90° about the servo's gear axis taken from the assembly's coaxial mate. The solenoid then fires for the 500 ms reward window on the rewarded side only, while the other side registers the miss and stays shut, before both spouts return and the trial closes. The rig is symmetric, and the second spout and solenoid are reconstructed across the assembly's own centre plane: the master CAD currently carries one side.",
+      },
+    ],
     summary:
       "An eight-vial carousel that presents a different solution on each trial, with the mechanism, the firmware, and the operator interface built as one instrument.",
     challenge:
