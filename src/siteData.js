@@ -492,6 +492,27 @@ export const projects = [
       "Structured the bench workflow around repeatable test conditions.",
     ],
   },
+  {
+    id: "multi-solution-lickometer",
+    title: "Multi-Solution Lickometer",
+    category: "hardware",
+    tags: ["hardware", "automation", "software"],
+    summary:
+      "An eight-vial carousel that presents a different solution on each trial, with the mechanism, the firmware, and the operator interface built as one instrument.",
+    challenge:
+      "Taste-preference work needed many solutions offered to one animal in a single session, without an operator swapping bottles between trials and without the swap itself becoming the variable.",
+    approach:
+      "Designed the carousel and its gear train in Inventor, then wrote the firmware and a wxPython interface against one serial protocol. The interface holds the protocol and the per-vial assignments, the board holds the trial state machine and the timing.",
+    role: "Designed the mechanism, wrote the firmware and the operator interface, and defined the serial protocol between them.",
+    tools: ["Inventor", "Arduino", "Python", "wxPython"],
+    bullets: [
+      "Built a four-stage gear train that indexes eight vials off a single servo.",
+      "Gated delivery with two shutter servos and two solenoid valves, with manual purge for priming.",
+      "Ran manual, randomized, and automated protocols against per-vial solution assignments held in YAML.",
+      "Guarded sessions with separate idle timeouts for the main and reward spouts.",
+      "Framed the serial link so the interface and the board both recover from a partial message.",
+    ],
+  },
 ];
 
 export const contactLinks = [
