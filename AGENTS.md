@@ -30,11 +30,27 @@
   capturing) is the one that pays for itself. Reusable helpers, all of them
   replacing an approach that produced a wrong result, are in
   `scripts/fusion/animation_helpers.py`.
+- Software demos: follow `docs/software-animation-patterns.md`. Sprite for a
+  mechanism, live DOM for anything with words in it — a 520px sprite cell
+  cannot hold a readable filename. Put the content in `siteData.js` and keep
+  the renderer generic. React owns one number; CSS reads it off `data-*` and
+  custom properties.
+- Declare `animation-delay` only inside `prefers-reduced-motion: no-preference`.
+  Section 14 of `src/spa.css` crushes every duration but leaves delay alone, so
+  a delay outside that query makes the element land late under reduce. `.rise`
+  is the pattern to copy.
+- `--plate` is for CAD renders only. It is light in both themes so dark renders
+  survive; text on it fails contrast in dark mode. Live DOM demos use
+  `--surface`.
 - Prefer hover states that change color/outline over large lifts.
-- Accent color means "interactive". Do not use it on static text.
+- Accent color means "interactive". Do not use it on static text. Tell states
+  apart by border strength and font weight rather than hue, which also keeps
+  them readable for colorblind visitors.
 
 ## Review Checklist
 - Does the page feel calm with only 1–2 active animations visible at once?
 - Are sections clearly separated with whitespace and headings?
 - Does the page still look good if animations are disabled?
 - Do CTAs remain visible above the fold?
+- After touching a demo: does it still read under reduced motion, and do the
+  existing sprite demos still play? A build will not catch either.

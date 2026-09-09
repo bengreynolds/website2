@@ -17,7 +17,7 @@ Copied from the spec and `AGENTS.md`. Every task's requirements implicitly inclu
 - **No new dependencies.** `package.json` is not modified by this plan.
 - **Two active animations maximum**, ever: the rail progress bar and the row entrance stagger. No third.
 - **Motion values come from existing tokens only** — `--dur-fast` (140ms), `--dur-med` (240ms), `--ease`, `--reveal-shift` (14px). No new motion constants.
-- **Never animate opacity.** Transform only, per `AGENTS.md`.
+- **Transform only — but for the right reason.** `AGENTS.md` forbids opacity only on a *scroll-driven* timeline, where a stalled timeline can leave a faded keyframe permanently invisible; `.rise` at `spa.css:329` legitimately fades because it is time-based. This demo is click-triggered, so opacity would be permitted. Use transform anyway, because a row that never animates then stays fully readable.
 - **`--accent` is reserved for interactive things.** State chips and badges are static text and must not use it. Rail node buttons and the progress bar may, because both report the visitor's own position in something they are driving.
 - **Five semantic states, three visual treatments.** `ok` and `pass` share one; `conflict` and `blocked` share one; `review` sits between. Distinguish by border strength and font weight, not hue — that also survives colour blindness.
 - **The stagger delay must live inside `@media (prefers-reduced-motion: no-preference)`.** Section 14 of `src/spa.css` crushes `animation-duration` to `0.01ms !important` but leaves `animation-delay` alone; a delay outside that query makes rows land late under reduce, which is worse than no animation.
@@ -1172,7 +1172,8 @@ EOF
 The rail goes vertical on narrow screens, and the whole demo is checked in both themes. Last task because it verifies the finished thing.
 
 **Files:**
-- Modify: `src/pipeline-demo.css` — append a responsive section
+- Modify: `src/pipeline-demo.css` — append a width section and a narrow section
+- Modify: `docs/software-animation-patterns.md` — retag its `[open]` rules (Step 6)
 
 **Interfaces:**
 - Consumes: everything from Tasks 2 through 4
@@ -1308,7 +1309,27 @@ Expected in dark: `rgb(23, 30, 35)` — that is `--surface` `#171e23`. If it com
 
 The one regression risk in this plan is the `App.jsx` branch. Scroll to **Autonomous Behavioral Training Rig**, open its case study, and click **Pellet delivery**, **Head-fix clamp** and **Control board** in turn. Expected: the shared sprite stage still plays, the pressed button still highlights, and the pellet pair still renders two figures side by side. `read_console_messages` with `onlyErrors: true` expected empty.
 
-- [ ] **Step 6: Send the screenshots and commit**
+- [ ] **Step 6: Retag the open items in the patterns doc**
+
+`docs/software-animation-patterns.md` marks each rule **[read]** (verified against source) or **[open]** (reasoned, not yet exercised). This demo is what exercises the open ones. Go through every `[open]` tag and either promote it to `[read]` with the evidence, or correct the rule.
+
+At the time of writing there is one, in section 4: that React appends `px` to some numeric style values, so custom properties must be passed as strings. Task 4 already read `--progress` back and got `"0"` and `"0.5"` rather than `"0px"`, so that rule is confirmed — change the tag and cite the check.
+
+Also add one line to Appendix B if this implementation produced a mistake worth recording. An appendix entry that came from real work is worth more than any rule in the body.
+
+```bash
+git add docs/software-animation-patterns.md
+git commit -m "$(cat <<'EOF'
+Confirm the open rules in the software animation patterns
+
+The pipeline demo exercised them, so they are no longer reasoned.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+- [ ] **Step 7: Send the screenshots and commit**
 
 Send the owner the desktop light, desktop dark, and mobile screenshots of stage 5, plus one of stage 6 (Review) since the conflict layout is the densest prose in the demo.
 
