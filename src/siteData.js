@@ -149,6 +149,218 @@ export const projects = [
       "Validated output through PyNWB and NeuroConv workflows.",
       "Preserved provenance and recovery information for auditability.",
     ],
+    demos: [
+      {
+        /* The software counterpart to the rig's sprite demos. A demo with no
+           kind is a sprite, which is why the three rig entries need no
+           change; this one has to say what it is. */
+        kind: "pipeline",
+        id: "nwb-pipeline",
+        label: "Conversion pipeline",
+        caption:
+          "One hybrid session, stepped through the way the app runs it. Nine files off a SpikeGLX amplifier, a camera and the lab's own bookkeeping become one validated NWB file. The write stays blocked at validation until two metadata conflicts are resolved on the record.",
+        stages: [
+          {
+            id: "sources",
+            label: "Sources",
+            note: "Nine files, two acquisition systems and the lab's own notes, no shared metadata.",
+            view: {
+              type: "list",
+              rows: [
+                { name: "run1_g0_t0.imec0.ap.bin", meta: "SpikeGLX · 41.2 GB" },
+                { name: "run1_g0_t0.imec0.ap.meta", meta: "SpikeGLX · 14 KB" },
+                { name: "run1_g0_t0.imec0.lf.bin", meta: "SpikeGLX · 3.4 GB" },
+                { name: "phy_output/", meta: "Phy · 212 MB" },
+                { name: "cam0_2025-03-14.mp4", meta: "Video · 8.9 GB" },
+                {
+                  name: "cam0DLC_resnet50_reachMar14.h5",
+                  meta: "DeepLabCut · 47 MB",
+                },
+                { name: "trials_run1.csv", meta: "Tabular · 62 KB" },
+                { name: "notes_run1.txt", meta: "Free text · 2 KB" },
+                { name: "rig_config.yaml", meta: "Config · 6 KB" },
+              ],
+            },
+          },
+          {
+            id: "group",
+            label: "Group",
+            note: "Heuristic grouping proposes three datasets and suggests a pathway. Supported and custom routes in one session is what makes this session hybrid.",
+            view: {
+              type: "groups",
+              rows: [
+                {
+                  name: "Ecephys",
+                  route: "SpikeGLX & Phy",
+                  count: 4,
+                  kind: "supported",
+                },
+                {
+                  name: "Behavior",
+                  route: "DeepLabCut, Video",
+                  count: 2,
+                  kind: "supported",
+                },
+                {
+                  name: "Trials & rig",
+                  route: "Custom mapping",
+                  count: 3,
+                  kind: "custom",
+                },
+              ],
+            },
+          },
+          {
+            id: "normalize",
+            label: "Normalize",
+            note: "Metadata is extracted per source and standardized. Two fields disagree across sources, which is the whole reason a review gate exists.",
+            view: {
+              type: "status",
+              rows: [
+                {
+                  label: "identifier",
+                  value: "nwbforge:2025-03-14_M241_run1",
+                  state: "ok",
+                },
+                {
+                  label: "session_description",
+                  value: "Reach-to-grasp, run 1",
+                  state: "ok",
+                },
+                {
+                  label: "devices",
+                  value: "Neuropixels 1.0, cam0",
+                  state: "ok",
+                },
+                {
+                  label: "session_start_time",
+                  value: "2 sources disagree",
+                  state: "conflict",
+                },
+                {
+                  label: "subject_id",
+                  value: "2 sources disagree",
+                  state: "conflict",
+                },
+              ],
+            },
+          },
+          {
+            id: "map",
+            label: "Map",
+            note: "A rule-based plan for where each source lands. Seven rows for nine files is right: the two metadata sidecars were consumed at normalize and get no container of their own.",
+            view: {
+              type: "mapping",
+              rows: [
+                {
+                  from: "run1_g0_t0.imec0.ap.bin",
+                  to: "acquisition/ElectricalSeries",
+                  note: "SpikeGLX route, NeuroConv",
+                },
+                {
+                  from: "run1_g0_t0.imec0.lf.bin",
+                  to: "acquisition/ElectricalSeriesLF",
+                  note: "NeuroConv",
+                },
+                { from: "phy_output/", to: "units", note: "Phy route" },
+                {
+                  from: "cam0_2025-03-14.mp4",
+                  to: "acquisition/ImageSeries",
+                  note: "external file, not copied",
+                },
+                {
+                  from: "cam0DLC_resnet50_reachMar14.h5",
+                  to: "processing/behavior/PoseEstimation",
+                  note: "DeepLabCut route",
+                },
+                {
+                  from: "trials_run1.csv",
+                  to: "intervals/trials",
+                  note: "start_s to start_time, stop_s to stop_time, outcome to success",
+                },
+                {
+                  from: "rig_config.yaml",
+                  to: "general/devices",
+                  note: "custom mapping",
+                },
+              ],
+            },
+          },
+          {
+            id: "validate",
+            label: "Validate",
+            note: "Artifact policy, schema and NWB Inspector run before anything is written. Outcome: blocked. Nothing is written.",
+            view: {
+              type: "status",
+              rows: [
+                {
+                  label: "Artifact policy",
+                  value: "3 artifacts planned",
+                  state: "pass",
+                },
+                { label: "NWB schema 2.7.0", value: "conforms", state: "pass" },
+                {
+                  label: "check_timestamps_ascending",
+                  value: "ok",
+                  state: "pass",
+                },
+                { label: "check_data_orientation", value: "ok", state: "pass" },
+                {
+                  label: "check_subject_species_exists",
+                  value: "subject.species not supplied",
+                  state: "review",
+                },
+                {
+                  label: "session_start_time",
+                  value: "unresolved across 2 sources",
+                  state: "blocked",
+                },
+              ],
+            },
+          },
+          {
+            id: "review",
+            label: "Review",
+            note: "The gate. A person resolves each conflict, the species check is acknowledged, and both decisions are persisted to the session snapshot. Outcome clears to pass.",
+            view: {
+              type: "conflicts",
+              rows: [
+                {
+                  field: "session_start_time",
+                  a: "2025-03-14T09:12:04-06:00 — run1_g0_t0.imec0.ap.meta",
+                  b: "2025-03-14T09:12:41-06:00 — cam0_2025-03-14.mp4",
+                  chosen: "09:12:04-06:00",
+                  why: "The amplifier clock starts the session; the camera start is kept as an offset on the ImageSeries rather than discarded.",
+                },
+                {
+                  field: "subject_id",
+                  a: "M241 — rig_config.yaml",
+                  b: "m-241 — notes_run1.txt",
+                  chosen: "M241",
+                  why: "Matches the colony registry format; the note spelling is recorded as an alias so the original is not lost.",
+                },
+              ],
+            },
+          },
+          {
+            id: "assemble",
+            label: "Assemble",
+            note: "PyNWB writes the file, and the evidence is written beside it.",
+            view: {
+              type: "list",
+              rows: [
+                { name: "session.nwb", meta: "NWB 2.7.0 · 45.1 GB" },
+                { name: "validation_report.json", meta: "6 checks · pass" },
+                {
+                  name: "provenance.log",
+                  meta: "inspect, normalize, map, assemble",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     id: "automated-multicamera-training-control-system",
