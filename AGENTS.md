@@ -25,6 +25,11 @@
   element at its start state whenever it cannot advance, so a faded keyframe
   can leave text permanently invisible. Animate transform only.
 - Keep animations short and avoid large translate/scale jumps.
+- CAD animations: follow `docs/fusion-animation-pipeline.md`. It is ordered as
+  the work runs, and step 7 (preview stills, and send them to the owner, before
+  capturing) is the one that pays for itself. Reusable helpers, all of them
+  replacing an approach that produced a wrong result, are in
+  `scripts/fusion/animation_helpers.py`.
 - Prefer hover states that change color/outline over large lifts.
 - Accent color means "interactive". Do not use it on static text.
 

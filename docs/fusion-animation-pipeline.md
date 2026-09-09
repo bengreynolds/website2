@@ -1,486 +1,98 @@
 # Fusion → website animation pipeline
 
-Notes from the first capture pass on `00000-Full_System_Assy-00` (the Auto-trainer
-rig). Written so later passes do not re-derive any of this. Everything below was
-verified against the live model through the Fusion MCP connector, not assumed.
+A playbook for turning `00000-Full_System_Assy-00` (the Auto-trainer rig) into
+scrubbable and button-triggered animations on this site. Ordered as the work
+actually runs, not as it was discovered.
 
-Reusable scripts live in `scripts/fusion/`.
+Everything here was verified against the live model through the Fusion MCP
+connector. Where a number appears, it was measured.
+
+Reusable scripts: `scripts/fusion/` (state snapshot/restore) and
+`scripts/build_demo_sprite.py` (sheet + poster + CSS from one place).
 
 ---
 
-## 1. Facts about this assembly
+## 0. The process
+
+Each step is a section below. The order matters — most of the expensive mistakes
+in this file came from doing one of these out of sequence, or skipping step 7.
+
+| # | Step | The rule in one line |
+|---|---|---|
+| 1 | Snapshot | Write transforms and visibility to JSON in its own call, before anything moves. |
+| 2 | Know the model | Y is up, there are no joints, and nothing renders until every ancestor's bulb is on. |
+| 3 | Find the mechanism | Read cylindrical faces and pin bores. Never infer an axis from a name or a bounding box. |
+| 4 | Define the motion | Get the nesting from the machine, the order from its config, and the signs from the owner. |
+| 5 | Choose the camera | Project the corners over the whole path. Never trust a view preset. |
+| 6 | Choose the colours | Colour by what moves for a mechanism; by material for an assembly. |
+| 7 | **Preview** | Render stills, look at them, send them to the owner. Never capture blind. |
+| 8 | Capture | Lock the camera, apply an explicit colour base, restore at the end. |
+| 9 | Ship | Generate sheet, poster and CSS together. Gate the payload. |
+| 10 | Verify | Check the files against each other, and look at the result at display size. |
+
+---
+
+## 1. Snapshot, restore, and never save
+
+The capture scripts move real geometry in the owner's open document.
+
+1. Write every occurrence's `transform2` **and** `isLightBulbOn` to JSON
+   **before touching anything** (`scripts/fusion/save_state.py`). Do it as its
+   own MCP call so the file exists even if a later capture crashes.
+2. If the run will change appearances, snapshot those too — occurrence-level
+   `appearance.name` for all occurrences is cheap (684 reads, no crash) and is
+   enough to restore from.
+3. Capture.
+4. Restore and **verify with numbers**, not assumption: report worst transform
+   residual, visibility mismatches, appearance mismatches. Every session in
+   this file ended at `residual 0.0 | vis 0 | appearance 0`.
+5. **Never save the document.** Fusion still flags it modified; that is expected
+   and the content is identical.
+
+State files land in the user's home directory: `fusion_orig_transforms.json`,
+`fusion_orig_vis.json`.
+
+**If Fusion crashes, the saved document is fine** — the scripts never save, so a
+crash discards only in-memory changes. On restart, **decline** any offer to
+recover unsaved changes: that would restore whatever state the script died in.
+
+**An MCP timeout is not a failure.** Fusion is single-threaded and keeps
+executing after the client gives up. A 48-frame run returned `Request timed out`
+and had written all 48 frames plus its restore. Always check the output
+directory before re-running — re-running a capture that already completed can
+double-apply transforms.
+
+**What actually crashed Fusion:** bulk-reading `boundingBox` **and** `appearance`
+for ~234 *proxy* bodies in one setup phase. Reading `component.bRepBodies`
+bounding boxes for the same 234 is cheap and safe. If you need per-body data,
+read it in component space, persist it to JSON in one call, and capture in a
+second.
+
+---
+
+## 2. Know the model
 
 | Property | Value |
 |---|---|
-| Document | `00000-Full_System_Assy-00` |
 | `designType` | `1` = **Direct** (non-parametric) |
 | **Joints in design** | **0** |
 | Top-level occurrences | 31 |
 | Total occurrences | 684 |
-| Visible leaf parts (skin on) | 579 |
-| Overall extents | ~42.5 (X) x 36.1 (Y) x 62.4 (Z) cm |
-| **Vertical axis** | **Y** (the top panel is the thin-in-Y part) |
-
-### Why "0 joints" is the single most important fact
-
-**It cuts both ways.**
-
-Good: there is no constraint solver and nothing to fight. `occurrence.transform2`
-can be set freely. Verified: a 10 cm translation applied exactly (`delta=10.000`)
-and restored with `residual=0.000000`. A full 24-frame run restored with a worst
-residual of `3.6e-15`. Assembly and explode animation is therefore the *reliable*
-path here, not the fragile one.
-
-Bad: **no motion is encoded anywhere in the model.** There is no slider joint to
-drive. Every mechanism animation has to be hand-authored. Names like
-`..._MAX_Position`, `SSEB6-55_SLIDE_MAX` and `SSEB8-55_Z-DEFAULT` are *frozen
-placements*, not ranges the API can read.
-
----
-
-## 2. API facts worth not rediscovering
-
-- `occurrence.transform2` exists and is the one to use. Round-trip through JSON
-  with `.asArray()` and `Matrix3D.setWithArray()`.
-- `Viewport.saveAsImageFileWithOptions(SaveImageFileOptions)` supports
-  `isBackgroundTransparent`, `width`, `height`, `isAntiAliased`. This is how you
-  get transparent PNG frames at arbitrary resolution. One transparent sprite then
-  serves both the light and dark site themes.
-- `Camera.isSmoothTransition = False` is **mandatory** for frame capture. Leave it
-  on and frames land mid-transition.
-- `Camera.isFitView` must be **False** during the capture loop. Leave it on and the
-  model rescales every frame as parts move.
-- Capture the camera once against the *assembled* state, then re-apply that same
-  camera object each frame. Do not call `fit()` inside the loop.
-- `visualStyle = ShadedWithVisibleEdgesOnlyVisualStyle` is the key contrast lever.
-  Most structural parts are the same light-grey aluminium; black edge lines are
-  what separate them. Keep the model's real appearances, do not flatten to
-  monochrome.
-- MCP `execute` scripts must define `def run(_context: str)`. Do not catch
-  exceptions inside `run` — the error message is the only debugging signal.
-- MCP `read` / `screenshot` takes `direction` presets and its own
-  `transparentBackground`. Good for spot checks; use the Fusion API for frame runs.
-
----
-
-## 3. Geometry gotchas, learned the hard way
-
-**The assembly renders as a closed grey box.** Everything worth showing is behind
-the enclosure skin.
-
-**`50858-Allentown Enclosure Lid-00` is not the occluder.** It is a small cage lid
-*inside* the enclosure. Hiding only it changes nothing visible. To open the rig up,
-hide these children of `10421-Enclosure Assy-00`:
-
-```
-30591-Side Panel_Solid-00
-30590-Side Panel_Solid Opposite-00
-30596-Top_Panel-00
-10427-Back Panel Assy-00
-Front Door Assy
-10425-Top Door Assy-00
-```
-
-Optionally also, since they block the interior:
-
-```
-30587-Platform_Rail_Left-00        # 20 x 54 cm plates, not "rails"
-20566-Platform Rail Right-00 (1)
-10428-Water Shield Assy-00
-```
-
-**The large grey "wall" in an iso view is the floor, not a panel.** Measured by
-projected screen area: `20557-Base_Panel-00` = 172,557 and
-`30586-Collection_Pan-00` = 152,031, far ahead of anything else. A horizontal
-41 x 55 cm plate projects as a huge parallelogram in a top-down iso and reads as a
-wall. Bounding-box "find thin vertical plates" queries will never find it.
-
-> **Use projected screen area, not bounding boxes, to answer "what is big on
-> screen."** Project the 8 bbox corners with `Viewport.modelToViewSpace` and take
-> the extent product. This resolved in one query what four bbox queries could not.
-
-**Fusion draws the origin axis lines as an overlay on top of geometry.** Solid
-parts therefore look translucent in screenshots. Do not infer transparency from a
-screenshot.
-
-**Check effective visibility, not `isLightBulbOn`.** An occurrence only renders if
-it *and every ancestor* has its bulb on. Walk `assemblyContext` upward.
-
----
-
-## 3b. Web integration, as shipped
-
-Live in `src/spa.css` under "rig build-up", markup in the hero of `src/App.jsx`.
-
-```
-frame 508 x 398   strip 12192 x 398   565 KB   poster 23 KB
-background-size: 2400% 100%          (24 frames side by side)
-animation-timing-function: steps(24, jump-none)
-```
-
-`steps(N, jump-none)` is the correct stepping function for a sprite: it yields
-exactly N discrete values including both 0% and 100%. Plain `steps(N)` never
-reaches the last frame.
-
-Three things worth keeping:
-
-1. **The poster carries real weight.** The strip is declared only inside
-   `@media (prefers-reduced-motion: no-preference)` + `@supports
-   (animation-timeline: ...)`. Anyone outside that gets the ~25 KB still of the
-   assembled rig and never downloads the strip.
-2. **Timeline choice depends on where the figure sits, and it is not
-   interchangeable.**
-   - Below the fold: `view()`. The timeline is relative to the figure.
-   - Above the fold: `scroll(root)`. A `view()` timeline is already past its
-     `entry` range at load for anything in the first viewport, so it would show
-     the final frame immediately.
-
-   The figure moved from the hero into the project case study during this work,
-   which meant switching from `scroll(root) 0 22vh` to
-   `view() entry 0% cover 42%`. Verified scrubbing 0 -> 26 -> 52 -> 78 -> 100%.
-3. **For an above-the-fold figure, the range must finish while it is still on
-   screen.** `animation-range: 0 72vh` was wrong: at 52% of the animation the
-   figure had already scrolled away, so the last half never got seen. `0 22vh`
-   completed at ~212 px with the figure still 78% visible.
-4. **A closed `<details>` does NOT stop a CSS background from being fetched.**
-   Measured: the strip loaded before the case study was ever opened, so
-   "put it in a disclosure for free lazy-loading" is false. The strip URL is
-   gated behind a `.is-live` class that React adds on the `toggle` event.
-   Confirmed: poster only before open, strip fetched on open. CSS backgrounds
-   have no declarative lazy-load, so gating on an event is the only option
-   short of switching to `<img loading="lazy">`, which would break the
-   percentage `background-size` the responsive sprite depends on.
-
-### Full assembly, 45 frames as a 9x5 grid
-
-The shipped animation is the complete build, not a module drop-in: bare corner
-legs, horizontal bars, platform rails, submodules, floor, side and top panels,
-doors, then panel connectors. It animates **children of the enclosure**, not
-just top-level occurrences, so the snapshot has to cover
-`enc.childOccurrences` too (246 transforms, not 31) or the restore is silently
-incomplete.
-
-Never move the enclosure occurrence itself while also moving its children;
-the transforms compose. Move the children only.
-
-```
-45 frames  460 x 460  ->  9x5 grid  4140 x 2300  1105 KB   poster 42 KB
-background-size: 900% 500%
-animation: rig-buildup step-end both
-```
-
-**A single strip cannot hold this.** 45 frames at 460 px is 20700 px, past the
-16384 px texture limit, so it has to be a 2D grid.
-
-**Keyframes are generated, one stop per frame, into `src/rig-buildup.css`.** Two
-chained `steps()` animations (columns with `iteration-count`, rows over the full
-range) is more compact but needs phase alignment across both axes: `steps(5,
-jump-none)` changes rows at fifths of *four* intervals while the columns wrap at
-fifths of *five*, so they drift. Explicit `step-end` stops cannot.
-
-**Trim static tail frames.** Measured frame-to-frame pixel change: only the last
-three transitions were under 0.35% different, so 48 captured frames became 45.
-Worth measuring rather than eyeballing a contact sheet, where the tail *looked*
-much more static than it was.
-
-**The poster is a mid-sequence frame (27), not the last.** The last frame is the
-finished closed enclosure. That is truthful but shows none of the work, and the
-poster is the entire image for anyone who cannot animate it. Frame 27 has the
-modules in, floor down, panels not yet closed.
-
-**Panel connectors are near-invisible at this scale.** Ethernet, USB,
-DisplayPort and the power switch are ~3 cm parts on a 42 cm box. They are in the
-sequence for completeness but contribute almost nothing visually.
-
-### Two bugs that only show up in the browser
-
-**Do not crop frames to a union bounding box.** It produced a 614 x 618 cell
-against a declared `aspect-ratio: 1/1`, and `background-size: 900% 500%` assumes
-each cell is exactly the element's box. A few pixels of mismatch mis-registers
-every cell and the render reads as cut off. Ship the **uncropped square render
-canvas** so the cell is always PX x PX and the aspect can never drift. The empty
-alpha margin costs almost nothing in WebP.
-
-**`animation-range: entry ... entry 100%` is wrong for a figure revealed by a
-disclosure.** It completes the moment the figure is fully in view, which for a
-figure inside a `<details>` the reader just opened is immediately, so scrolling
-does nothing at all. Use `cover`, which spans the figure's whole travel through
-the viewport: `cover 12% cover 78%` yields 18 distinct frames across the sweep
-and reaches both ends.
-
-**Offsets should be short when visibility is gated.** Parts hidden until their
-stage only need a small travel to read as arriving, and a short travel keeps
-them inside the frame. Full-length offsets clipped frames at the canvas edge.
-Scaling the offset table by 0.45 fixed it.
-
-### The 100-frame version, and where the frame budget goes
-
-```
-100 frames  cell 660 x 660  ->  10 x 10 grid  6600 x 6600  2.7 MB   poster 42 MB->42 KB
-background-size: 1000% 1000%      (owned by the GENERATED css, see below)
-```
-
-Four phases in the owner's order, with submodules inserted **top-down, one beat
-at a time**, because that is how the rig is actually built into an open-top
-enclosure:
-
-| Phase | Window | Notes |
-|---|---|---|
-| Frame | 0.00-0.20 | legs, top rails, cross bar, mounting rods, platform rails |
-| Submodules | 0.19-0.70 | 5 sequential beats, all entering straight down (+Y) |
-| Panels | 0.68-0.86 | floor, collection pan, sides, back, top |
-| Mounts, lids, doors | 0.83-0.955 | doors, guides, hinges, handle, cage lid, connectors |
-| Fasteners | 0.93-1.00 | last, per the owner's order |
-
-Submodules own the middle half of the timeline because that is the part worth
-watching. Five beats rather than eleven individual parts: cage plus bottle,
-tunnel plus step, pellet, camera plus webcam, Jetson plus blower. Eleven
-sequential slots would have given each about four frames.
-
-**`background-size` belongs in the generated file, not the stylesheet.** Going
-from a 9x5 to a 10x10 grid left `background-size: 900% 500%` behind in
-`spa.css`, which mis-registered every cell. It now lives in
-`src/rig-buildup.css` beside the keyframes it has to agree with, so a grid
-change cannot silently break it. Verified in the browser: 78 distinct frames
-across an 80-step sweep, **0 frames off-grid** (every computed position lands
-within 0.02% of a legal multiple of 100/9).
-
-**Nothing is static once the camera moves.** Measured frame-to-frame change on
-the 100-frame run: minimum 1.58%. The earlier static-tail trimming was only
-needed because the camera was locked; an orbiting camera makes every frame
-carry change, so no trimming is required.
-
-### Dynamic camera
-
-The camera is keyframed on (azimuth offset, elevation, extents multiplier) and
-interpolated with a smoothstep, keeping the preset's horizontal bearing as the
-base. It starts high and wide (44 degrees, 1.14x) to read the bare frame, drops
-to 26 degrees and pushes in to 0.96x for the submodule inserts, then pulls back
-out for panels and finishing. Total azimuth travel is 44 degrees.
-
-Elevation is still built from an explicit angle, never from the preset's `dy`
-(see the Z-up warning above).
-
-### Pellet delivery: kinematics solved, legibility not
-
-The axis mapping is settled, derived from rail geometry rather than guessed:
-
-| Machine axis | Owner's description | Model direction | Rail | Rail height Y |
-|---|---|---|---|---|
-| X | to/from the pellet vat | model **+X** | `50857-SSEB8-55` | 10.0 |
-| Y | to/from the tunnel | model **+Z** | `50793-SSEB6-55_MAX` x2 | 8.7 |
-| Z | up/down | model **+Y** | `50857-SSEB8-55_Z-DEFAULT` | 14.6 |
-
-Corroborated two ways: the tunnel sits +12.7 cm in model-Z from the pellet
-module, and the vat +7 cm in model-X. Rail heights give the nesting: **Y carries
-X carries Z carries the spoon.**
-
-Stage membership for the 91 flat children, by bbox centre height Y, with
-overrides:
-
-```
-Y < 8.75                    fixed (base plate, base steppers, Y rails)
-8.75 <= Y < 9.6             rides machine-Y
-9.6  <= Y < 12.5            rides machine-Y + X
-Y >= 12.5                   rides machine-Y + X + Z
-fixed by name:  Base_Pla, SSEB6-55_MAX, Pellet_Vat (the bucket does not move),
-                Pellet PCB Mounting Assy, Base End Stop, PCB Enclosure Panel
-forced to X:    SSEB8-55_Z-DEFAULT, Yframe_vmettetal   <- bolted TO the X stage;
-                only their carriage rides Z, so height tiering puts them one
-                stage too deep
-```
-
-Composition: a part on stage Z translates by all three; on X by machine Y and X;
-on Y by machine Y only.
-
-**Fit the camera AT the final angle, not at the preset angle.** Computing
-`viewExtents` from a fit at the preset (below-horizon) bearing and then applying
-those extents at a 26 degree elevation left the subject at 36% of the frame.
-Set eye/target first, then `isFitView = True`, then read the extents back. Fixed
-it to 47%.
-
-**Open problem: the motion is correct but not legible.** 32 mm of travel on a
-200 mm module is a small movement, and at sprite scale the module reads as a
-dark mass. The kinematics and choreography are right; the presentation is not
-persuasive. Options before shipping it: frame much tighter on the spoon and vat
-rather than the whole module, exaggerate travel (dishonest, and an engineer
-would notice), or animate the load and barrier servo rotations, which are the
-motions that actually look like scooping.
-
-Assets built and ready but deliberately NOT wired into the site:
-`public/rig/pellet.webp` (100 frames, 10x10, 560px cells, 1.5 MB),
-`public/rig/pellet-poster.webp`, and `src/pellet-demo.css` (time-based,
-button-triggered, 4 s).
-
-### Servo rotations: now modelled, from cylindrical faces
-
-An earlier pass left every servo rotation out, because no pivot axis is
-recorded in the model. They are recoverable: see *Read cylindrical faces to
-find shafts and pivots* below. Both the pellet scoop and the tunnel clamp now
-rotate about axes read straight off the geometry.
-
-### PCB highlighting: how appearances actually resolve
-
-Both boards are populated with discrete geometry, so per-component highlighting
-is possible: `80027-Pellet Module PCB-02` has **234 bodies**,
-`80026-Tunnel Module PCB-01` has **129**.
-
-Three things have to be right or nothing highlights:
-
-1. **Clear the appearance override on the whole ANCESTOR CHAIN, not just the
-   board.** Both `80027-Pellet Module PCB-02` and its parent
-   `Pellet PCB Mounting Assy` carry a `Chestnut` override, and an ancestor
-   override masks every body appearance beneath it. Setting
-   `occ.appearance = None` on the board alone **silently does nothing**: it
-   still reports `Chestnut`, with no exception raised. Walk `assemblyContext`
-   upward and clear each one, then assert `occ.appearance is None`.
-   Clearing it also turns the board light grey, which gives highlights far
-   better contrast than orange-on-chestnut would have.
-2. **Set appearance on `occurrence.bRepBodies` (the instance proxies), not
-   `component.bRepBodies`.** Both accept the assignment, but the proxies scope
-   the change to this instance.
-3. **Exclude the substrate.** The board itself is a single body spanning the
-   whole outline. Highlighting it floods the frame the instant the sweep passes
-   its centroid: measured 1.6k orange pixels at frame 16 jumping to 122k at
-   frame 32. Treat any body whose in-plane footprint exceeds ~25% of the board
-   as substrate rather than as a component.
-
-**Performance:** re-setting all 234 body appearances every frame ran at roughly
-**one minute per frame**. Only touching the bodies the sweep front crosses in
-that frame (about four) brought a 64-frame run down to a couple of minutes.
-
-### Fusion crashed on the PCB run: heavy proxy-body traffic is a real limit
-
-The final PCB attempt never wrote a frame and took Fusion down with it. The
-setup phase reads `boundingBox` and `appearance` for ~234 **proxy** bodies and
-stores them for restore, which is a lot of API traffic before the loop even
-starts; Fusion is single-threaded, so an MCP read issued meanwhile also times
-out, which looks like a hang rather than a crash.
-
-**The saved document survived because the scripts never save.** A crash
-discards the in-memory modifications, so the cloud copy stays clean. On restart,
-**decline** any offer to recover unsaved changes: recovering restores whatever
-state the script died in.
-
-Safer shape for a retry:
-- Split it. One call to collect and persist the body order to JSON, a second to
-  capture. The capture then needs no bulk reads.
-- Skip the per-body appearance backup entirely. Clearing the ancestor chain and
-  restoring that is enough, since the bodies had no individual overrides worth
-  preserving.
-- Fewer bodies: filter to components above a minimum size first, then order.
-
-### Framing: fit on what is ACTUALLY VISIBLE
-
-The shipped build animation opened on a frame filling **1%** of the canvas: a
-single corner leg, off centre. Two independent causes, both worth remembering.
-
-**1. Do not stagger the opening stage.** Jittering the 14 frame-stage parts
-across the first 6% of the timeline meant frame 0 contained exactly one leg.
-Frame 0 is the at-rest state a scroll-driven figure sits on, so it has to be a
-composed image. All skeleton parts now share one window and arrive together.
-
-**2. Fit the camera on the model's NATIVE visibility.** Forcing every
-occurrence visible in order to compute the fit turns the normally-hidden
-**65 cm CAN harnesses** back on. Measured: fitted extents 109.4 with them on
-versus **80.1** with them off, a 37% inflation that shrank the subject to 20%
-of frame. Snapshot `isLightBulbOn` first, fit against that, and never assume
-"everything on" is the widest legitimate silhouette.
-
-Three occurrences are natively hidden in this model and must stay that way:
-`50916-CAN Bus Harness LONG-00`, `50915-CAN Bus Harness SHORT-00`,
-`blower_holder_shifted`.
-
-Result: frame 0 went from 1% fill to **68%**, the final frame from 43% and
-off-centre to **53% centred at (0.51, 0.51)**, with no frame touching an edge.
-Camera extents are also held near 1.0 across the whole path now; the previous
-keyframes zoomed out at both ends, which is what made both ends read as
-unfocused.
-
-### Part-number families map cleanly to materials
-
-Confirmed with the owner. Useful for colour-accurate renders:
-
-| Family | Kind | Render as |
-|---|---|---|
-| `1xxxx` | sub-assemblies | (container, no appearance) |
-| `2xxxx`, `3xxxx` | sheet metal, machined | light grey |
-| `4xxxx`, `7xxxx` | press-fit hardware, fasteners | polished steel |
-| `5xxxx` | purchased COTS | per part (servo black, magnet silver, rail steel) |
-| `6xxxx` | 3D printed | black |
-| `8xxxx` | PCB | green |
-
-Appearances already present in the design and usable without touching the
-material libraries: `Black`, `Anodized - Light Gray`, `Aluminum - Polished`,
-`Dark Green`, `Rubber - Black`, `Polycarbonate - Clear`, `Smooth - Light
-Orange`, `Cadet Blue`, `Canary`, `Chestnut`.
-
-### Pellet gantry: membership is explicit, never by height
-
-The owner confirmed the mechanism is a **nested gantry**: the Y carriage carries
-the X rail, which carries the Z rail, which carries the spoon. Frames are rigid
-*within* a stage but the stages stack.
-
-Height tiering gets this wrong and must not be used. `60598-X_frame` sits at
-Y=10.1 but is bolted to the **Y** carriage and carries the X rail, so it rides
-Y, not X. The same error repeats one level up with `60597-Yframe`. Correct
-membership:
-
-```
-FIXED     60590-Base_Pla, 50793-SSEB6-55_MAX x2, 60591-Pellet_Vat (the bucket
-          does not move), Pellet PCB Mounting Assy, base stepper, base limits
-RIDES Y   50793-SSEB6-55_SLIDE_MAX, 60598-X_frame_vmettetal, 50857-SSEB8-55
-          (the X rail), the stepper driving X
-RIDES X   50857-SSEB8-55_Slide_Carriage (the Y=10.0 instance),
-          60597-Yframe_vmettetal, 50857-SSEB8-55_Z-DEFAULT, stepper driving Z
-RIDES Z   50857-SSEB8-55_Slide_Carriage (the Y=14.0 instance),
-          60599-Pellet_Spoon_Table, 60600-Food_Cap, 50919-KPower P0025 Servo,
-          60670-Pellet Z Hard Stop, 60596-Servo_Mount, 50799-Limit Switch 90
-```
-
-Duplicate component names (two slide carriages, three steppers) are
-disambiguated by bbox centre height, which is the only legitimate use of height
-here.
-
-### Camera framing: project the corners, do not use the max axis span
-
-`Camera.viewExtents` on an orthographic camera is the **full width of a square
-frame**, in model units. Fitting with `viewExtents = maxAxisSpan * margin`
-clipped the pellet render on all four edges, because a box seen from an oblique
-angle projects wider than any of its own axes.
-
-The fit that works, now used by every capture:
-
-```python
-def basis(az, el):                     # az measured from +Z toward +X
-    ar, er = radians(az), radians(el)
-    dv = (cos(er)*sin(ar), sin(er), cos(er)*cos(ar))   # target -> eye
-    rn = hypot(dv[2], dv[0])
-    right = (dv[2]/rn, 0.0, -dv[0]/rn)                 # = up x dv, normalised
-    up = normalise(cross(dv, right))
-    return dv, right, up
-```
-
-Collect every corner the animation can reach, project onto `right` and `up`,
-then set `viewExtents = 2 * max(halfWidth, halfHeight) * 1.05`. Aim at the
-projected centre (`right*cu + up*cv + dv*cw`), not the bbox centre - they
-differ, and the difference is what pushes the subject off to one side.
-
-Verified against the rendered alpha: the subject lands at 12..495 of 540 px with
-no edge contact, on every frame of the run.
-
-**Sweep the whole path, not one pose.** Sample the timeline (40 steps is plenty)
-and transform each moving part's 8 bbox corners analytically - offset for a
-slider, rotate about the pivot for a hinge. Blanket-padding the static bbox
-instead cost 30% of subject size on the first tunnel pass.
-
-### isLightBulbOn is not ancestor-aware, and container bboxes include hidden children
-
-Two traps that both made the camera fit on geometry nobody can see.
-
-`Occurrence.isLightBulbOn` is that occurrence's own switch. Hiding a parent does
-not clear it on the children, and `Occurrence.isVisible` did not reflect the
-ancestor either. Compute effective visibility by walking `fullPathName`:
+| **Vertical axis** | **Y** |
+| Overall extents | ~42.5 (X) × 36.1 (Y) × 62.4 (Z) cm |
+
+**Zero joints cuts both ways.** Good: no constraint solver to fight,
+`occurrence.transform2` can be set freely, and round-trips are exact (a 10 cm
+translation applied at `delta=10.000` and restored at `residual=0.000000`). Bad:
+**no motion is encoded anywhere.** Names like `..._MAX_Position`,
+`SSEB6-55_SLIDE_MAX` and `SSEB8-55_Z-DEFAULT` are frozen placements, not ranges
+the API can read. Every mechanism animation is hand-authored.
+
+### Visibility is not what the API first suggests
+
+`Occurrence.isLightBulbOn` is that occurrence's **own** switch. Hiding a parent
+does not clear it on the children, and `Occurrence.isVisible` did not reflect
+the ancestor either. Compute effective visibility by walking the path:
 
 ```python
 hidden = {o.fullPathName for o in root.allOccurrences if not o.isLightBulbOn}
@@ -489,70 +101,83 @@ def shown(o):
     return not any("+".join(parts[:i+1]) in hidden for i in range(len(parts)))
 ```
 
-And `Occurrence.boundingBox` on a *container* occurrence spans its hidden
-children too. Fitting on the pellet module's top-level occurrence returned a box
-reaching Y 29.8 - the hidden PCB enclosure. **Fit on visible leaves only**
-(`o.childOccurrences.count == 0` and `shown(o)`).
+`Occurrence.boundingBox` on a **container** occurrence also spans its hidden
+children. Fitting on the pellet module's top-level occurrence returned a box
+reaching Y 29.8 — the hidden PCB enclosure. **Always fit on visible leaves**
+(`o.childOccurrences.count == 0 and shown(o)`).
 
-### Appearances: what the shaded viewport actually honours
+**Three occurrences are natively hidden and must stay hidden:**
+`50916-CAN Bus Harness LONG-00`, `50915-CAN Bus Harness SHORT-00`,
+`blower_holder_shifted`. Forcing everything visible to compute a fit turned the
+65 cm CAN harnesses back on: fitted extents **109.4 with them versus 80.1
+without**, a 37% inflation that shrank the subject to 20% of frame. Snapshot
+native visibility and fit against that — "everything on" is not the widest
+legitimate silhouette.
 
-- **Editing an appearance's colour does nothing.** Copying `Plastic - Matte
-  (Black)` and setting `surface_albedo` to three different charcoals produced
-  three identical renders; the property reads back changed. Three darkness
-  levels of `Plastic - Matte (Gray)` likewise rendered identically. Pick
-  appearances from the library by name; do not try to tune one.
-- **An occurrence-level override masks every body-level override beneath it.**
-  The PCB highlight silently did nothing until the board occurrence *and its
-  whole ancestor chain* were cleared with `occ.appearance = None` (the chain
-  carried a `Chestnut` on `Pellet PCB Mounting Assy`). Clear ancestors first,
-  then set `occ.bRepBodies.item(i).appearance`.
-- **Restore body overrides with `= None`**, which drops back to inheritance.
-  234 of 234 cleared cleanly and the appearance audit came back 0 mismatches.
-- **Apply an explicit base at the start of every run.** One capture inherited
-  the previous preview's all-orange state, so its travelling highlight
-  *cleared* components instead of lighting them. Frame 0 must be constructed,
-  never assumed.
+### Opening the enclosure
 
-### Pure black is unusable, and a translucent vessel is worth it
+The assembly renders as a closed grey box. `50858-Allentown Enclosure Lid-00`
+is *not* the occluder — it is a small cage lid inside. Hide these children of
+`10421-Enclosure Assy-00`:
 
-Colour accuracy and legibility fight each other, and there is a specific
-resolution for this model.
+```
+30591-Side Panel_Solid-00        10427-Back Panel Assy-00
+30590-Side Panel_Solid Opposite  Front Door Assy
+30596-Top_Panel-00               10425-Top Door Assy-00
+```
 
-`Plastic - Matte (Black)` on the printed parts renders as a flat silhouette: no
-shading, and the visible-edge lines are black too, so nothing separates
-adjacent parts. Four candidates compared at 440 px; **`Paint - Metallic (Dark
-Grey)`** reads as black plastic and keeps its shading. `Coating - Black Oxide`
-is too dark; `Plastic - Matte (Gray)` and `Paint - Enamel Glossy (Grey)` read
-as grey rather than black.
+and optionally these interior blockers:
 
-The shipped palette:
+```
+30587-Platform_Rail_Left-00      # 20 × 54 cm plates, not "rails"
+20566-Platform Rail Right-00 (1)
+10428-Water Shield Assy-00
+```
 
-| Family | Appearance |
-|---|---|
-| printed `6xxxx` | `Paint - Metallic (Dark Grey)` |
-| the pellet vat `60591` | `Plastic - Translucent Matte (Gray)` |
-| machined / sheet `2xxxx` `3xxxx` | `Aluminum - Anodized Glossy (Grey)` |
-| fasteners `4xxxx` `7xxxx` | `Stainless Steel - Polished` |
-| rails `50793` `50857` | `Stainless Steel - Satin` |
-| steppers `50903` | `Steel - Satin` |
-| servos `50898` `50919` | `Plastic - Glossy (Black)` |
-| magnets `50901` | `Nickel - Polished` |
-| switches `50799` `50800` | `Plastic - Matte (Black)` |
-| PCB `8xxxx` | `Plastic - Matte (Green)` |
+**The large grey "wall" in an iso view is the floor.** By projected screen area:
+`20557-Base_Panel-00` = 172,557 and `30586-Collection_Pan-00` = 152,031, far
+ahead of anything else. A horizontal 41 × 55 cm plate projects as a huge
+parallelogram in a top-down iso. Hiding both is what let the build animation
+read — the rig's contents cluster high and to the back, so the floor was dead
+space.
 
-The vat is the one deliberate departure from accuracy: the scoop dips inside it
-at the one moment the animation exists to show, and no camera angle sees in.
-Drawing it translucent is a technical-illustration convention, and the caption
-says so.
+> **Use projected screen area, not bounding boxes, to answer "what is big on
+> screen."** Project the 8 bbox corners with `Viewport.modelToViewSpace` and take
+> the extent product. One query resolved what four bbox queries could not.
 
-A handful of small blue features survive every override - they are proxy-body
-overrides in the assembly context, which outrank an occurrence override. They
-read as anodised hardware at the joints and are worth leaving alone.
+**Fusion draws origin axis lines as an overlay on top of geometry**, so solid
+parts look translucent in screenshots. Never infer transparency from a
+screenshot.
 
-### Read cylindrical faces to find shafts and pivots
+### API facts worth not rediscovering
 
-This model has no joints, so every axis has to come out of geometry. A part's
-largest cylindrical face is its shaft, bore or pivot:
+- `occurrence.transform2` is the one to use. JSON round-trip via `.asArray()`
+  and `Matrix3D.setWithArray()`.
+- `Matrix3D.transformBy(m)` composes as `this = m * this`, so **call order is
+  application order**. For a part that rotates about its own axis and then rides
+  a stage, call the local rotation first, then the outer one, then add the
+  translation.
+- `Viewport.saveAsImageFileWithOptions` supports `isBackgroundTransparent`,
+  `width`, `height`, `isAntiAliased`. One transparent sprite serves both site
+  themes.
+- `Camera.isSmoothTransition = False` is **mandatory** — otherwise frames land
+  mid-transition.
+- `Camera.isFitView = False` during the loop, and re-apply the same locked
+  camera object each frame. Never call `fit()` inside the loop.
+- `visualStyle = ShadedWithVisibleEdgesOnlyVisualStyle`. Black edge lines are
+  what separate same-coloured parts.
+- MCP `execute` scripts must define `def run(_context: str)`. **Do not catch
+  exceptions** — the traceback is the only debugging signal.
+
+---
+
+## 3. Find the mechanism from geometry
+
+With no joints, every axis has to come out of the solid model. Two techniques
+replaced all guesswork, and both were adopted only after name- and
+bbox-based inference had produced confidently wrong answers.
+
+### Largest cylindrical face = shaft, bore or pivot
 
 ```python
 for body in occ.bRepBodies:
@@ -561,114 +186,91 @@ for body in occ.bRepBodies:
             cyl = adsk.core.Cylinder.cast(f.geometry)   # .axis, .origin, .radius
 ```
 
-What that settled, after bbox proportions had failed on all of it:
+Sort by `f.area` and take the top few. What this settled:
 
-- The three pellet steppers: shaft along Z on the base (drives the base stage),
-  along X on the X frame, along Y on the lift frame. Two of those I had
-  assigned backwards from bbox proportions.
-- A real **19 mm bearing bore along X** shared by `60596-Servo_Mount` and
-  `50798-Ball Bearing`, at Y 14.70, Z -10.84. That is the scoop pivot, so the
-  scoop turns about its own axis instead of riding rigid.
-- The tunnel clamp's two axes: the servo and its horn share (Y 19.08, Z 3.46);
-  both `70710` shoulder screws give (Y 18.90, Z -2.98).
+- **The three pellet steppers.** Shaft along Z on the base, along X on the X
+  frame, along Y on the lift frame. Two of the three I had assigned *backwards*
+  from bbox proportions — a stepper's bbox includes its flange and gearbox, so
+  the longest dimension is not the shaft.
+- **The scoop pivot.** A 19 mm bore along X shared by `60596-Servo_Mount` and
+  `50798-Ball Bearing` at (Y 14.70, Z −10.84), corroborated by the scoop
+  table's own r 0.500 bore at the same point.
+- **The barrier pivot.** A **vertical** shaft at (X −8.63, Z −8.73), shared by
+  the `50919` servo and `60600-Food_Cap` — which is what identified Food_Cap as
+  the barrier rather than part of the scoop.
+- **Both tunnel clamp axes.** Servo and horn share (Y 19.08, Z 3.46); both
+  `70710` shoulder screws give (Y 18.90, Z −2.98).
 
-Reading `component.bRepBodies` bounding boxes is cheap - 234 in one call, no
-crash. It is *proxy* bodies, and especially bbox **and** appearance together,
-that killed Fusion before. Cluster in component space; body indices match
-`occurrence.bRepBodies`, so the highlight still applies to proxies.
+### Pin bores, not bbox extremes, for link lengths
 
-### The tunnel clamp is a four-bar, and it closes exactly
+I estimated the tunnel clamp's coupler pins from rod-end bbox corners and got a
+coupler **1 cm too long** (6.048 against the true 5.003). That produced a
+confident, wrong published claim: that the linkage locks near −32° and that this
+independently confirmed the owner's remembered 30° of travel. It does not — with
+the measured pins the rocker is feasible from **−128° to +46°**.
 
-Servo horn (crank) -> rod-ends and spring (coupler) -> magnet swing (rocker),
-all planar in Y-Z at X about -10. Measured:
+The pins are small transverse cylinders and they read out exactly:
 
-| link | length (cm) |
-|---|---|
-| crank, horn axis to rod pin | 2.083 |
-| coupler, pin to pin | 6.048 |
-| rocker, swing axis to rod pin | 2.830 |
-| ground, crank axis to rocker axis | 6.443 |
+| feature | source | (Y, Z) |
+|---|---|---|
+| crank axis | servo `50898` + horn `50850`, r 0.392 | 19.08, 3.46 |
+| coupler pin on horn | horn r 0.286 and upper rod r 0.117 agree | 20.78, 2.59 |
+| coupler pin on swing side | lower rod r 0.117 | 17.10, −0.80 |
+| rocker axis | both `70710` shoulder screws, r 0.20 | 18.90, −2.98 |
 
-Drive the rocker and solve the crank by the cosine rule; take the `+acos`
-branch, which reproduces the modelled crank angle (-14.17 degrees) at rocker 0
-and so proves the pin estimates are self-consistent. Place the coupler from its
-two pin correspondences rather than rotating it about anything.
+**A bbox extreme is a plausible pin location, never a measured one.** If a link
+length matters, find the bore. Two independent parts agreeing on the same origin
+(horn and rod above) is the check that you found the real pin.
 
-> **Retracted.** This section originally claimed the linkage locks near -32
-> degrees and that this confirmed the owner's 30 degrees of travel. That came
-> from a coupler length estimated off bounding boxes and 1 cm too long. See
-> *Read pin bores, not bounding boxes, for linkage lengths* below for the
-> measured geometry: there is no lock near 30 degrees.
+### Solving a closed linkage
 
-A 30 degree swing needs a 78 degree servo throw, which is why animating the
-swing alone looked wrong: the horn is the part that moves most.
+The tunnel clamp is a planar four-bar in Y–Z at X ≈ −10: servo horn (crank) →
+rod ends and spring (coupler) → magnet swing (rocker).
 
-For the clamp animation keep the tunnel shell, floor, head bar, swing and its
-magnets, the servo, horn, rod-ends and spring. Hide the routed-wire components
-(`50830` `50835` `50888` `50902` - their bboxes envelope the whole module and
-also wreck any nearest-contact grouping), the PCB enclosure, the humidity
-sensing, the beads, and every fastener except the `70710` pivot pair. That is
-62 of 84 leaves hidden, and it is the difference between a mechanism and a pile
-of floating screws.
+Measured: crank **1.910**, coupler **5.003**, rocker **2.827**, ground **6.443**.
 
-### The PCB highlight: a travelling band, not a fill
+Drive the rocker, solve the crank by the cosine rule, take the **`+acos`
+branch** — it reproduces the modelled crank angle (−27.10°) at rocker 0, and
+that reproduction *is* the proof the pin estimates are self-consistent. If your
+branch does not return the modelled pose at zero, your pins are wrong.
 
-`80027-Pellet Module PCB` is 234 generically-named bodies. Body 233 is the
-substrate (11.4 x 10.8 x 0.16); highlighting it floods the frame, so it stays
-green. Cluster the remaining 233 by XY bbox gap <= 0.12 cm, which recovers 85
-real components, sort clusters by centre X, and pack them into 16 sequential
-groups of roughly equal body count.
+Place the coupler from its **two pin correspondences** (a planar rigid transform
+from two points), not by rotating it about anything.
 
-A travelling band that lights and goes dark behind it reads as a scan and,
-unlike a cumulative fill, ends on the same dark board the poster shows. Set
-only the changed bodies each frame (233 writes across the run, not 15,000). A
-+/-8 degree turntable keeps consecutive frames from being identical during a
-group's dwell.
+28° of swing costs ~41–47° of servo. A 30° swing needs a ~78° throw, which is
+why animating the swing alone looked wrong: **the horn is the part that moves
+most**, so leaving it static reads as broken.
 
-Band width matters more than it sounds. Two groups of sixteen lit at a time was
-invisible at the 300 px the figure actually displays at - a few stray orange
-pixels per frame. **Four of sixteen** lights about a quarter of the board, so
-the big connectors get a clear moment and the sweep reads as deliberate. Judge
-this at display size, never on a full-resolution frame.
+### Which parts belong to a moving group
 
-### Verify sprites offline; the preview pane cannot be trusted for timing
+`10388-Pellet Delivery System` is **flat** — 91 direct children, mostly loose
+screws, no per-stage sub-assemblies. Nothing in the model records membership.
 
-The Browser pane goes hidden between calls, and a hidden document freezes
-`document.timeline`, so CSS animations sit at `currentTime: 0` with
-`playState: "running"`. Screenshots can also come back blank or stale while the
-DOM is provably fine. Check `document.visibilityState` before believing any
-timing measurement.
+- **Height tiering is wrong.** `60598-X_frame` sits high but is bolted to the Y
+  carriage and *carries* the X rail, so it rides Y, not X. Same error one level
+  up with `60597-Yframe`.
+- **Proximity alone is wrong.** It put the base plate and the vat on moving
+  stages because they touch a carriage.
+- **What works:** name all the non-fastener parts explicitly (34 of 89 here) and
+  assign only the fasteners by nearest bbox gap. Disambiguate duplicate
+  component names (two slide carriages, three steppers) by bbox centre height —
+  that is the one legitimate use of height.
+- **Watch out for routed-wire components** (`50830` `50835` `50888` `50902`).
+  Their bounding boxes envelope the whole module, so they wreck any
+  nearest-contact grouping *and* any camera fit. Hide them.
 
-What is reliable, and worth running after every rebuild:
+The durable fix is to group the stages as sub-assemblies in the CAD, which is
+worth doing regardless.
 
-- computed `background-size`, `animation-name` and `data-demo` per demo button
-- keyframe count against sheet dimensions against declared grid, off the files
-- every frame position landing on the grid step, and the last keyframe at
-  `100% 100%`
-- asset requests returning 200
+---
 
-`scripts/build_demo_sprite.py` emits the sheet, the poster and the CSS from one
-place precisely so those checks cannot disagree.
+## 4. Define the motion
 
-### Colour-accurate renders need a plate on the page
+### Nesting: offsets are cumulative
 
-Once the printed parts are actually dark, the figures disappear against the
-dark theme's ground. Both themes now paint the figure surface with `--plate`, a
-light sheet (`--n-100` on light, a dimmed `#c9d0d4` on dark) plus a hairline
-`--rule` border. It reads as a drawing plate rather than a glare panel, and it
-is the only reason the honest palette is shippable.
-
-Do **not** add padding or change `background-origin` on `.demo-figure`: the
-generated `background-size` percentages resolve against the padding box, so
-either would silently rescale every sprite grid.
-
-### Nested stages need CUMULATIVE offsets, not one offset each
-
-The bug that shipped: every part was assigned to exactly one stage and then
-given only that stage's offset. Each axis therefore moved in isolation and the
-gantry came apart. Group membership was right; composition was missing.
-
-The owner's description of the machine, which is what the code now implements:
+The bug that shipped once: every part got exactly one stage's offset, so each
+axis moved in isolation and the gantry came apart. Membership was right;
+composition was missing.
 
 | group | offsets it receives | why |
 |---|---|---|
@@ -681,376 +283,587 @@ Machine Y is world Z here (the base rails run along Z), machine X is world X,
 machine Z is world Y.
 
 **Each motor rides the axis it drives.** The Y motor is bolted to the X frame,
-the X motor to the Y frame, the Z motor to the Z frame — so every motor is
-mounted on the leading frame of its own driven set and translates with its own
-output. Confirmed by the owner; do not "fix" it to the more usual
-stationary-motor arrangement.
+the X motor to the Y frame, the Z motor to the Z frame — every motor is mounted
+on the leading frame of its own driven set and translates with its own output.
+Confirmed by the owner; do not "correct" it to the more usual stationary-motor
+arrangement.
 
-### Read pin bores, not bounding boxes, for linkage lengths
+Rotating sub-parts nest one level deeper: the scoop rotates about its bearing
+*and* takes all three translations; the barrier is **frame-mounted**, so it
+takes the translations and its own vertical rotation but **no part of the
+scoop's rotation**. Binding it to the scoop axis made it swing away and vanish
+mid-cycle.
 
-I estimated the tunnel clamp's coupler pins from rod-end bbox extremes and got
-a coupler **1 cm too long** (6.048 against the true 5.003). That error produced
-a confident, wrong conclusion: that the linkage locks near −32°, and that this
-independently confirmed the owner's remembered 30° of travel. It does not. With
-the measured pins the rocker is feasible from **−128° to +46°** and there is no
-lock anywhere near 30°.
+### Order comes from the rig's own config
 
-The pins are small transverse cylinders and they read out exactly:
-
-| feature | source | (Y, Z) |
-|---|---|---|
-| crank axis | servo `50898` and horn `50850`, r 0.392 | 19.08, 3.46 |
-| coupler pin on horn | horn r 0.286 and upper rod r 0.117 agree | 20.78, 2.59 |
-| coupler pin on swing side | lower rod r 0.117 | 17.10, −0.80 |
-| rocker axis | both `70710` shoulder screws, r 0.20 | 18.90, −2.98 |
-
-Corrected links: crank **1.910**, coupler **5.003**, rocker **2.827**, ground
-**6.443**. The `+acos` branch reproduces the modelled crank angle (−27.10°) at
-rocker 0, which is the check that the pin estimates are self-consistent.
-28° of swing costs ~41–47° of servo, inside the 0–100 range `motor_config.yaml`
-gives the tunnel magnet.
-
-The general rule: a bbox extreme is a plausible pin location, never a measured
-one. If a link length matters, find the bore.
-
-### `60617-Clamp_Arm_B` is the rod's lower bracket and rides the swing
-
-Hiding it as "clutter" left the push rod ending in mid-air, because the lower
-coupler pin bore sits inside it. It moves rigidly with the magnet swing. The
-visible chain is swing → `60658` force-sensor contact → `60617-Clamp_Arm_B` →
-rod end → spring → rod end → horn.
-
-### The pellet module's two servos, and the step that was missing
-
-- **`60600-Food_Cap` is the barrier**, and it turns about a **vertical** axis at
-  (X −8.63, Z −8.73) — the bore of the `50919` P0025 shaft. Both the servo and
-  the barrier are **frame-mounted**: they translate with the Z frame and take no
-  part in the scoop's rotation. Binding them to the scoop axis made the barrier
-  swing away and vanish mid-cycle.
-- **`60599-Pellet_Spoon_Table` is the scoop**, turning about the X bearing at
-  (Y 14.69, Z −10.84). Its underside plane is already horizontal in the modelled
-  pose, so `load_arm 5` — the owner's "flush, in line with ground" — needs no
-  offset. The M0170 and that bearing are coaxial, so the servo angle is the
-  scoop angle 1:1 and `5 → 114` is a true 109°.
-
-`load_pellet` in `tests/move_config.yaml` ends with `barrier_arm 80` and never
-returns `load_arm`. The rig does return it — that is the `retrieve` predefined
-on `PELLET_LOAD_SERVO` — and **the arm must be back at 5 before the barrier
-closes** or the barrier shuts over a raised arm. Shipped order:
+Do not invent choreography. `load_pellet` in
+`~/Documents/auto-trainer/tests/move_config.yaml`:
 
 ```
-barrier 80->110, x->25, z->22, load_arm 5->114, z->10,
-load_arm->5 (retrieve), barrier 110->80, send
+y 0 → barrier_arm 110 → x 25 → load_arm 5 → z 22
+    → load_arm 114 (speed 25) → z 10 → tone 5000 → barrier_arm 80
 ```
 
-### Colour by what moves, not by material
+`barrier_arm` rests at 80 (`cover_pellet` 80, `release_pellet` 95). Servo ranges
+from `motor_config.yaml`: `pellet.load` and `pellet.barrier` are 0–120,
+`tunnel.magnet` and `tunnel.gate` 0–100.
 
-The owner's call, and it is the right one for a mechanism: **one colour per
-moving object, everything static in one neutral.** It survives the 300 px the
-figure actually displays at, where a materially accurate render of a dark
-machine turns into a single silhouette, and it makes the nesting legible —
-you can see the lift riding the X carriage riding the base.
+**The config omits a step the rig performs.** `load_pellet` never returns
+`load_arm`; the rig does, via the `retrieve` predefined on
+`PELLET_LOAD_SERVO`. **The arm must be back at flush before the barrier
+closes**, or the barrier shuts over a raised arm. Shipped order:
 
-Shipped palettes: pellet — grey fixed, red X frame, green Y frame, blue Z
-frame, yellow scoop, orange barrier, translucent grey vat, green PCB. Clamp —
-dark static shell, green swing, cyan contact, orange Clamp_Arm_B, yellow rod
-ends, red spring, blue horn, nickel magnets.
+```
+barrier 80→110, x→25, z→22, load_arm 5→114, z→10,
+load_arm→5 (retrieve), barrier 110→80, send
+```
 
-Material accuracy is still the right choice for a static or assembly render.
-Keep the part-number table above for those.
+`send_pellet` is `predefined: send` → `fixed_position()`, a target stored **on
+the device**, not in any repo config. Model it as a move to a delivery pose and
+say so in the caption.
 
-### Turn a dominating flat panel edge-on
+**Two calibrations exist and they disagree.** The repo's `tests/move_config.yaml`
+(used for the shipped animation) and the live rig's
+`configs/alogus_motors/move_config.yaml` on the lab share differ: `x` 25 vs 32,
+`load_arm` 114 vs 84, and the live set adds a return traverse. The `alogus_motors`
+copy is the live one. The *order* is the same either way, and since travel is
+scaled to the rails' real stroke the millimetre values barely change the render
+— but if exact fidelity ever matters, use the share copy.
 
-`30597-PCB Enclosure SM Mount Panel` is a 20 × 12 cm plate normal to X, and at
-az −40 it ate 45% of the wide pellet frame. Its screen width is its Z extent
-projected on the camera's right vector, so a shallower azimuth shrinks it and
-enlarges the mechanism at the same time: az −25 cut the panel by ~30% and grew
-the mechanism by ~18%.
+### Signs and end poses are not in the config, so ask
 
-The limit is that the base stage travels along Z, and Z motion projects onto
-the right vector as `−dv_x/|dv_xz|` — 0.64 at az −40, 0.42 at az −25, 0.17 at
-az −10. Below about 20° the traverse stops reading. az −25 is the corner of that
-trade.
+The config gives magnitudes and order. It does not give:
 
-### Scroll range: contain, inset at both ends
+- which way a 109° scoop rotation goes,
+- which end of a swing is "released",
+- which direction a barrier opens.
 
-`animation-range: cover 2% cover 98%` scrubs the opening frames while the figure
-is still below the fold and the closing frames while it is already leaving the
-top — both ends play out of frame. `contain 0% … 100%` is the window where the
-figure is wholly on screen; **`contain 8% … 92%`** is what shipped, inset so the
-first and last frames get a beat of stillness. A `@media (max-height: 45rem)`
-fallback to `cover 32% … 68%` covers viewports too short for `contain` to have
-any range at all.
+All three were resolved by rendering both options and asking. **Budget for
+that** — it is one preview round trip, against a wasted two-minute capture and a
+wrong shipped animation.
 
-### Synchronized figures
+One thing you *can* measure: **"flush" / "in line with ground"**. The scoop
+table's underside plane normal is `(0, −1, 0)` in the modelled pose, so
+`load_arm 5` needed no offset at all — the CAD position already is flush. Check
+before assuming an offset.
 
-Two figures play together simply by getting `.is-playing` in the same render
-with the same frame count and duration; `steps(1)` keeps them frame-locked with
-no JS. They need width, though — side by side inside the narrow figure column
-they were 205 px each, so the demo stage moved to its own `grid-column: 1 / -1`
-row under the two-column case body, which gives 428 px each.
-
-### MCP timeout does not mean the script failed
-
-The 48-frame run returned `Request timed out` to the client, but Fusion kept
-executing and wrote all 48 frames. Check the output directory before assuming a
-failure and re-running. Because the last frame returns every part to its
-original transform, the model had also already restored itself.
-
-### Figure placement in a case study
-
-The figure sits beside the prose, not above it: `.case-body--figure` becomes a
-two-column grid and the three prose blocks move into a `.case-text` wrapper.
-`animation-range: entry 12% entry 100%` completes the build exactly when the
-figure is fully in view, verified at `visibleFraction: 1`. An earlier range let
-it finish while the figure was still partly off screen.
-
-**Frame 0 must be worth looking at.** The first tuned pass built the rig
-sequentially, so frame 0 was a bare grey skeleton and the colourful modules only
-arrived later. Since frame 0 is the at-rest state a visitor sees before
-scrolling, the adopted version instead shows every module present at distinct
-offsets and collapses them together. Fit the camera on the **exploded** state and
-use a small `VIEW_MARGIN` (1.06); fitting the assembled state and padding out to
-1.5 leaves the subject tiny.
-
-Direction is currently exploded to assembled. Reversing it (land on the assembled
-rig, explode on scroll) is a one-line change and would put the stronger image in
-the at-rest state; it was left as assembly because that is what was asked for.
+Also check the drive ratio: the M0170 and the scoop bearing are **coaxial**, so
+servo degrees are scoop degrees 1:1 and `5 → 114` is a true 109°.
 
 ---
 
-## 4. Pellet delivery kinematics (resolved)
+## 5. Choose the camera
 
-> This section records how the axes were derived. Membership is now an
-> explicit name list, not proximity - see *Pellet gantry: membership is
-> explicit, never by height*.
+### Fit by projecting corners, not by axis span
 
-`10388-Pellet Delivery System-01_MAX_Position` is a **flat** assembly: 91 direct
-children, almost all loose screws, with no per-stage sub-assemblies. Three
-`50903-Thinker Motion Stepper Motor-00` instances confirm three axes. Rail parts
-present:
+`Camera.viewExtents` on an orthographic camera is the **full width of a square
+frame**, in model units. Fitting with `viewExtents = maxAxisSpan * margin`
+clipped the pellet render on all four edges, because a box seen obliquely
+projects wider than any of its own axes.
 
-```
-50793-SSEB6-55_MAX            50857-SSEB8-55
-50793-SSEB6-55_SLIDE_MAX      50857-SSEB8-55_Z-DEFAULT
-50857-SSEB8-55_Slide_Carriage (x2)
-```
-
-### Owner-supplied motion spec
-
-Not in the model, so it is recorded here.
-
-**Pellet delivery, 35 mm travel on each axis.** Axis meanings, in the owner's
-terms:
-
-| Axis | Direction |
-|---|---|
-| X | Toward and away from the pellet bucket |
-| Y | Toward and away from the tunnel |
-| Z | Up and down (the last stage) |
-
-Method sanctioned by the owner: **infer the moving set from the SSEB slider
-rails.** For each SSEB rail, the long bounding-box dimension gives the travel
-axis, and the carriage plus everything mounted above it rides that axis. Relevant
-parts:
-
-```
-50793-SSEB6-55_MAX            50857-SSEB8-55
-50793-SSEB6-55_SLIDE_MAX      50857-SSEB8-55_Z-DEFAULT
-50857-SSEB8-55_Slide_Carriage (x2)
+```python
+def basis(az, el):                     # az measured from +Z toward +X
+    ar, er = radians(az), radians(el)
+    dv = (cos(er)*sin(ar), sin(er), cos(er)*cos(ar))   # target -> eye
+    rn = hypot(dv[2], dv[0])
+    right = (dv[2]/rn, 0.0, -dv[0]/rn)                 # = up x dv, normalised
+    up = normalise(cross(dv, right))
+    return dv, right, up
 ```
 
-Three `50903-Thinker Motion Stepper Motor-00` instances confirm three axes.
+Collect every corner the animation can reach, project onto `right` and `up`,
+set `viewExtents = 2 * max(halfWidth, halfHeight) * 1.05`, and aim at the
+**projected** centre (`right*cu + up*cv + dv*cw`) — not the bbox centre. The
+difference between the two is what pushes a subject off to one side.
 
-**Magnet swing, defined by end states rather than an angle:**
+Verified against rendered alpha: subject at 12..495 of 540 px, no edge contact,
+every frame.
 
-- **100%** = magnets flush with the tunnel front face
-- **0%** = arm as straight as possible, magnets furthest from flush
+**Sweep the whole path, not one pose.** Sample the timeline (40 steps is plenty)
+and transform each moving part's 8 bbox corners analytically — offset for a
+slider, rotate about the pivot for a hinge. Blanket-padding a static bbox
+instead cost 30% of subject size on the first tunnel pass.
 
-So the sweep is derived from the geometry between those two poses rather than a
-supplied angle. Parts: `10400-Magnet_Swing_Assy_Half_Inch_v3-00`,
-`60616-Magnet_Swing_v7-02`, `10396-Servo_Arm_Assy-00`, `50850-Servo_Arm-00`,
-`60658-Magnet Swing Force Sensor Contact-00`.
+### The view presets are Z-up and this model is Y-up
 
-### The real choreography, from the rig's own config
+`ViewOrientations.IsoTopRightViewOrientation` here gives
+`eye.y − target.y = −121.03` against a distance of 209.63 — **35.3° _below_ the
+horizon**, a camera looking up at the rig from underneath. It silently broke
+five captures.
 
-The motion does not have to be invented. It is in the deployed config on the lab
-share, and this is the sequence a "Demo" animation should reproduce.
-
-Source of truth (live rig):
-`Z:\PHYS\ChristieLab\Data\JetsonAutoTrainer\Jetson_install\alogus_install_assets\configs\alogus_motors\`
-
-`load_pellet`, then `send_pellet`, then `release_pellet`:
-
-| # | Move | Value | Reading |
-|---|---|---|---|
-| 1 | `y` | 0 | retract away from the tunnel |
-| 2 | `barrier_arm` | 110 | open the barrier |
-| 3 | `x` | 32 | traverse toward the pellet vat |
-| 4 | `load_arm` | 5 | arm down into the vat |
-| 5 | `z` | 22 | raise |
-| 6 | `load_arm` | 84,25 | scoop |
-| 7 | `z` | 8.8 | lower |
-| 8 | `x` | 20 | traverse back |
-| 9 | `tone` | 5000, 0.3 | 5 kHz cue, 0.3 s |
-| 10 | `z` | -5.0 | \} `send` predefined |
-| 11 | `x` | 16.0 | \} |
-| 12 | `y` | 20.0 | \} extend toward the tunnel, presenting the pellet |
-| 13 | `barrier_arm` | 98 | release |
-| 14 | `tone` | 6000, 0.3 | 6 kHz cue, 0.3 s |
-
-Axis ranges from `motor_config.yaml`: `load` and `barrier` are servos on 0-120;
-`x`/`y`/`z` are steppers (microsteps 8; 48 steps/rev for x and y, 24 for z).
-`tunnel.magnet` is 0-100, which matches the owner's "100% flush with the tunnel
-face" definition. Three axis positions in the sequence (32, 22, 20) sit inside
-the stated 35 mm travel, so the stepper values read as millimetres.
-
-**Three cautions before animating from these numbers:**
-
-1. **Two calibrations exist.** `configs/move_config.yaml` and
-   `configs/alogus_motors/move_config.yaml` disagree (`load_arm` 20 vs 5, scoop
-   91 vs 84, cover 83 vs 87, release 93 vs 98). The `alogus_motors/` copy is the
-   live one.
-2. **Steps 10-12 come from a stale dev config.** The `send` action is not in the
-   `alogus_motors/` set; it resolves at runtime from `~/.alogus_config.yaml` on
-   the Jetson. The copy on the share is from Feb 2025 and uses different
-   conventions (negative z, `barrier` pinned to 50-51), so its numbers must not
-   be mixed with the live set. The *order* (z, then x, then y toward the tunnel)
-   is still the right structure.
-3. **`load_arm: 84,25` has an unexplained second value.** `tone: 5000,0.3` is
-   clearly frequency and duration, so `84,25` is probably position and
-   speed, but that is an inference.
-
-Reference for how these are consumed:
-`auto-trainer-alogus-dev/tools/pellet_delivery/model/app_model.py` builds
-`WhiskerMovement.from_dict(...)` for `load`, `home` and `send`.
-
-### Remaining risk
-
-`10388-Pellet Delivery System` is flat, so nothing in the model records which of
-the 91 children ride which stage. Proximity alone got this wrong twice: it put
-the base plate and the vat on moving stages because they touch a carriage. All
-34 non-fastener parts are now named explicitly and only the 55 fasteners are
-assigned by nearest contact. The durable fix is still to group the three stages
-as sub-assemblies in Fusion, which is worth doing to the CAD regardless.
-
-PCBs to feature: **Pellet Module and Tunnel Module only** (`80027-Pellet Module
-PCB-02`, `80026-Tunnel Module PCB-01`). The other five boards are skipped.
-
----
-
-## 5. Web delivery constraints
-
-- **Sprite strips cap at 16384 px** GPU texture width.
-- **Crop to the union alpha bbox across all frames before building the strip.**
-  The 600 x 600 captures only contain content in a 456 x 482 box, so a naive strip
-  spends a third of its payload on empty pixels. Cropping also shrinks the strip
-  from 14400 px to 10944 px, comfortably inside the texture limit, so 24 frames
-  need no 2D grid.
-- **Do not resample after cropping.** Measured: the native 482 px-tall strip is
-  540 KB, while resizing to 480 px produces 699 KB. Resampling introduces
-  high-frequency detail that costs more than the two pixels saved.
-- Measured final numbers for the 24-frame build-up:
-
-  | Form | Size |
-  |---|---|
-  | 24 transparent PNG at 600 px (raw capture) | 2158 KB |
-  | Cropped WebP strip, 10944 x 482, q82 | **540 KB** |
-
-  Serve a single cropped frame as a static poster for LCP and let the strip load
-  after, since the scroll animation starts at frame 0 anyway.
-- Context: the whole site is currently 163 KB JS + 22 KB CSS. Four of these
-  animations at raw PNG weight would be 20-30x the entire page.
-- Therefore: **hero animation loads eagerly, module animations live inside the
-  project's `<details>` case study** and cost nothing until opened.
-- Scroll scrubbing uses `animation-timeline: view()` with a `steps()` animation on
-  `background-position`. Zero JavaScript, and it reuses the motion layer already in
-  `src/spa.css`.
-- **Never animate opacity on a scroll-driven timeline** (see `AGENTS.md`). A
-  `view()` timeline holds an element at its start state when it cannot advance, so
-  a faded keyframe leaves content invisible in headless capture.
-
-### Composition, tuned over four passes
-
-Final values are in `scripts/fusion/capture_assembly.py`. What each pass taught:
-
-| Pass | Change | Result |
-|---|---|---|
-| 1 | `viewExtents * 1.9`, `IsoTopRight`, skin only | Subject filled 33% x 47%. Platform rails still on, reading as a grey slab. |
-| 2 | margin 1.22, elevation x0.42, offsets 52-58 cm | Subject 75% wide but clipped, view went flat and unreadable, and parts parked at their offsets hovered in frame for most of the sequence. |
-| 3 | hide parts until their window opens | Fixed the hovering. Sequence finally reads. Floor still ~40% of the frame. |
-| 4 | hide the floor, elevation x0.92, compress the grey opening | **Adopted.** Subject 67% x 61%, one frame clipped at the exploded extreme. |
-
-Three specific lessons:
-
-1. **Gate visibility per frame, not just position.** With a fixed camera, a part
-   waiting at its offset is on screen the whole time. Set
-   `isLightBulbOn = (t >= window_start)` so parts appear as they are needed.
-2. **Hide the floor.** `20557-Base_Panel-00` plus `30586-Collection_Pan-00` is
-   41 x 55 cm of empty grey plate. The rig's contents cluster high and to the
-   back, so the floor was dead space. Corner legs and rails define the volume
-   without it.
-3. **Never scale the preset's elevation. Build the eye direction from an
-   explicit angle.** See the warning immediately below, which invalidated the
-   earlier approach. Use `cameraType = OrthographicCameraType` so it reads
-   technical rather than photographic.
-
-### The view-orientation presets are Z-up and this model is Y-up
-
-`ViewOrientations.IsoTopRightViewOrientation` on this assembly produces
-`eye.y - target.y = -121.03` against a distance of 209.63, i.e. **35.3 degrees
-_below_ the horizon**. The preset is "top" with respect to Fusion's Z-up
-convention; because this model's vertical axis is Y, the preset resolves to a
-camera looking **up at the rig from underneath**.
-
-That silently broke the first five captures, and worse, the fix at the time
-(multiplying `dy` by an `ELEVATION` factor) scaled a *negative* number, so
-raising the factor tilted the camera further underneath:
+Worse, the obvious fix (scaling the preset's `dy`) scales a *negative* number,
+so raising the factor tilts further underneath:
 
 | ELEVATION factor | Result |
 |---|---|
-| 0.92 | 33.0 deg below horizon |
-| 1.60 | 48.5 deg below horizon |
-| 2.40 | 59.5 deg below horizon |
+| 0.92 | 33.0° below horizon |
+| 1.60 | 48.5° below horizon |
+| 2.40 | 59.5° below horizon |
 
-**Correct approach: ignore the preset's Y and construct the direction from a
-target angle**, keeping the preset's horizontal bearing:
+**Build the direction from an explicit angle**, keeping only the preset's
+horizontal bearing, and **assert the sign before every run**:
 
 ```python
-horiz = (dx*dx + dz*dz) ** 0.5
-rad = math.radians(35)                      # degrees above horizon, looking down
-nd = adsk.core.Vector3D.create(
-    dx / horiz * math.cos(rad),
-    math.sin(rad),                          # positive: eye above target
-    dz / horiz * math.cos(rad),
-)
-nd.normalize()
+assert vp.camera.eye.y > vp.camera.target.y, "camera is below the target"
 ```
 
-Measured: 25 deg requested gives 22.5 actual, 35 gives 31.3, 45 gives 42.3. The
-small shortfall is the orthographic fit adjusting; 35 is the adopted value.
+Use `cameraType = OrthographicCameraType` — it reads technical rather than
+photographic.
 
-**Always assert the sign before capturing a run:**
-`assert vp.camera.eye.y > vp.camera.target.y`
+**Fit at the final angle, not the preset angle.** Computing extents from a fit
+at the preset bearing and applying them at the working elevation left the
+subject at 36% of frame. Set eye and target first, *then* fit.
 
-Measured output of the adopted pass: 24 transparent PNG at 600 px, mean 89.9 KB
-per frame, one frame clipping at the exploded extreme (acceptable, it is frame 0).
-Convert to WebP before shipping.
+### Finding an angle that shows the motion
+
+Three rules, each learned by getting it wrong:
+
+1. **Put the rotation plane in the screen plane.** For a hinge about X, the
+   motion lives in Y–Z, so a view direction in the Y–Z plane (azimuth near 0 or
+   180) projects the arc fully. Side-on to the hinge axis shows the arc; end-on
+   shows nothing. The clamp went from azimuth 150 to **250** on exactly this
+   basis.
+2. **Turn a dominating flat panel edge-on.** `30597-PCB Enclosure SM Mount
+   Panel` is a 20 × 12 cm plate normal to X and ate 45% of the wide pellet frame
+   at az −40. Its screen width is its Z extent projected on `right`, so a
+   shallower azimuth shrinks the panel and enlarges the mechanism at the same
+   time: az −25 cut the panel ~30% and grew the mechanism ~18%.
+3. **Check what the same change does to your translations.** Z motion projects
+   onto `right` as `−dv_x/|dv_xz|` — 0.64 at az −40, 0.42 at az −25, 0.17 at
+   az −10. Below about 20° the base traverse stops reading at all. az −25 is the
+   corner of that trade, which is why it did not go shallower.
+
+**Render the candidates.** Four azimuths × three poses is one script and settles
+the question in a way reasoning does not. See step 7.
+
+### Moving the camera
+
+The build animation keyframes (azimuth offset, elevation, extents multiplier)
+and interpolates with a smoothstep: high and wide to read the bare frame
+(44°, 1.14×), down to 26° and in to 0.96× for the submodule inserts, back out
+for panels. Total azimuth travel 44°.
+
+**Hold extents near 1.0 at both ends.** Earlier keyframes zoomed out at the
+start and finish, which is exactly what made both ends read as unfocused.
+
+**A moving camera means nothing is static.** Measured frame-to-frame change on
+the 100-frame run: minimum 1.58%. With a locked camera, tail frames can be
+trimmed (only the last three transitions were under 0.35% different, so 48
+frames became 45); with an orbiting camera no trimming is needed.
 
 ---
 
-## 6. Safety protocol
+## 6. Choose the colours
 
-The capture scripts move real geometry in the owner's open document. Always:
+### Two palettes for two jobs
 
-1. Write original `transform2` arrays **and** the visibility of every occurrence to
-   JSON **before touching anything** (`scripts/fusion/save_state.py`). Do this as a
-   separate call so the file exists even if the capture crashes.
-2. Capture frames.
-3. Restore from JSON and **verify**, reporting residuals and mismatch counts
-   (`scripts/fusion/restore_state.py`).
-4. **Never save the document.** Fusion will still flag it modified; that is
-   expected and the content is identical.
+**Colour by what moves — for a mechanism.** One hue per moving object,
+everything static in one neutral. This is what shipped for both the pellet and
+clamp animations, and it is the right default: it survives the ~300 px the
+figure actually displays at, where a materially accurate render of a dark
+machine collapses to a single silhouette, and it makes the nesting legible — you
+can watch the lift ride the X carriage ride the base.
 
-State files land in the user's home directory:
-`fusion_orig_transforms.json`, `fusion_orig_vis.json`.
+| animation | palette |
+|---|---|
+| pellet | grey fixed · red X frame · green Y frame · blue Z frame · yellow scoop · orange barrier · translucent grey vat · green PCB |
+| clamp | dark static shell · green swing · cyan force contact · orange Clamp_Arm_B · yellow rod ends · red spring · blue horn · nickel magnets |
+
+**Colour by material — for a static or assembly render**, where the subject is
+the object rather than its motion. Part-number families map cleanly (confirmed
+with the owner):
+
+| Family | Kind | Appearance |
+|---|---|---|
+| `1xxxx` | sub-assemblies | (container, no appearance) |
+| `2xxxx` `3xxxx` | sheet metal, machined | `Aluminum - Anodized Glossy (Grey)` |
+| `4xxxx` `7xxxx` | fasteners, press-fit | `Stainless Steel - Polished` |
+| `5xxxx` | purchased COTS | per part — see below |
+| `6xxxx` | 3D printed | `Paint - Metallic (Dark Grey)` |
+| `8xxxx` | PCB | `Plastic - Matte (Green)` |
+
+COTS specifics: rails `50793`/`50857` → `Stainless Steel - Satin`; steppers
+`50903` → `Steel - Satin`; servos `50898`/`50919` → `Plastic - Glossy (Black)`;
+magnets `50901` → `Nickel - Polished`; switches `50799`/`50800` →
+`Plastic - Matte (Black)`; bearing `50798` → `Stainless Steel - Polished`.
+
+### Pure black is unusable
+
+`Plastic - Matte (Black)` on the printed parts renders as a flat silhouette: no
+shading, and the visible-edge lines are black too, so nothing separates adjacent
+parts. Four candidates compared side by side at 440 px:
+
+| candidate | verdict |
+|---|---|
+| `Plastic - Matte (Black)` | flat silhouette, no readable geometry |
+| `Coating - Black Oxide` | too dark, loses detail |
+| **`Paint - Metallic (Dark Grey)`** | **reads as black plastic, keeps its shading — adopted** |
+| `Plastic - Matte (Gray)`, `Paint - Enamel Glossy (Grey)` | read as grey, not black |
+
+### A translucent vessel is worth the departure
+
+The pellet vat is drawn `Plastic - Translucent Matte (Gray)`. The scoop dips
+inside it at the one moment the animation exists to show, and **no camera angle
+sees in**. Drawing the enclosing vessel translucent is a standard
+technical-illustration convention; it is honest because the caption says so.
+
+### What the shaded viewport actually honours
+
+- **Editing an appearance's colour does nothing.** Copying `Plastic - Matte
+  (Black)` and setting `surface_albedo` to three different charcoals produced
+  three *identical* renders, with the property reading back changed. Three
+  darkness levels of `Plastic - Matte (Gray)` likewise. **Pick appearances from
+  the library by name; do not try to tune one.**
+- **An occurrence-level override masks every body-level override beneath it.**
+  The PCB highlight silently did nothing until the board occurrence *and its
+  whole ancestor chain* were cleared (the chain carried a `Chestnut` on
+  `Pellet PCB Mounting Assy`). `occ.appearance = None` on the board alone
+  reports success and changes nothing. Clear ancestors first, then set
+  `occ.bRepBodies.item(i).appearance`.
+- **Restore body overrides with `= None`**, which drops back to inheritance.
+  234 of 234 cleared cleanly, appearance audit 0 mismatches.
+- **Apply an explicit colour base at the start of every run.** One capture
+  inherited the previous preview's all-orange state, so its travelling highlight
+  *cleared* components instead of lighting them. Frame 0 must be constructed,
+  never assumed.
+- **A few proxy-body overrides survive everything** — small blue features at
+  some joints. Proxy-body appearance outranks an occurrence override. They read
+  as anodised hardware and are worth leaving alone.
+
+---
+
+## 7. Preview before you capture
+
+**This is the step that pays for itself.** A capture run is ~2 minutes plus
+verification; a preview still is a few seconds. Every one of the following
+errors was caught by a preview, and several had already shipped once because
+there was no preview:
+
+| Preview | Caught |
+|---|---|
+| stage-colour still | base plate and vat assigned to moving stages |
+| stage-colour still, moved pose | stages moving independently instead of nesting |
+| pose extremes | barrier bound to the scoop axis, swinging out of frame |
+| pose extremes | scoop rotation sign ambiguous — sent both to the owner |
+| angle grid | clamp unreadable at azimuth 150 |
+| colour candidates | pure black printed parts unreadable |
+| display-size composite | PCB highlight band invisible at 300 px |
+
+### The four previews, in order
+
+**1. Stage-colour still.** Colour every part by its kinematic group over a
+neutral static, and render two stills: at rest, and with *every* axis and
+rotation displaced at once. The second one is the nesting check — if a frame
+separates from the stage that carries it, you see it immediately.
+
+**2. Pose extremes.** Render the named poses of the sequence as a labelled grid,
+one per key moment. This is also the collision check.
+
+**3. Angle grid.** Candidate azimuths × the two extreme poses. Label every cell
+with its azimuth so the answer is pickable rather than describable. Terms like
+"counterclockwise" are ambiguous without a stated convention — render both
+directions and let the owner point.
+
+**4. Display-size composite.** Crop frames out of the **finished sheet** and
+composite them at the width the figure actually renders at, on both theme
+grounds. Judging a full-resolution frame is how the PCB band shipped invisible.
+
+### Two techniques for reading your own previews
+
+**Diff two poses to find what moved.** When a change is subtle, don't squint:
+
+```python
+bb = ImageChops.difference(a, b).convert("L").point(lambda v: 255 if v > 18 else 0).getbbox()
+```
+
+That located the scoop's motion in one call, and revealed that the large arm I
+thought was the scoop was actually the barrier.
+
+**Then zoom on that region.** Crop to the changed bbox plus padding and scale
+up. The scoop looked static in a 420 px grid cell and was obviously turning at
+3× on a 180 px crop.
+
+### Sending previews to the owner
+
+- One decision per column, labelled with the parameter value, not a description.
+- Include the current shipped state as a reference cell when asking for a
+  change.
+- State your own reading and default, so a one-word reply is enough.
+- Ask about **signs, end poses and directions**. Those are the things not in the
+  config and not derivable from geometry.
+
+---
+
+## 8. Capture
+
+### Frame budget and grid
+
+Sheets must be square-celled and the frame count a perfect square, so the grid
+is unambiguous. **GPU texture limit is 16384 px** on the long edge.
+
+| animation | frames | grid | cell | sheet | size | duration |
+|---|---|---|---|---|---|---|
+| buildup | 100 | 10×10 | 660 | 6600² | 2.9 MB | scroll-driven |
+| pellet (wide) | 81 | 9×9 | 540 | 4860² | 1.46 MB | 4.2 s |
+| pellet-close | 81 | 9×9 | 540 | 4860² | 1.43 MB | 4.2 s |
+| tunnel | 64 | 8×8 | 520 | 4160² | 839 KB | 3.6 s |
+| pcb | 64 | 8×8 | 520 | 4160² | 1.1 MB | 3.6 s |
+
+**Ship the uncropped square render canvas.** Cropping frames to a union alpha
+bbox produced a 614 × 618 cell against a declared `aspect-ratio: 1/1`; a few
+pixels of mismatch mis-registers every cell and the whole render reads as cut
+off. The empty alpha margin costs almost nothing in WebP. (An earlier version of
+this document recommended cropping. It was wrong.)
+
+### Frame 0 has to be a composed image
+
+It is the at-rest state every visitor sees before scrolling or clicking.
+
+- **Do not stagger the opening stage.** Jittering the 14 frame-stage parts
+  across the first 6% of the timeline left frame 0 containing a single corner
+  leg at **1% fill**. All skeleton parts now share one window. Result: 68% fill
+  at frame 0, 53% centred at (0.51, 0.51) at the end, no frame touching an edge.
+- **Show everything at distinct offsets rather than building up from nothing**,
+  so frame 0 already has the colourful modules in it.
+- **For a highlight sweep, end where you started.** A travelling band that goes
+  dark behind it returns to the same board the poster shows; a cumulative fill
+  leaves the figure loud at rest.
+
+### Gate visibility per frame, not just position
+
+With a fixed camera, a part waiting at its offset is on screen the whole time.
+Set `isLightBulbOn = (t >= window_start)` so parts appear as they are needed.
+Keep offsets short when visibility is gated — parts hidden until their stage
+need only a small travel to read as arriving, and short travel keeps them in
+frame (scaling the offset table by 0.45 fixed edge clipping).
+
+### Never move a container and its children together
+
+The transforms compose. The build animation animates **children of the
+enclosure**, so the snapshot has to cover `enc.childOccurrences` too — 246
+transforms, not 31 — or the restore is silently incomplete.
+
+### Per-body highlighting
+
+`80027-Pellet Module PCB` is 234 generically-named bodies (`80026` has 129).
+
+- **Body 233 is the substrate** (11.4 × 10.8 × 0.16). Highlighting it floods the
+  frame — 1.6k orange pixels at frame 16 jumping to 122k at frame 32. Treat any
+  body whose in-plane footprint exceeds ~25% of the board as substrate.
+- **Cluster the rest** by XY bbox gap ≤ 0.12 cm: that recovers 85 real
+  components from 233 bodies. Sort by centre X, pack into 16 sequential groups
+  of roughly equal body count.
+- **Only write the bodies that changed.** Re-setting all 234 every frame ran at
+  roughly **one minute per frame**; diffing the active set brought a 64-frame run
+  to a couple of minutes and 233 total writes.
+- **Band width matters more than it sounds.** Two groups of sixteen lit at once
+  was a few stray pixels at display size. **Four of sixteen** lights about a
+  quarter of the board and reads as deliberate.
+- A ±8° turntable keeps consecutive frames from being identical during a group's
+  dwell.
+
+### Hide list for the clamp
+
+Keep the tunnel shell, floor, head bar, swing and its magnets, the servo, horn,
+rod ends, spring, and **`60617-Clamp_Arm_B`** — hiding that one as "clutter" left
+the push rod ending in mid-air, because the lower coupler pin bore sits inside
+it. It rides the swing. The visible chain is swing → `60658` force contact →
+`60617-Clamp_Arm_B` → rod end → spring → rod end → horn.
+
+Hide the routed-wire components, the PCB enclosure, the humidity sensing, the
+beads, and every fastener except the `70710` pivot pair. That is **62 of 84
+leaves hidden**, and it is the difference between a mechanism and a pile of
+floating screws.
+
+---
+
+## 9. Ship it to the page
+
+### Generate the sheet, poster and CSS together
+
+`scripts/build_demo_sprite.py <id> <frames-dir> --duration N` writes
+`public/rig/<id>.webp`, `public/rig/<id>-poster.webp` and `src/demo-<id>.css`.
+
+**`background-size` must live in the generated file, beside the keyframes it has
+to agree with.** Going from a 9×5 to a 10×10 grid left `background-size: 900%
+500%` behind in `spa.css` and mis-registered every cell. That pairing has
+desynced twice; emitting both from one place makes it impossible.
+
+**Use explicit `step-end` stops, one per frame.** Two chained `steps()`
+animations (columns with an iteration count, rows over the full range) is more
+compact but drifts: `steps(5, jump-none)` changes rows at fifths of *four*
+intervals while columns wrap at fifths of *five*. For a single-axis strip,
+`steps(N, jump-none)` is correct — plain `steps(N)` never reaches the last frame.
+
+### Timeline and range
+
+**Which timeline depends on where the figure sits, and they are not
+interchangeable.** Below the fold: `view()`, relative to the figure. Above the
+fold: `scroll(root)` — a `view()` timeline is already past its `entry` range at
+load for anything in the first viewport, so it would show the final frame
+immediately.
+
+**Range, for a scroll-scrubbed figure:**
+
+- `entry ... entry 100%` completes the instant the figure is fully in view,
+  which for a figure inside a just-opened `<details>` is *immediately*.
+- plain `cover` scrubs the opening frames while the figure is still below the
+  fold and the closing frames while it is already leaving the top — both ends
+  play out of frame.
+- **`contain 8% … 92%`** is what shipped: the window where the figure is wholly
+  on screen, inset at both ends so the first and last frames get a beat of
+  stillness.
+- `contain` degenerates when the figure is taller than the viewport, so keep a
+  `@media (max-height: 45rem)` fallback to `cover 32% … 68%`.
+
+**Never animate opacity on a scroll-driven timeline** (also in `AGENTS.md`). A
+`view()` timeline holds an element at its start state when it cannot advance, so
+a faded keyframe leaves content permanently invisible.
+
+### Payload gating
+
+- Whole site for reference: ~168 KB JS + 43 KB CSS. The five sprites are 7.9 MB,
+  so gating is not optional.
+- Posters total ~134 KB and are the only thing that loads eagerly.
+- Sprite URLs are attached **only** inside
+  `@media (prefers-reduced-motion: no-preference)` (+ `@supports` for the
+  scroll-driven one), so reduced-motion visitors never download them.
+- **A closed `<details>` does NOT stop a CSS background from being fetched.**
+  Measured: the sheet loaded before the case study was ever opened. CSS
+  backgrounds have no declarative lazy-load, so the URL is gated behind a class
+  React adds on the `toggle` event. Confirmed poster-only before open.
+
+### Presentation
+
+**Colour-accurate renders need a plate.** Once printed parts are genuinely dark
+they vanish against the dark theme's ground. Both themes paint the figure
+surface with `--plate` — a light sheet (`--n-100` light, dimmed `#c9d0d4` dark)
+plus a hairline `--rule` border. It reads as a drawing plate rather than a glare
+panel, and it is the only reason an honest palette is shippable at all.
+
+**Do not add padding or change `background-origin` on `.demo-figure`.** The
+generated `background-size` percentages resolve against the padding box, so
+either would silently rescale every sprite grid.
+
+**Synchronized figures** need no JS: give both `.is-playing` in the same render
+with the same frame count and duration, and `steps(1)` keeps them frame-locked.
+They do need width — side by side in the narrow figure column they were 205 px
+each, so the demo stage moved to its own `grid-column: 1 / -1` row under the
+two-column case body, giving 428 px each.
+
+**Figure beside the prose, not above it.** `.case-body--figure` is a two-column
+grid with the prose blocks in a `.case-text` wrapper.
+
+---
+
+## 10. Verify
+
+### The preview pane cannot be trusted for timing
+
+The Browser pane goes hidden between calls, and **a hidden document freezes
+`document.timeline`** — CSS animations sit at `currentTime: 0` with
+`playState: "running"`, and 40 samples all report the same frame. Screenshots
+can also come back blank or stale while the DOM is provably fine (right rects,
+opacity 1, correct background).
+
+**Check `document.visibilityState` before believing any timing measurement.**
+
+### What is reliable
+
+Run after every rebuild:
+
+- keyframe count vs sheet dimensions vs declared grid, straight off the files
+- every frame position landing on the grid step, last keyframe at `100% 100%`
+- computed `background-size`, `animation-name`, `animation-duration` and
+  `data-demo` per demo button
+- asset requests returning 200
+- rendered alpha bbox per frame: no edge contact, sensible fill and centre
+- every `/rig/...` URL in the built CSS resolving inside `dist/`
+
+### And look at it
+
+Composite frames from the **shipped sheet** at display width on both theme
+grounds. That is what caught the invisible PCB band, and it is the only check
+that answers "is this any good" rather than "is this correct".
+
+---
+
+## Appendix A: measured constants for this assembly
+
+**Pellet axis mapping** (derived from rail geometry, corroborated by the tunnel
+sitting +12.7 cm in model-Z and the vat +7 cm in model-X):
+
+| Machine axis | Meaning | Model direction | Rail | Rail Y |
+|---|---|---|---|---|
+| X | to/from the pellet vat | **+X** | `50857-SSEB8-55` | 10.0 |
+| Y | to/from the tunnel | **+Z** | `50793-SSEB6-55_MAX` ×2 | 8.7 |
+| Z | up/down | **+Y** | `50857-SSEB8-55_Z-DEFAULT` | 14.6 |
+
+Usable stroke is ~30 mm per axis (55 mm rail less the carriage), not the 35 mm
+nominal.
+
+**Pivots:**
+
+| mechanism | axis | location |
+|---|---|---|
+| pellet scoop | X | Y 14.69, Z −10.84 |
+| pellet barrier | Y (vertical) | X −8.63, Z −8.73 |
+| clamp servo/horn | X | Y 19.08, Z 3.46 |
+| clamp swing | X | Y 18.90, Z −2.98 |
+
+**Clamp four-bar:** crank 1.910, coupler 5.003, rocker 2.827, ground 6.443.
+Modelled crank angle −27.10°. Feasible rocker range −128° … +46°.
+
+**PCBs worth featuring:** `80027-Pellet Module PCB-02` (234 bodies) and
+`80026-Tunnel Module PCB-01` (129). The other five boards are skipped.
+
+---
+
+## Appendix B: mistakes that cost real time
+
+Each of these shipped or nearly shipped. Kept short, as a pre-flight list.
+
+1. **Preset camera resolved 35° below the horizon** — Z-up preset, Y-up model.
+   Assert `eye.y > target.y`.
+2. **Scaling the preset's `dy` to fix elevation** made it worse; the number was
+   negative.
+3. **Fitting at the preset angle**, then rendering at the working angle — subject
+   at 36% of frame.
+4. **Fitting on `maxAxisSpan`** — clipped on all four edges. Project the corners.
+5. **Fitting with everything forced visible** — re-enabled the hidden CAN
+   harnesses, extents 109.4 vs 80.1.
+6. **Fitting on a container's bbox** — included its hidden children.
+7. **Blanket-padding the bbox for a swept path** — lost 30% of subject size.
+8. **Staggering the opening stage** — frame 0 at 1% fill.
+9. **Cropping frames to the union alpha bbox** — non-square cell, every sheet
+   cell mis-registered.
+10. **`background-size` left in the stylesheet** after a grid change — desynced
+    twice.
+11. **`animation-range: entry … 100%`** on a disclosure-revealed figure —
+    completes instantly, nothing to scrub.
+12. **Plain `cover`** — both ends of the sequence play out of frame.
+13. **Assuming a closed `<details>` lazy-loads** — it does not.
+14. **Inferring shaft axes from bbox proportions** — two of three steppers
+    backwards.
+15. **Estimating pin locations from bbox extremes** — coupler 1 cm out, and a
+    confident published claim about a linkage limit that did not exist.
+16. **Height-tiering stage membership** — `X_frame` one stage too deep.
+17. **Proximity-only membership** — base plate and vat on moving stages.
+18. **One offset per part instead of cumulative** — every axis moved
+    independently and the gantry came apart.
+19. **Binding a frame-mounted part to a rotating axis** — the barrier swung out
+    of frame.
+20. **Omitting the arm-return the config omits** — barrier closed over a raised
+    arm.
+21. **Hiding a linkage bracket as clutter** — push rod ended in mid-air.
+22. **Editing an appearance's albedo** — no effect, silently.
+23. **Setting body appearance under an ancestor override** — no effect, silently.
+24. **Not applying an explicit colour base** — inherited the previous run's
+    state and inverted the highlight.
+25. **Pure black printed parts** — flat silhouette, no readable geometry.
+26. **Judging a highlight at full resolution** — invisible at display size.
+27. **Bulk-reading proxy-body bbox + appearance** — crashed Fusion.
+28. **Re-setting all 234 body appearances per frame** — one minute per frame.
+29. **Believing a timing measurement from a hidden browser pane** — the
+    timeline is frozen.
+30. **Treating an MCP timeout as a failure** — the run had completed.
