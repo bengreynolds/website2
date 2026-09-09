@@ -25,7 +25,7 @@ and its plan, which is where most of this came from.
 |---|---|---|
 | 1 | Choose the kind | Sprite for a mechanism, live DOM for anything with words in it. |
 | 2 | Stages are data | Put the content in `siteData.js` and keep the renderer generic. Merge view types with identical row shapes. |
-| 3 | Layout | HTML nodes in a CSS grid, not SVG, wherever text must reflow. |
+| 3 | Layout | HTML nodes in a CSS grid, not SVG, wherever text must reflow. Measure the slot and fit the type; never drop the layout on an estimate. |
 | 4 | State | React owns one number. Everything visual reads it off `data-*` and custom properties. |
 | 5 | Colour | `--accent` means interactive. `--plate` is for renders. Tell states apart by weight, not hue. |
 | 6 | Motion budget | Two animations visible at once, from the existing tokens, transform only. |
@@ -106,12 +106,31 @@ The existing `.case-demos` span (`src/spa.css:820`) only fires under
 `.case-body--figure`, so a project without a `figure` must declare the span
 itself.
 
-Below 56rem, 528px is the real constraint. **Pin a demo's own breakpoint to
-56rem rather than guessing one.** A horizontal rail of seven nodes gets
-about 75px each in 528px, against about 72px for a nine-character mono
-uppercase label at `--step--1` with `--tracking-label` — too close to call.
-Choosing 44rem instead leaves a band where the layout is capped but the demo
-thinks it is wide.
+Below 56rem, 528px is the real constraint — but **a cap is not a reason to
+abandon the layout.** The first version of this demo pinned its own
+breakpoint to 56rem and went vertical below it, reasoning that seven nodes
+at ~75px could not hold a ~72px label. Both numbers were estimates, and the
+decision cost the demo its only visualisation at every window narrower than
+896px, including this app's own 785px browser pane, where the rail read as a
+plain text list. The owner reported it as "no visualizations", which is
+exactly what it was.
+
+**Measure the slot, then fit the type to it.** Measured: the container is
+501px at a 544px viewport and 556px at 785px, giving 68px and 76px slots; at
+`0.625rem` with `0.04em` tracking the widest label is 58px, so it fits with
+10-18px to spare. One `font-size` override in a
+`(min-width: 34rem) and (max-width: 55.99rem)` band keeps the rail
+horizontal down to 34rem, and only a real phone gets the vertical fallback.
+
+Two things this cost, worth knowing in advance:
+
+- **Single words cannot wrap.** `NORMALIZE` has no break opportunity, so a
+  too-narrow slot overflows rather than reflowing. Shrinking the type is the
+  fix; `overflow-wrap: anywhere` would break it mid-word instead.
+- **Verify overflow by measuring, not by looking.** Compare each label's
+  `scrollWidth` against its button's `clientWidth` at each width you claim to
+  support. Estimating character widths from font size and tracking is what
+  produced the wrong answer both times.
 
 ## 4. State in React, motion in CSS
 
@@ -319,27 +338,33 @@ a token is a signal to re-read this list first.
 
 ## Appendix B: mistakes that cost real time
 
-1. **Assuming `.case-body` is width-capped everywhere.** It is capped below
+1. **Turning a layout off because a container is capped.** The rail was made
+   vertical below 56rem on an estimate that its labels would not fit, which
+   silently removed the demo's only visualisation at every width under 896px
+   — the state the owner eventually reported as "no visualizations". The slots
+   were 68-76px and the label fits at 58px once the type is a step smaller.
+   Measure the slot; fit the type; keep the layout.
+2. **Assuming `.case-body` is width-capped everywhere.** It is capped below
    56rem and uncapped-but-two-column above. A modifier raising the cap was
    designed, specced, and thrown away; the actual need was
    `grid-column: 1 / -1`. Read the media queries around a container before
    designing against it.
-2. **Planning to put text in a sprite.** Caught at design time. Would have
+3. **Planning to put text in a sprite.** Caught at design time. Would have
    cost a full capture pipeline for illegible output.
-3. **Reaching for SVG because the thing is a diagram.** SVG text does not
+4. **Reaching for SVG because the thing is a diagram.** SVG text does not
    reflow. The composition changed to HTML nodes and the SVG layer stopped
    earning its place entirely — the connector became one 1px pseudo-element
    and one scaled pseudo-element.
-4. **Over-broadening the opacity rule.** "Never animate opacity" is not the
+5. **Over-broadening the opacity rule.** "Never animate opacity" is not the
    repo's rule; "never on a scroll-driven timeline" is. `.rise` fades. Copying
    the strict version into a plan meant justifying a correct choice with a
    wrong reason.
-5. **Nearly declaring a stagger delay outside `no-preference`.** Rows would
+6. **Nearly declaring a stagger delay outside `no-preference`.** Rows would
    have landed late under reduced motion. The pattern to copy was already in
    the file at `src/spa.css:355`.
-6. **Designing seven renderers for seven stages.** Two pairs had identical
+7. **Designing seven renderers for seven stages.** Two pairs had identical
    row shapes. Compare shapes before writing components.
-7. **Inlining a motion constant.** A `28ms` stagger was written straight into
+8. **Inlining a motion constant.** A `28ms` stagger was written straight into
    an `animation-delay` calc and review caught it: `AGENTS.md` centralizes
    motion values, and hand-written `src/spa.css` carries no literal design
    motion value at all — only the `0ms` zero-fallback at `:357` and the
