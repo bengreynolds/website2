@@ -306,11 +306,30 @@
   }
 }
 
-/* Below that same 56rem the case body is capped at 66ch, about 528px, which
-   gives seven nodes roughly 75px each against about 72px for NORMALIZE.
-   Too close to call, so the rail turns vertical there instead. Pinning the
-   rail's breakpoint to the one the layout already changes at removes the
-   narrow-horizontal band entirely.
+/* 34rem to 56rem: the case body is still capped at its 66ch measure here, so
+   the seven slots come out 68-76px. An earlier version of this file turned the
+   rail vertical across this whole band on the estimate that ~72px labels would
+   not fit. That estimate was wrong, and it cost the demo its one visualisation
+   at every window narrower than 896px - including this app's own 785px browser
+   pane, where the rail read as a plain list.
+
+   Measured instead of estimated: at a smaller size the widest label,
+   NORMALIZE, is 58px against a 68px slot at 544px and a 76px slot at 785px.
+   Shrinking the type is what makes the horizontal rail survive the band,
+   because NORMALIZE is a single word and cannot wrap - it would overflow. */
+@media (min-width: 34rem) and (max-width: 55.99rem) {
+  .pipeline-node-btn {
+    padding-right: 0.35rem;
+  }
+
+  .pipeline-node-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Only a real phone gets the vertical rail now: below 34rem there is no width
+   in which seven labels can sit side by side at any legible size.
 
    Because the nodes are HTML in a grid rather than SVG text, this is a
    grid-auto-flow change and the labels wrap on their own - the reason the
@@ -318,7 +337,7 @@
 
    The track and progress rotate with it: same two pseudo-elements, 1px wide
    instead of 1px tall, scaled on Y instead of X. */
-@media (max-width: 55.99rem) {
+@media (max-width: 33.99rem) {
   .pipeline-rail {
     grid-auto-flow: row;
     grid-auto-columns: auto;
