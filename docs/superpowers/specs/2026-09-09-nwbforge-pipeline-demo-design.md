@@ -252,7 +252,9 @@ Edited:
 - `src/siteData.js` - the `demos` array on
   `scientific-data-standardization-platform`.
 - `src/main.jsx` - one stylesheet import.
-- `src/spa.css` - one `case-body--wide` modifier (see Layout).
+
+`src/spa.css` is not modified. See Layout for why the width problem it
+first appeared to pose does not exist.
 
 Data flow: `siteData` to `WorkEntry` to `PipelineDemo`, which holds the stage
 index in React state, writes it to `data-stage` on its root element and
@@ -307,17 +309,31 @@ vanish in dark mode; text on it would fail contrast when the site is dark.
 
 ## Layout
 
-`.case-body` caps at `var(--measure)`, 66ch, for any project without a
-`figure`, which includes this one. A seven-node horizontal rail does fit
-there - roughly 95px per node, against about 72px for the longest label,
-`Normalize`, at `--step--1` in mono with `--tracking-label` - but with no
-margin. A `case-body--wide` modifier raising the cap to 76ch, applied only
-when a pipeline demo is present, gives the rail room without widening the
-prose on every other case study.
+`.case-body` behaves in two distinct ways either side of 56rem, and the
+demo has to answer both. Below 56rem it is one column capped at
+`var(--measure)`, 66ch, which is roughly 528px. At and above 56rem the
+media query at `spa.css:1117` replaces that with `max-width: none` and
+`grid-template-columns: repeat(2, minmax(0, 1fr))`.
 
-The rail is horizontal above 44rem. Below it the rail stacks vertical, the
-progress element switches to `scaleY`, and the detail rows sit underneath.
-Because the nodes are HTML in a grid rather than SVG, this reflow is a
+Two consequences. Above 56rem there is no width cap to raise, so no
+`case-body--wide` modifier is needed; what is needed is
+`grid-column: 1 / -1` on the demo, or it lands in one half-width column of
+that two-column grid. The existing `.case-demos` rule only spans columns
+under `.case-body--figure`, which this project is not, so the pipeline
+declares the span itself.
+
+Below 56rem the 528px cap does bind, and a seven-node horizontal rail there
+gets about 75px per node against about 72px for the longest label,
+`Normalize`, at `--step--1` in mono with `--tracking-label`. That is too
+close to call. So the rail is horizontal only at and above 56rem, exactly
+where the cap is lifted, and vertical below it - progress element switching
+from `scaleX` to `scaleY`, detail rows underneath.
+
+Setting the rail's breakpoint to the one the layout already changes at
+removes the narrow horizontal band entirely, and means `src/spa.css` needs
+no edit at all.
+
+Because the nodes are HTML in a grid rather than SVG, the reflow is a
 `grid-auto-flow` change and labels wrap on their own.
 
 ## Verification
