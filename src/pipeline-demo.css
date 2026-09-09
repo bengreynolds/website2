@@ -10,6 +10,10 @@
 
 .pipeline {
   margin: 0;
+  /* Named rather than inlined: AGENTS.md centralizes motion values in CSS
+     variables. Lives here rather than spa.css because this plan must not
+     modify that file. */
+  --pipeline-stagger: 28ms;
 }
 
 /* ---- rail ----------------------------------------------------------- */
@@ -284,6 +288,6 @@
   .pipeline-row,
   .pipeline-conflict {
     animation: pipeline-row-in var(--dur-med) var(--ease) both;
-    animation-delay: calc(var(--i, 0) * 28ms);
+    animation-delay: calc(var(--i, 0) * var(--pipeline-stagger));
   }
 }
