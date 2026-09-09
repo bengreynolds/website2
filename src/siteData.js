@@ -370,6 +370,8 @@ export const projects = [
     tags: ["automation", "hardware", "data", "software"],
     featured: true,
     figure: "buildup",
+    figureLabel:
+      "Assembly sequence of the training rig, built up from bare corner legs through horizontal bars, platform rails, the cage, tunnel, pellet delivery, camera and Jetson modules, then the floor, side panels, doors and panel connectors.",
     demos: [
       {
         id: "pellet",
@@ -479,13 +481,10 @@ export const projects = [
     title: "Prosthetic Sensation Test Bench",
     category: "hardware",
     tags: ["hardware", "automation"],
+    figure: "prosthetic-build",
+    figureLabel:
+      "Assembly sequence of the prosthetic sensation test bench. The base sheet stays fixed while every other phase descends onto it: extruded corner posts and cross members, the seesaw shaft supports and bearings, the rotary shaft, the plank, the transducer and its plunger, the shim flexure carrying the load cell and dowel, the amplifier, the control electronics, then the top sheet and standing mat.",
     demos: [
-      {
-        id: "prosthetic-build",
-        label: "Assembly",
-        caption:
-          "The bench as it goes together, every phase descending from above and hidden until its own placement: extruded frame and base sheet, the seesaw's shaft supports with their needle-roller and thrust bearings, the 3/8 in rotary shaft, the plank, the transducer and its rubber plunger, the shim flexure carrying the load cell and the 5 mm dowel, the amplifier, the Arduino and Qwiic scale, and the lid. Stage order follows the assembly's own structure. The top sheet and standing mat are drawn transparent so the mechanism stays readable once the box closes.",
-      },
       {
         id: "prosthetic-function",
         label: "How it works",

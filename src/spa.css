@@ -699,9 +699,15 @@ summary {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-image: url("/rig/buildup-poster.webp");
   background-color: var(--plate);
   border: 1px solid var(--rule);
+}
+
+/* Per-figure sprite, poster, grid and keyframes are GENERATED into
+   src/rig-<id>.css and scoped to [data-figure="<id>"], so more than one
+   scroll figure can coexist. The rules above carry layout only. */
+.rig-figure[data-figure="buildup"] {
+  background-image: url("/rig/buildup-poster.webp");
 }
 
 .rig-figure-caption {
@@ -840,7 +846,7 @@ summary {
 
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    .rig-figure.is-live {
+    .rig-figure[data-figure="buildup"].is-live {
       background-image: url("/rig/buildup.webp");
       /* background-size is set in the GENERATED src/rig-buildup.css so it can
          never disagree with the keyframe grid. */
@@ -870,7 +876,7 @@ summary {
        cover, which is the part of the travel with the most of the figure on
        screen. */
     @media (max-height: 45rem) {
-      .rig-figure.is-live {
+      .rig-figure[data-figure="buildup"].is-live {
         animation-range: cover 32% cover 68%;
       }
     }
