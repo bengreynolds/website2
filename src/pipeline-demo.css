@@ -254,3 +254,36 @@
   color: var(--text-muted);
   line-height: var(--lh-body);
 }
+
+/* ---- motion --------------------------------------------------------- */
+
+/* Two active animations and no more, per AGENTS.md: the rail's progress bar
+   (declared with the rail above) and this entrance settle on the incoming
+   rows. A dot travelling the rail was considered and dropped - it would
+   have been a third, and the node colour change already says the same
+   thing. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pipeline-row-in {
+    from {
+      transform: translate3d(0, calc(var(--reveal-shift) / 2), 0);
+    }
+    to {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  /* Transform only, never opacity - the same rule the scroll reveals in
+     spa.css follow. A row that never animates is still fully readable.
+
+     The delay is declared in here rather than beside the animation on
+     purpose. Section 14 of spa.css crushes animation-duration to 0.01ms
+     under reduce but leaves animation-delay untouched, so a delay declared
+     outside this query would hold each row at its start transform and make
+     it arrive late - visibly worse than no animation at all. Inside the
+     no-preference query there is no delay left to wait out. */
+  .pipeline-row,
+  .pipeline-conflict {
+    animation: pipeline-row-in var(--dur-med) var(--ease) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+}
