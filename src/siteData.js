@@ -484,13 +484,14 @@ export const projects = [
         id: "prosthetic-build",
         label: "Assembly",
         caption:
-          "The bench as it goes together: extruded frame and base sheet, the seesaw's shaft supports with their needle-roller and thrust bearings, then the 3/8 in rotary shaft sliding in axially the way it actually installs, the plank, the transducer and its rubber plunger, the spring-sheet flexure carrying the load cell and the 5 mm dowel, the amplifier, the Arduino and Qwiic scale, and the lid. Stage order follows the assembly's own structure. The top sheet and standing mat are drawn transparent so the mechanism stays readable once the box closes.",
+          "The bench as it goes together, every phase descending from above and hidden until its own placement: extruded frame and base sheet, the seesaw's shaft supports with their needle-roller and thrust bearings, the 3/8 in rotary shaft, the plank, the transducer and its rubber plunger, the shim flexure carrying the load cell and the 5 mm dowel, the amplifier, the Arduino and Qwiic scale, and the lid. Stage order follows the assembly's own structure. The top sheet and standing mat are drawn transparent so the mechanism stays readable once the box closes.",
       },
       {
         id: "prosthetic-function",
         label: "How it works",
         caption:
-          "How a trial runs. The prosthesis settles onto the dowel, rotating the seesaw 5.9 degrees until the dowel sits flush with the mat and a 4.69 N preload appears at the load cell. The transducer then drives the spring-sheet flexure at 8, 16, 64 and 128 Hz. Colour marks what moves together: the plank, transducer and plunger rock on the shaft, while the force mount, load cell and dowel flex on the spring sheet above them. The trace runs at true signal time, so each frequency shows its real cycle count in the same window, and the on-screen slowdown is printed per segment. Dowel displacement is exaggerated 10x - its true stroke is 0.91 mm peak-to-peak at the loudest amplitude measured on the bench.",
+          "How a trial runs, held wide at first so the seesaw and the foot placement read. The prosthesis settles onto the 5 mm dowel, rotating the seesaw 5.9 degrees until the dowel sits flush with the mat and a 4.69 N preload appears at the load cell. The transducer then drives at 8, 16, 64 and 128 Hz. The foot itself does not move: with the limb holding the dowel, the beam pivots at the dowel and the deflection goes into the bend of the stainless shim, which is exactly what the load cell registers. Colour marks what moves together - blue rocks on the shaft, yellow pivots at the dowel, red is the shim that takes the bend, grey never moves. The trace runs at true signal time, so each frequency shows its real cycle count in the same 0.25 s window, with the on-screen slowdown printed per segment. The shim's real deflection is about 7.6 um peak-to-peak, exaggerated far beyond scale here to be visible at all - which is the point of the bench: the drive transfers force, not displacement.",
+
       },
     ],
     summary:
