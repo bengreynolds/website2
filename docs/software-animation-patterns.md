@@ -128,17 +128,22 @@ reliable way; there is no need for a class toggle, a reflow read, or a
 timer. `App.jsx:207` keys on `` `${id}-${play.runs}` `` for exactly this, and
 a stepper can key on the current stage id.
 
-**[open]** **Pass custom properties as strings, not numbers.** React appends
-`px` to some numeric style values, and a unitless scale factor must survive
-intact:
+**[read]** **A custom property is exempt from `px` coercion, so passing it as
+a string is optional, not required.** React appends `px` to some numeric
+values on **standard** style properties; a `--`-prefixed custom property
+skips that step entirely, no matter whether the value handed to it is a
+string or a number:
 
 ```jsx
 style={{ "--progress": String(stage / last) }}
 ```
 
-Confirm the behaviour the first time you rely on it — read the property back
-with `getComputedStyle(el).getPropertyValue("--progress")` and check it is
-not `"0.5px"`.
+`String(...)` above is still correct — it costs nothing and is free
+insurance if the property is ever renamed off `--` — it is just not
+load-bearing the way the original phrasing of this rule claimed. Established
+during implementation: reading the property back with
+`getComputedStyle(el).getPropertyValue("--progress")` returned `"0"` and
+`"0.5"`, never `"0.5px"`, which a bare number would also have produced.
 
 **Do not add scroll listeners, observers or timers.** `AGENTS.md` is explicit
 and the existing motion honours it: `.rise` is time-based, `.reveal` is
@@ -277,6 +282,14 @@ not a verification.
    so load-time media queries re-evaluate.
 8. **Re-test the sprite demos.** Any change to the `hasDemo` block in
    `App.jsx:198` can break them, and a build will not catch it.
+9. **[read]** **Screenshots are unreliable when the Browser pane is hidden.**
+   Capture returns the page background only for anything outside the
+   initially-painted viewport, and `scrollIntoView` does not move the
+   capture view — scrolling to a section and shooting it silently produces a
+   blank frame instead of an error. Verify layout with `getComputedStyle`
+   and `getBoundingClientRect` instead; it is more precise anyway, since it
+   reads the actual computed values rather than eyeballing a picture of
+   them.
 
 For a data-heavy demo, a **shape check is worth writing** even with no test
 framework — `siteData.js` is a dependency-free ES module, so
@@ -324,3 +337,11 @@ a token is a signal to re-read this list first.
    the file at `src/spa.css:355`.
 6. **Designing seven renderers for seven stages.** Two pairs had identical
    row shapes. Compare shapes before writing components.
+7. **Inlining a motion constant.** A `28ms` stagger was written straight into
+   an `animation-delay` calc and review caught it: `AGENTS.md` centralizes
+   motion values, and hand-written `src/spa.css` carries no literal design
+   motion value at all — only the `0ms` zero-fallback at `:357` and the
+   `0.01ms !important` reduce sentinel at `:1559`/`:1561`. The one literal
+   duration in the repo, `3.6s` in `src/demo-pcb.css:18`, is in a generated
+   file and exempt. The fix was to name it `--pipeline-stagger` on
+   `.pipeline`.
