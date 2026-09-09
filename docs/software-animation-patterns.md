@@ -120,12 +120,12 @@ boolean. Write it to a `data-*` attribute or a custom property on the root
 and let CSS do everything else. There is then no animation state in JS and
 nothing to keep in sync.
 
-This is how the sprite demos already work — `App.jsx:137` holds
+This is how the sprite demos already work — `App.jsx:138` holds
 `{ id, runs }` and nothing more.
 
 **To restart a CSS animation, remount the element.** Changing a `key` is the
 reliable way; there is no need for a class toggle, a reflow read, or a
-timer. `App.jsx:207` keys on `` `${id}-${play.runs}` `` for exactly this, and
+timer. `App.jsx:215` keys on `` `${id}-${play.runs}` `` for exactly this, and
 a stepper can key on the current stage id.
 
 **[read]** **A custom property is exempt from `px` coercion, so passing it as
@@ -147,8 +147,10 @@ during implementation: reading the property back with
 
 **Do not add scroll listeners, observers or timers.** `AGENTS.md` is explicit
 and the existing motion honours it: `.rise` is time-based, `.reveal` is
-scroll-driven via `animation-timeline: view()`, and neither needs JS. The one
-`IntersectionObserver` in `App.jsx` drives nav highlighting, not motion.
+scroll-driven via `animation-timeline: view()`, and neither needs JS. There
+are two `IntersectionObserver` instances in `App.jsx` — `useStuckHeader`
+(App.jsx:86) condenses the header, and `useSectionSpy` (App.jsx:106) drives
+nav highlighting — and neither one drives motion.
 
 ## 5. Colour, and what the tokens actually mean
 
@@ -223,7 +225,7 @@ Put every delay inside the query:
 @media (prefers-reduced-motion: no-preference) {
   .thing {
     animation: settle var(--dur-med) var(--ease) both;
-    animation-delay: calc(var(--i, 0) * 28ms);
+    animation-delay: calc(var(--i, 0) * var(--stagger));
   }
 }
 ```
@@ -253,7 +255,7 @@ stylesheet can override it with a single class and no `!important`.
 
 Add nothing to `package.json`. Every demo so far is React plus CSS.
 
-**No local focus or button resets.** `src/spa.css:220` already resets
+**No local focus or button resets.** `src/spa.css:210` already resets
 `button` (font, colour, background, border, padding, cursor) and `:227` is a
 global `:focus-visible`. Re-declaring either is dead code.
 
@@ -281,7 +283,7 @@ not a verification.
 7. `resize_window` for narrow, wide, and both themes. Reload after switching
    so load-time media queries re-evaluate.
 8. **Re-test the sprite demos.** Any change to the `hasDemo` block in
-   `App.jsx:198` can break them, and a build will not catch it.
+   `App.jsx:199` can break them, and a build will not catch it.
 9. **[read]** **Screenshots are unreliable when the Browser pane is hidden.**
    Capture returns the page background only for anything outside the
    initially-painted viewport, and `scrollIntoView` does not move the
