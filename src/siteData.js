@@ -614,9 +614,9 @@ export const projects = [
            mechanism close up. Both sprites are 81 frames over the same
            duration, so they stay frame-locked. */
         ids: ["lickrevolver-trial", "lickrevolver-trial-close"],
-        label: "One trial",
+        label: "Trial demo",
         caption:
-          "A single trial, timed from the rig's own firmware and config rather than estimated. The carousel indexes 45° per vial to the requested solution and waits for the main lick; that lick advances it a further 150° and swings the spout clear of the box, 90° about the servo's gear axis taken from the assembly's coaxial mate. The solenoid then fires for the 500 ms reward window on the rewarded side only, while the other side registers the miss and stays shut, before both spouts return and the trial closes. The rig is symmetric, and the second spout and solenoid are reconstructed across the assembly's own centre plane: the master CAD currently carries one side.",
+          "Two trials, structured the way the rig runs them. One protocol row is one trial. The spouts sit retracted while the carousel indexes a single 45° step to the next vial; the spouts are then presented once, 90° about the servo's gear axis taken from the assembly's coaxial mate. The rewarded side shows green and the other red, the outcome flashes with a ring around that side, and the spouts retract once — that retraction is where the next trial begins. The second trial swaps which side pays out and flashes red: a miss rather than a reward. Colour marks what moves; every other part keeps its Inventor appearance. The rig is symmetric and the second spout and solenoid are reconstructed across the assembly's own centre plane, since the master CAD currently carries one side.",
       },
     ],
     summary:
