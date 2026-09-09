@@ -1,0 +1,119 @@
+/* HAND-WRITTEN, unlike the generated demo-*.css files. Do not rename this
+   to demo-pipeline.css: demo-<id>.css is the namespace
+   scripts/build_demo_sprite.py generates into, and a hand-edited file there
+   would eventually be overwritten.
+
+   No focus styles here - the global :focus-visible rule at spa.css:227
+   already covers these buttons, and `button` is reset at spa.css:220 too,
+   so the node buttons need no font, background, border or cursor reset of
+   their own. */
+
+.pipeline {
+  margin: 0;
+}
+
+/* ---- rail ----------------------------------------------------------- */
+
+/* The track and the progress bar are the two pseudo-elements, so the rail
+   needs no extra DOM. Progress is scaled rather than resized: transform is
+   the one property that animates without laying out again. */
+.pipeline-rail {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0 0 0.75rem;
+  list-style: none;
+}
+
+.pipeline-rail::before,
+.pipeline-rail::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  transform-origin: left center;
+}
+
+.pipeline-rail::before {
+  background: var(--rule);
+}
+
+/* The one place accent is allowed in this demo: it reports the visitor's own
+   position in something they are driving. Static state labels may not use
+   it - see the chips in pipeline-demo.css section "rows". */
+.pipeline-rail::after {
+  background: var(--accent);
+  transform: scaleX(var(--progress, 0));
+  transition: transform var(--dur-med) var(--ease);
+}
+
+.pipeline-node {
+  display: grid;
+}
+
+.pipeline-node-btn {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+  padding: 0.5rem 0.5rem 0.6rem 0;
+  text-align: left;
+  color: var(--text-subtle);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.pipeline-node-btn:hover {
+  color: var(--text);
+}
+
+.pipeline-node-btn[data-state="done"] {
+  color: var(--text-muted);
+}
+
+.pipeline-node-btn[data-state="current"] {
+  color: var(--accent);
+}
+
+.pipeline-node-num,
+.pipeline-node-label {
+  font-family: var(--font-mono);
+  letter-spacing: var(--tracking-label);
+}
+
+.pipeline-node-num {
+  font-size: 0.625rem;
+  color: var(--text-subtle);
+}
+
+.pipeline-node-label {
+  font-size: var(--step--1);
+  text-transform: uppercase;
+}
+
+/* ---- detail --------------------------------------------------------- */
+
+/* --surface, not --plate. The plate is a light sheet so near-black CAD
+   renders survive dark mode; text on it fails contrast when the site is
+   dark. */
+.pipeline-detail {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  padding: clamp(0.875rem, 2vw, 1.25rem);
+}
+
+.pipeline-note {
+  margin: 0 0 0.875rem;
+  max-width: 62ch;
+  color: var(--text-muted);
+  font-size: var(--step--1);
+  line-height: var(--lh-body);
+}
+
+.pipeline-count {
+  align-self: center;
+}

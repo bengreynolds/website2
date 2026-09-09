@@ -13,6 +13,7 @@ import {
   roleLabel,
   skillGroups,
 } from "./siteData";
+import PipelineDemo from "./PipelineDemo";
 
 const sectionIds = navigation.map((item) => item.id);
 const THEME_KEY = "theme";
@@ -197,6 +198,13 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
               column twice the height of the prose beside it. */}
           {hasDemo ? (() => {
             const active = demos.find((d) => d.id === play.id) || demos[0];
+            /* Pipeline demos bring their own stepper controls, so they do
+               not use the shared sprite stage or its button row. A project
+               mixing both kinds would lose the switcher; no project does,
+               and the spec scopes this to one demo per project. */
+            if (active.kind === "pipeline") {
+              return <PipelineDemo demo={active} />;
+            }
             const ids = active.ids || [active.id];
             const running = play.id === active.id && play.runs > 0;
             return (
