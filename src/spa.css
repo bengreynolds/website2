@@ -738,6 +738,20 @@ summary {
   margin: 0;
 }
 
+/* One or two square figures. background-size percentages resolve against the
+   padding box of each figure, so the stage only ever changes how wide a
+   figure is - never its padding or background-origin. */
+.demo-stage {
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  max-width: 30rem;
+}
+
+.demo-stage--pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 62rem;
+}
+
 /* One base rule for every demo. The per-demo poster, grid and keyframes come
    from the generated src/demo-<id>.css files. */
 /* No padding and no background-origin change here: the generated
@@ -798,6 +812,17 @@ summary {
 }
 
 /* Figure beside the prose rather than stacked on top of it. */
+/* Demos sit in their own row under the two-column block. */
+.case-demos {
+  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+@media (min-width: 56rem) {
+  .case-body--figure > .case-demos {
+    grid-column: 1 / -1;
+  }
+}
+
 .case-text {
   display: grid;
   gap: clamp(1.25rem, 2.5vw, 1.75rem);
@@ -822,13 +847,32 @@ summary {
       background-position: 0% 0%;
       animation: rig-buildup step-end both;
       animation-timeline: view();
-      /* cover, not entry. "entry 100%" completes as soon as the figure is
-         fully in view, which for a figure revealed by opening a disclosure
-         happens immediately, leaving nothing left to scrub. cover spans the
-         figure's whole travel through the viewport, and using almost all of
-         it gives the 100-frame sequence the longest scrub available without
-         a sticky wrapper. */
-      animation-range: cover 2% cover 98%;
+      /* Not "entry 100%": that completes the instant the figure is fully in
+         view, which for a figure revealed by opening a disclosure is
+         immediately, leaving nothing to scrub.
+
+         Not plain "cover" either. cover spans the figure's whole travel
+         through the viewport, which means the opening frames advance while
+         the figure is still below the fold and the closing frames advance
+         while it is already scrolling off the top: the two ends of the
+         sequence play out of frame.
+
+         contain is exactly the window where the figure is wholly on screen,
+         so every frame is scrubbed while you can see it. It degenerates when
+         the figure is taller than the viewport, hence the short-viewport
+         fallback below. Inset at both ends so the first and last frames get
+         a beat of stillness while the figure is squarely on screen. */
+      animation-range: contain 8% contain 92%;
+    }
+
+    /* Where the square figure cannot fit inside the viewport, contain has no
+       range and the scrub would hold on frame 0. Fall back to the middle of
+       cover, which is the part of the travel with the most of the figure on
+       screen. */
+    @media (max-height: 45rem) {
+      .rig-figure.is-live {
+        animation-range: cover 32% cover 68%;
+      }
     }
   }
 }

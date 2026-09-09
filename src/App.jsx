@@ -130,12 +130,11 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
   const hasFigure = project.figure === "buildup";
   const demos = project.demos || [];
   const hasDemo = demos.length > 0;
-  /* The demos share one figure and a row of buttons, so the case study stays
-     two balanced columns instead of a stack of four square figures.
-     runs remounts the figure, which is the reliable way to restart a CSS
-     animation; view walks demo.views so one press can play several sprites in
-     sequence. */
-  const [play, setPlay] = useState({ id: null, runs: 0, view: 0 });
+  /* The demos share one stage and a row of buttons, so the case study stays
+     two balanced columns instead of a stack of square figures. Bumping runs
+     remounts the stage, which is the reliable way to restart a CSS animation;
+     a demo listing two ids renders both side by side and they play together. */
+  const [play, setPlay] = useState({ id: null, runs: 0 });
 
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
@@ -178,9 +177,8 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
       >
         <summary className="case-summary">Case study</summary>
         <div className={`case-body ${hasFigure ? "case-body--figure" : ""}`}>
-          {hasFigure || hasDemo ? (
-          <div className="case-figures">
           {hasFigure ? (
+          <div className="case-figures">
             <figure className="rig-figure-wrap">
               <div
                 className={`rig-figure ${figureLive ? "is-live" : ""}`}
@@ -191,26 +189,29 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
                 Full assembly sequence. Scroll to build.
               </figcaption>
             </figure>
+          </div>
           ) : null}
 
+          {/* The demo stage spans both columns: a synchronized pair needs the
+              full width, and stacking it under the build figure would leave a
+              column twice the height of the prose beside it. */}
           {hasDemo ? (() => {
             const active = demos.find((d) => d.id === play.id) || demos[0];
-            const views = active.views || [active.id];
+            const ids = active.ids || [active.id];
             const running = play.id === active.id && play.runs > 0;
             return (
-              <figure className="demo-wrap">
-                <div
-                  key={`${active.id}-${play.runs}-${play.view}`}
-                  data-demo={running ? views[play.view] : views[0]}
-                  className={`demo-figure ${running ? "is-playing" : ""}`}
-                  role="img"
-                  aria-label={`${active.label}. ${active.caption}`}
-                  onAnimationEnd={() => {
-                    if (running && play.view + 1 < views.length) {
-                      setPlay((prev) => ({ ...prev, view: prev.view + 1 }));
-                    }
-                  }}
-                />
+              <figure className="demo-wrap case-demos">
+                <div className={`demo-stage ${ids.length > 1 ? "demo-stage--pair" : ""}`}>
+                  {ids.map((id) => (
+                    <div
+                      key={`${id}-${play.runs}`}
+                      data-demo={id}
+                      className={`demo-figure ${running ? "is-playing" : ""}`}
+                      role="img"
+                      aria-label={`${active.label}. ${active.caption}`}
+                    />
+                  ))}
+                </div>
                 <figcaption className="demo-caption">
                   <div className="demo-switch">
                     {demos.map((demo) => (
@@ -225,7 +226,6 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
                           setPlay((prev) => ({
                             id: demo.id,
                             runs: prev.id === demo.id ? prev.runs + 1 : 1,
-                            view: 0,
                           }))
                         }
                       >
@@ -238,8 +238,6 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
               </figure>
             );
           })() : null}
-          </div>
-          ) : null}
 
           <div className="case-text">
             <div className="case-block">

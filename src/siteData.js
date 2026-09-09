@@ -160,18 +160,19 @@ export const projects = [
     demos: [
       {
         id: "pellet",
-        /* Two passes on one button: the module as installed, then the same
-           cycle close on the mechanism. */
-        views: ["pellet", "pellet-close"],
+        /* Two figures, one button, played together: the module as installed
+           and the same cycle close on the mechanism. Both sprites are 81
+           frames over the same duration, so they stay frame-locked. */
+        ids: ["pellet", "pellet-close"],
         label: "Pellet delivery",
         caption:
-          "One load and send cycle, twice: the module as installed, then close on the mechanism. Every stage rides only its own rail, over the real 30 mm stroke. The vat is drawn translucent so the scoop stays visible inside it.",
+          "One load-and-send cycle, in context and close up at the same time. Order and servo angles come from the rig's own move_config: barrier out, traverse, drop, scoop through 109°, lift, arm back to flush, barrier closed over the pellet, send. Colour marks what moves together — the lift rides the X carriage, which rides the base — and the vat is drawn translucent so the scoop stays visible inside it.",
       },
       {
         id: "tunnel",
         label: "Head-fix clamp",
         caption:
-          "The magnet swing engaging and releasing. Servo horn, push rod and swing are solved as the four-bar they are, off the real pivot axes; the swing stops at 28° because the linkage locks at 32°.",
+          "Releasing and re-engaging the head clamp, 28° off the shoulder-screw axis. Servo horn, push rod, spring and swing are solved as the four-bar they are, off pivots measured from the pin bores. Each part that moves carries its own colour.",
       },
       {
         id: "pcb",

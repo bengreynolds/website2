@@ -594,9 +594,11 @@ branch, which reproduces the modelled crank angle (-14.17 degrees) at rocker 0
 and so proves the pin estimates are self-consistent. Place the coupler from its
 two pin correspondences rather than rotating it about anything.
 
-The payoff is a limit the animation did not have to invent: **the linkage locks
-near -32 degrees**, where `|cos phi| > 1`. The owner's remembered 30 degrees of
-travel is the mechanism's own range. The shipped animation stops at -28.
+> **Retracted.** This section originally claimed the linkage locks near -32
+> degrees and that this confirmed the owner's 30 degrees of travel. That came
+> from a coupler length estimated off bounding boxes and 1 cm too long. See
+> *Read pin bores, not bounding boxes, for linkage lengths* below for the
+> measured geometry: there is no lock near 30 degrees.
 
 A 30 degree swing needs a 78 degree servo throw, which is why animating the
 swing alone looked wrong: the horn is the part that moves most.
@@ -659,6 +661,134 @@ is the only reason the honest palette is shippable.
 Do **not** add padding or change `background-origin` on `.demo-figure`: the
 generated `background-size` percentages resolve against the padding box, so
 either would silently rescale every sprite grid.
+
+### Nested stages need CUMULATIVE offsets, not one offset each
+
+The bug that shipped: every part was assigned to exactly one stage and then
+given only that stage's offset. Each axis therefore moved in isolation and the
+gantry came apart. Group membership was right; composition was missing.
+
+The owner's description of the machine, which is what the code now implements:
+
+| group | offsets it receives | why |
+|---|---|---|
+| fixed | — | base plate, base rails, vat, mount magnets, base end stop |
+| X frame | **Y** | the Y motor drives the X, Y and Z frames together |
+| Y frame | **Y + X** | the X motor drives the Y and Z frames |
+| Z frame | **Y + X + Z** | the Z motor drives only the Z frame |
+
+Machine Y is world Z here (the base rails run along Z), machine X is world X,
+machine Z is world Y.
+
+**Each motor rides the axis it drives.** The Y motor is bolted to the X frame,
+the X motor to the Y frame, the Z motor to the Z frame — so every motor is
+mounted on the leading frame of its own driven set and translates with its own
+output. Confirmed by the owner; do not "fix" it to the more usual
+stationary-motor arrangement.
+
+### Read pin bores, not bounding boxes, for linkage lengths
+
+I estimated the tunnel clamp's coupler pins from rod-end bbox extremes and got
+a coupler **1 cm too long** (6.048 against the true 5.003). That error produced
+a confident, wrong conclusion: that the linkage locks near −32°, and that this
+independently confirmed the owner's remembered 30° of travel. It does not. With
+the measured pins the rocker is feasible from **−128° to +46°** and there is no
+lock anywhere near 30°.
+
+The pins are small transverse cylinders and they read out exactly:
+
+| feature | source | (Y, Z) |
+|---|---|---|
+| crank axis | servo `50898` and horn `50850`, r 0.392 | 19.08, 3.46 |
+| coupler pin on horn | horn r 0.286 and upper rod r 0.117 agree | 20.78, 2.59 |
+| coupler pin on swing side | lower rod r 0.117 | 17.10, −0.80 |
+| rocker axis | both `70710` shoulder screws, r 0.20 | 18.90, −2.98 |
+
+Corrected links: crank **1.910**, coupler **5.003**, rocker **2.827**, ground
+**6.443**. The `+acos` branch reproduces the modelled crank angle (−27.10°) at
+rocker 0, which is the check that the pin estimates are self-consistent.
+28° of swing costs ~41–47° of servo, inside the 0–100 range `motor_config.yaml`
+gives the tunnel magnet.
+
+The general rule: a bbox extreme is a plausible pin location, never a measured
+one. If a link length matters, find the bore.
+
+### `60617-Clamp_Arm_B` is the rod's lower bracket and rides the swing
+
+Hiding it as "clutter" left the push rod ending in mid-air, because the lower
+coupler pin bore sits inside it. It moves rigidly with the magnet swing. The
+visible chain is swing → `60658` force-sensor contact → `60617-Clamp_Arm_B` →
+rod end → spring → rod end → horn.
+
+### The pellet module's two servos, and the step that was missing
+
+- **`60600-Food_Cap` is the barrier**, and it turns about a **vertical** axis at
+  (X −8.63, Z −8.73) — the bore of the `50919` P0025 shaft. Both the servo and
+  the barrier are **frame-mounted**: they translate with the Z frame and take no
+  part in the scoop's rotation. Binding them to the scoop axis made the barrier
+  swing away and vanish mid-cycle.
+- **`60599-Pellet_Spoon_Table` is the scoop**, turning about the X bearing at
+  (Y 14.69, Z −10.84). Its underside plane is already horizontal in the modelled
+  pose, so `load_arm 5` — the owner's "flush, in line with ground" — needs no
+  offset. The M0170 and that bearing are coaxial, so the servo angle is the
+  scoop angle 1:1 and `5 → 114` is a true 109°.
+
+`load_pellet` in `tests/move_config.yaml` ends with `barrier_arm 80` and never
+returns `load_arm`. The rig does return it — that is the `retrieve` predefined
+on `PELLET_LOAD_SERVO` — and **the arm must be back at 5 before the barrier
+closes** or the barrier shuts over a raised arm. Shipped order:
+
+```
+barrier 80->110, x->25, z->22, load_arm 5->114, z->10,
+load_arm->5 (retrieve), barrier 110->80, send
+```
+
+### Colour by what moves, not by material
+
+The owner's call, and it is the right one for a mechanism: **one colour per
+moving object, everything static in one neutral.** It survives the 300 px the
+figure actually displays at, where a materially accurate render of a dark
+machine turns into a single silhouette, and it makes the nesting legible —
+you can see the lift riding the X carriage riding the base.
+
+Shipped palettes: pellet — grey fixed, red X frame, green Y frame, blue Z
+frame, yellow scoop, orange barrier, translucent grey vat, green PCB. Clamp —
+dark static shell, green swing, cyan contact, orange Clamp_Arm_B, yellow rod
+ends, red spring, blue horn, nickel magnets.
+
+Material accuracy is still the right choice for a static or assembly render.
+Keep the part-number table above for those.
+
+### Turn a dominating flat panel edge-on
+
+`30597-PCB Enclosure SM Mount Panel` is a 20 × 12 cm plate normal to X, and at
+az −40 it ate 45% of the wide pellet frame. Its screen width is its Z extent
+projected on the camera's right vector, so a shallower azimuth shrinks it and
+enlarges the mechanism at the same time: az −25 cut the panel by ~30% and grew
+the mechanism by ~18%.
+
+The limit is that the base stage travels along Z, and Z motion projects onto
+the right vector as `−dv_x/|dv_xz|` — 0.64 at az −40, 0.42 at az −25, 0.17 at
+az −10. Below about 20° the traverse stops reading. az −25 is the corner of that
+trade.
+
+### Scroll range: contain, inset at both ends
+
+`animation-range: cover 2% cover 98%` scrubs the opening frames while the figure
+is still below the fold and the closing frames while it is already leaving the
+top — both ends play out of frame. `contain 0% … 100%` is the window where the
+figure is wholly on screen; **`contain 8% … 92%`** is what shipped, inset so the
+first and last frames get a beat of stillness. A `@media (max-height: 45rem)`
+fallback to `cover 32% … 68%` covers viewports too short for `contain` to have
+any range at all.
+
+### Synchronized figures
+
+Two figures play together simply by getting `.is-playing` in the same render
+with the same frame count and duration; `steps(1)` keeps them frame-locked with
+no JS. They need width, though — side by side inside the narrow figure column
+they were 205 px each, so the demo stage moved to its own `grid-column: 1 / -1`
+row under the two-column case body, which gives 428 px each.
 
 ### MCP timeout does not mean the script failed
 
