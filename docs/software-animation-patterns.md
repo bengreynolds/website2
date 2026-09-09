@@ -171,6 +171,56 @@ are two `IntersectionObserver` instances in `App.jsx` — `useStuckHeader`
 (App.jsx:86) condenses the header, and `useSectionSpy` (App.jsx:106) drives
 nav highlighting — and neither one drives motion.
 
+**[read]** The single exception is `useWheelScrub` in `App.jsx`, which owns a
+non-passive `wheel` listener on each `.rig-figure`. It exists because
+precision, not because JS was convenient: a `view()` timeline gives the
+100-frame buildup ~365px of travel, so one notch skipped ~27 frames. The
+listener maps one notch to one frame and calls `preventDefault` only while
+frames remain in the direction being scrolled. Take the shape from it if you
+ever need another: attach per element rather than to the page, gate on
+`(hover: hover) and (pointer: fine)` plus no-reduced-motion, write the number
+to a custom property instead of React state, and always leave a release.
+
+**[read]** The second is the walkthrough timeout in `PipelineDemo.jsx`. A demo
+of software that does not advance itself is a stepper, and CSS cannot swap
+which stage is mounted, so playback is one `setTimeout` cleared on every
+change. Four things make it safe and all four are load-bearing: it never
+auto-starts, Pause exists (WCAG 2.2.2 applies the moment content moves on its
+own), any manual step or rail click cancels it, and it does not run under
+reduced motion at all. The fifth is less obvious — **flip `aria-live` to `off`
+while it plays**. The status line and the counter were already polite live
+regions for manual stepping, and autoplay turned them into seven
+announcements in twenty seconds over whatever the screen reader was saying.
+
+**A demo of software needs a cursor.** Without one the interface changes by
+itself, which reads as a slideshow however good the panels are. The pointer in
+`PipelineDemo.jsx` travels to the control that causes each transition, pulses,
+and only then advances the stage. Three things make it work:
+
+- **Choreograph the argument, not the steps.** Walking the rail seven times is
+  filler. The beats that matter are the ones where the software refuses: at
+  validate the cursor presses Write, the control shakes and nothing happens; at
+  review it presses the same control and the file is written. A stage can
+  return more than one beat, and only the last one advances.
+- **Measure the target when the beat fires**, never up front. The work area
+  resizes between stages, so a position cached at the start of the run lands in
+  the wrong place.
+- **Seed the cursor on the current control before the first move**, or it
+  mounts straight onto its first target with no previous position to
+  transition from and the opening beat teleports.
+
+Concurrency still fits the two-at-once budget, but only because the phases are
+sequential: the playhead runs throughout, the row stagger fires on arrival and
+is done long before the dwell ends, and the pointer starts travelling after
+that. Check that ordering if you lengthen the stagger or shorten the dwell.
+
+**Reuse the progress bar you already have rather than adding a timer bar.**
+The rail's fill is aimed at where the *next* stage begins and given the dwell
+as its transition duration, so it sweeps as a playhead instead of jumping on
+arrival — linear, because an eased playhead misreports the time left. That
+keeps the demo at two concurrent animations. On pause it snaps back to the
+stage actually reached, which is honest: that stage did not finish.
+
 ## 5. Colour, and what the tokens actually mean
 
 **[read]** Three rules, all of which are easy to violate by accident.

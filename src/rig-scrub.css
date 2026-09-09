@@ -1,0 +1,101 @@
+/* Wheel-scrub override for the scroll-scrubbed rig figures.
+
+   NOT generated. Deliberately a separate file: src/rig-buildup.css and
+   src/rig-prosthetic-build.css are written by the sprite build step and carry
+   the grid and keyframes, so nothing here may live in them. This file changes
+   only how far the animation is driven, never what it shows.
+
+   Why this exists. animation-timeline: view() maps progress to the figure's
+   travel through the viewport. For a 549px figure in a 914px viewport the
+   "contain" window is ~365px, so 100 frames scrub in ~3.6px each: one wheel
+   notch jumps ~27 frames and the whole sequence is over in about four notches.
+   There is no declarative way to widen that without also changing how far the
+   page scrolls, so progress moves to the wheel and App.jsx owns the number.
+
+   The switch is [data-scrub="wheel"], which App.jsx sets ONLY after it has
+   confirmed a fine pointer and no reduced-motion preference. Coarse pointers
+   and browsers without animation-timeline keep exactly what they had, so this
+   file is purely additive. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- the default path: scrolling past, no pointer involved ------------
+
+     Measured on the shipped layout: a 649px figure in a 900px viewport gives
+     "contain" 251px of travel, so 100 frames scrub at 2.5px each and one wheel
+     notch jumps ~40 frames — the entire build in about three scrolls, which is
+     what made the phases indistinguishable.
+
+     "cover" spans the figure's whole passage instead, 1549px here, and inset
+     to 22%-78% that is ~870px of travel: about 8.7px per frame, so a notch
+     advances roughly one assembly phase rather than four. Six times the
+     resolution for no layout change and no page-height cost.
+
+     The inset is what keeps the ends honest. Plain cover starts the sequence
+     while the figure is still below the fold; at 22% just over half of it is
+     on screen, which is the point where a frame is worth showing. It also
+     replaces the max-height fallback the generated files carry: cover always
+     has a range, so the short-viewport case that made "contain" degenerate to
+     frame 0 cannot happen here. */
+  .rig-figure[data-figure].is-live {
+    animation-range: cover 22% cover 78%;
+  }
+
+  /* The attribute takes specificity to 0,4,0, above the 0,3,0 of the generated
+     rules, so this wins regardless of import order. */
+  .rig-figure[data-figure].is-live[data-scrub="wheel"] {
+    /* Back to the document timeline. animation-range comes with view() and is
+       ignored once the timeline is auto, so it does not need unsetting. */
+    animation-timeline: auto;
+    animation-duration: var(--scrub-dur);
+
+    /* A paused animation renders the frame at time = -delay, so a delay of
+       -progress x duration is a seek. step-end in the generated keyframes then
+       picks the cell.
+
+       The half-step bias is not cosmetic. App.jsx snaps --scrub to k/steps,
+       which is exactly where keyframe k sits, and step-end resolves a value
+       landing precisely on a boundary to the interval that starts there — so
+       any float error below the stop shows frame k-1 instead. Measured: three
+       notches gave a computed delay of -1.53846s against a stop at
+       1.5384615%, and the figure held frame 2. Seeking half an interval past
+       the stop puts the sample in the middle of frame k's hold, which no
+       rounding at this magnitude can push out of. */
+    animation-delay: calc(
+      (var(--scrub, 0) + 0.5 / var(--scrub-steps, 1)) * var(--scrub-dur) * -1
+    );
+    animation-play-state: paused;
+  }
+}
+
+/* Armed but not engaged: the scroll timeline is still driving, and the figure
+   is offering to hand over. Clickable, so it says so. */
+.rig-figure[data-scrub-armed="1"] {
+  cursor: pointer;
+}
+
+/* The offer is worthless if nobody knows it is there, and the caption is the
+   only place to say it. :has() keeps it truthful - the sentence appears only
+   where the hook actually armed, so a touch device or a reduced-motion
+   visitor is never told to click something that does nothing. */
+.rig-figure-wrap:has(.rig-figure[data-scrub-armed="1"]) .rig-figure-caption::after {
+  content: " Click it to step frame by frame.";
+}
+
+.rig-figure[data-scrub="wheel"] {
+  /* Any finite non-zero value works; it is only ever a denominator for the
+     seek above, never a duration anyone waits through. */
+  --scrub-dur: 100s;
+
+  /* The wheel is doing something other than scrolling the page here, so the
+     panel should not look inert. Cursor only: AGENTS.md reserves --accent for
+     interactive elements, and a lift or glow would fight the calm motion
+     language for something that is really just a hint. */
+  cursor: ns-resize;
+}
+
+/* At either end the wheel belongs to the page again, so stop implying it does
+   not. App.jsx sets this flag on the frames where it releases, which makes the
+   release visible instead of something the visitor has to discover. */
+.rig-figure[data-scrub="wheel"][data-scrub-end="1"] {
+  cursor: default;
+}

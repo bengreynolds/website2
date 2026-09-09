@@ -817,6 +817,15 @@ summary {
   color: var(--accent);
 }
 
+/* The sprite is decoding and the poster is still up, so the control is the
+   only thing that should say so. Cursor and colour, no spinner: the wait is
+   usually zero because hovering the button already started the fetch, and a
+   spinner that flashes for one frame is worse than none. */
+.demo-button[data-warming="1"] {
+  cursor: progress;
+  color: var(--text-subtle);
+}
+
 /* Figure beside the prose rather than stacked on top of it. */
 /* Demos sit in their own row under the two-column block. */
 .case-demos {

@@ -12,11 +12,15 @@ import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
 import "./rig-prosthetic-build.css";
+import "./rig-scrub.css";
 import "./demo-pellet.css";
 import "./demo-pellet-close.css";
 import "./demo-tunnel.css";
 import "./demo-pcb.css";
 import "./demo-prosthetic-function.css";
+import "./demo-lickrevolver-build.css";
+import "./demo-lickrevolver-trial.css";
+import "./demo-lickrevolver-trial-close.css";
 import "./pipeline-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

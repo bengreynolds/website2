@@ -21,6 +21,22 @@
 - Motion is pure CSS: a time-based `.rise` entrance for above-the-fold hero
   content, and a scroll-driven `.reveal` (`animation-timeline: view()`) for
   everything below. No JS gating class, no scroll listeners, no observers.
+- The one exception is the wheel scrub on the `.rig-figure` sprites
+  (`useWheelScrub` in `src/App.jsx`, `src/rig-scrub.css`). `view()` gave a
+  100-frame sequence ~365px of travel — about four wheel notches for the whole
+  build — and no declarative timeline can widen that without also changing how
+  far the page scrolls. One notch is now one frame, with the page held only
+  while frames remain. It stays scoped: one `wheel` listener per figure, fine
+  pointers only, released at both ends. Coarse pointers and reduced motion keep
+  `view()` untouched. Do not generalize it to other motion.
+- The second exception is the pipeline walkthrough's playback timeout
+  (`PipelineDemo.jsx`). A demo of software has to advance itself to read as a
+  walkthrough, and no CSS timeline can swap which stage's rows are mounted.
+  One `setTimeout`, cleared on every change, stopping at the last stage rather
+  than looping. It never auto-starts, it is pausable (WCAG 2.2.2), any manual
+  step cancels it, and under reduced motion it does not run at all — the
+  stepper is then the whole control set. Live regions go `off` while it plays,
+  or a screen reader gets seven announcements in twenty seconds.
 - Never animate opacity on a scroll-driven timeline. The timeline holds an
   element at its start state whenever it cannot advance, so a faded keyframe
   can leave text permanently invisible. Animate transform only.

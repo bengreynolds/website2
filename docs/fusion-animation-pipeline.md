@@ -765,6 +765,18 @@ immediately.
 `view()` timeline holds an element at its start state when it cannot advance, so
 a faded keyframe leaves content permanently invisible.
 
+**On fine pointers the range above is no longer what drives the scrub.**
+`src/rig-scrub.css` swaps the timeline back to `auto` and seeks with a negative
+`animation-delay`, because `contain 8% … 92%` is only ~365px of travel and a
+100-frame sheet scrubbed at ~3.6px per frame — roughly four wheel notches for
+the whole build. `useWheelScrub` in `App.jsx` now maps one notch to one frame.
+Two consequences for a new sheet: the frame count must be added to `siteData.js`
+as `figureFrames` or the mapping has nothing to divide by, and the seek is
+biased half a step past each keyframe stop, since a value landing exactly on a
+`step-end` boundary resolves to the *previous* frame once float rounding is
+involved. The `view()` range still governs coarse pointers and reduced motion,
+so keep it correct.
+
 ### Payload gating
 
 - Whole site for reference: ~168 KB JS + 43 KB CSS. The five sprites are 7.9 MB,
