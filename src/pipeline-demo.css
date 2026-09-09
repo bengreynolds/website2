@@ -4,12 +4,13 @@
    would eventually be overwritten.
 
    No focus styles here - the global :focus-visible rule at spa.css:227
-   already covers these buttons, and `button` is reset at spa.css:220 too,
+   already covers these buttons, and `button` is reset at spa.css:210 too,
    so the node buttons need no font, background, border or cursor reset of
    their own. */
 
 .pipeline {
-  margin: 0;
+  margin-inline: 0;
+  margin-bottom: 0;
   /* Named rather than inlined: AGENTS.md centralizes motion values in CSS
      variables. Lives here rather than spa.css because this plan must not
      modify that file. */
@@ -70,7 +71,7 @@
   transition: color var(--dur-fast) var(--ease);
 }
 
-.pipeline-node-btn:hover {
+.pipeline-node-btn:not([data-state="current"]):hover {
   color: var(--text);
 }
 

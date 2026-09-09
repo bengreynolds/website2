@@ -6,8 +6,9 @@ import { StageView } from "./PipelineViews";
    siteData so filenames and NWB paths stay real, selectable text.
 
    React owns exactly one number - the stage index. Everything visual reads
-   it off data-stage and --progress, so there is no animation state in JS
-   and nothing to keep in sync. */
+   it off --progress, so there is no animation state in JS and nothing to
+   keep in sync. data-stage carries the same number for inspection and
+   debugging; nothing in CSS selects on it. */
 export default function PipelineDemo({ demo }) {
   const stages = demo.stages;
   const last = stages.length - 1;
@@ -17,9 +18,8 @@ export default function PipelineDemo({ demo }) {
 
   return (
     <figure className="pipeline case-demos" data-stage={stage}>
-      {/* --progress is a string, not a number: React appends "px" to some
-          numeric style values, and a unitless scale factor must survive
-          intact. */}
+      {/* A custom property is exempt from React's px coercion, so String()
+          here is insurance rather than load-bearing. */}
       <ol
         className="pipeline-rail"
         style={{ "--progress": String(last === 0 ? 1 : stage / last) }}
@@ -67,7 +67,7 @@ export default function PipelineDemo({ demo }) {
           >
             {atEnd ? "Replay" : "Next stage"}
           </button>
-          <span className="pipeline-count">
+          <span className="pipeline-count" aria-live="polite">
             {stage + 1} / {stages.length}
           </span>
         </div>

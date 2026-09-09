@@ -158,18 +158,19 @@ export const projects = [
         id: "nwb-pipeline",
         label: "Conversion pipeline",
         caption:
-          "One hybrid session, stepped through the way the app runs it. Nine files off a SpikeGLX amplifier, a camera and the lab's own bookkeeping become one validated NWB file. The write stays blocked at validation until two metadata conflicts are resolved on the record.",
+          "One hybrid session, stepped through the way the app runs it. Ten files off a SpikeGLX amplifier, a camera and the lab's own bookkeeping become one validated NWB file. The write stays blocked at validation until two metadata conflicts are resolved on the record.",
         stages: [
           {
             id: "sources",
             label: "Sources",
-            note: "Nine files, two acquisition systems and the lab's own notes, no shared metadata.",
+            note: "Ten files, two acquisition systems and the lab's own notes, no shared metadata.",
             view: {
               type: "list",
               rows: [
                 { name: "run1_g0_t0.imec0.ap.bin", meta: "SpikeGLX · 41.2 GB" },
                 { name: "run1_g0_t0.imec0.ap.meta", meta: "SpikeGLX · 14 KB" },
                 { name: "run1_g0_t0.imec0.lf.bin", meta: "SpikeGLX · 3.4 GB" },
+                { name: "run1_g0_t0.imec0.lf.meta", meta: "SpikeGLX · 14 KB" },
                 { name: "phy_output/", meta: "Phy · 212 MB" },
                 { name: "cam0_2025-03-14.mp4", meta: "Video · 8.9 GB" },
                 {
@@ -192,7 +193,7 @@ export const projects = [
                 {
                   name: "Ecephys",
                   route: "SpikeGLX & Phy",
-                  count: 4,
+                  count: 5,
                   kind: "supported",
                 },
                 {
@@ -248,13 +249,13 @@ export const projects = [
           {
             id: "map",
             label: "Map",
-            note: "A rule-based plan for where each source lands. Seven rows for nine files is right: the two metadata sidecars were consumed at normalize and get no container of their own.",
+            note: "A rule-based plan for where each source lands. Seven rows for ten files is right: the three metadata files were consumed at normalize and get no container of their own.",
             view: {
               type: "mapping",
               rows: [
                 {
                   from: "run1_g0_t0.imec0.ap.bin",
-                  to: "acquisition/ElectricalSeries",
+                  to: "acquisition/ElectricalSeriesAP",
                   note: "SpikeGLX route, NeuroConv",
                 },
                 {
@@ -353,7 +354,7 @@ export const projects = [
                 { name: "validation_report.json", meta: "6 checks · pass" },
                 {
                   name: "provenance.log",
-                  meta: "inspect, normalize, map, assemble",
+                  meta: "inspect, normalize, map, review, assemble",
                 },
               ],
             },
