@@ -291,3 +291,57 @@
     animation-delay: calc(var(--i, 0) * var(--pipeline-stagger));
   }
 }
+
+/* ---- width ----------------------------------------------------------- */
+
+/* 56rem is where .case-body stops being one capped column and becomes a
+   two-column grid with no width cap (spa.css:1117). The existing
+   .case-demos span only applies under .case-body--figure, which this
+   project is not, so the pipeline claims the full width itself - otherwise
+   the rail would sit in one half-width column beside the prose. */
+@media (min-width: 56rem) {
+  .pipeline {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Below that same 56rem the case body is capped at 66ch, about 528px, which
+   gives seven nodes roughly 75px each against about 72px for NORMALIZE.
+   Too close to call, so the rail turns vertical there instead. Pinning the
+   rail's breakpoint to the one the layout already changes at removes the
+   narrow-horizontal band entirely.
+
+   Because the nodes are HTML in a grid rather than SVG text, this is a
+   grid-auto-flow change and the labels wrap on their own - the reason the
+   composition is not an SVG drawing.
+
+   The track and progress rotate with it: same two pseudo-elements, 1px wide
+   instead of 1px tall, scaled on Y instead of X. */
+@media (max-width: 55.99rem) {
+  .pipeline-rail {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    gap: 0;
+    padding: 0 0 0 0.875rem;
+  }
+
+  .pipeline-rail::before,
+  .pipeline-rail::after {
+    top: 0;
+    bottom: auto;
+    width: 1px;
+    height: 100%;
+    transform-origin: center top;
+  }
+
+  .pipeline-rail::after {
+    transform: scaleY(var(--progress, 0));
+  }
+
+  .pipeline-node-btn {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0 0.4rem 0.5rem;
+  }
+}
