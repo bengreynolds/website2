@@ -339,6 +339,27 @@ export const projects = [
       "Assembled its manufacturing release, schematic through pick-and-place data, so the board reorders without its original designer.",
     ],
   },
+  {
+    id: "neonatal-hypoxia-chamber",
+    title: "Neonatal Hypoxia Chamber",
+    category: "hardware",
+    tags: ["hardware"],
+    summary:
+      "A sealed chamber for controlled-atmosphere work on neonatal rodents, with a calibrated oxygen monitor and bench controls designed alongside it.",
+    challenge:
+      "The protocol calls for a descent to 8% oxygen and a timed hold. A chamber that leaks makes the setpoint meaningless, and a reading nobody trusts makes the protocol unverifiable.",
+    approach:
+      "Designed the chamber for sealing first, then built the instrumentation around it: an oxygen sensor with stored calibration, nitrogen and air on face-mount solenoids, a mixing fan, and a display and encoder so the rig is usable with no computer attached.",
+    role: "Designed the chamber and its gas handling, built the monitoring and calibration firmware, and am developing the automated protocol runner.",
+    tools: ["Inventor", "Arduino", "Gas handling", "Sensor calibration"],
+    bullets: [
+      "Sealed the enclosure with an O-ring groove, magnetic latch, and captive panel screws, iterating through internal and external hinge layouts.",
+      "Plumbed nitrogen and air through face-mount solenoids and quick-turn couplings, with a tachometer fan mixing the volume.",
+      "Built a calibrated oxygen readout whose calibration is stored in EEPROM, so it survives a power cycle.",
+      "Put the rig behind an LCD, encoder, and two buttons so a session needs no laptop at the bench.",
+      "In progress: staging the timed descent-and-hold protocol so a run advances without an operator watching the meter.",
+    ],
+  },
 ];
 
 export const contactLinks = [
