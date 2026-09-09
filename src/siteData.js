@@ -479,6 +479,20 @@ export const projects = [
     title: "Prosthetic Sensation Test Bench",
     category: "hardware",
     tags: ["hardware", "automation"],
+    demos: [
+      {
+        id: "prosthetic-build",
+        label: "Assembly",
+        caption:
+          "The bench as it goes together: extruded frame and base sheet, the seesaw's shaft supports with their needle-roller and thrust bearings, then the 3/8 in rotary shaft sliding in axially the way it actually installs, the plank, the transducer and its rubber plunger, the spring-sheet flexure carrying the load cell and the 5 mm dowel, the amplifier, the Arduino and Qwiic scale, and the lid. Stage order follows the assembly's own structure. The top sheet and standing mat are drawn transparent so the mechanism stays readable once the box closes.",
+      },
+      {
+        id: "prosthetic-function",
+        label: "How it works",
+        caption:
+          "How a trial runs. The prosthesis settles onto the dowel, rotating the seesaw 5.9 degrees until the dowel sits flush with the mat and a 4.69 N preload appears at the load cell. The transducer then drives the spring-sheet flexure at 8, 16, 64 and 128 Hz. Colour marks what moves together: the plank, transducer and plunger rock on the shaft, while the force mount, load cell and dowel flex on the spring sheet above them. The trace runs at true signal time, so each frequency shows its real cycle count in the same window, and the on-screen slowdown is printed per segment. Dowel displacement is exaggerated 10x - its true stroke is 0.91 mm peak-to-peak at the loudest amplitude measured on the bench.",
+      },
+    ],
     summary:
       "A calibrated bench delivering controlled haptic stimulation, with load-cell feedback verifying force, timing, and repeatability.",
     challenge:
