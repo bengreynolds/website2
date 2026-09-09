@@ -1,8 +1,9 @@
 # Fusion → website animation pipeline
 
-A playbook for turning `00000-Full_System_Assy-00` (the Auto-trainer rig) into
-scrubbable and button-triggered animations on this site. Ordered as the work
-actually runs, not as it was discovered.
+A playbook for turning `00000-Full_System_Assy-00` (the Auto-trainer rig) and
+`Box_assembly` (the Prosthetic_vib seesaw rig) into scrubbable and
+button-triggered animations on this site. Ordered as the work actually runs, not
+as it was discovered.
 
 Everything here was verified against the live model through the Fusion MCP
 connector. Where a number appears, it was measured.
@@ -19,7 +20,7 @@ in this file came from doing one of these out of sequence, or skipping step 7.
 
 | # | Step | The rule in one line |
 |---|---|---|
-| 1 | Snapshot | Write transforms and visibility to JSON in its own call, before anything moves. |
+| 1 | Snapshot | Write transforms, visibility and the camera to JSON in its own call, before anything moves. |
 | 2 | Know the model | Y is up, there are no joints, and nothing renders until every ancestor's bulb is on. |
 | 3 | Find the mechanism | Read cylindrical faces and pin bores. Never infer an axis from a name or a bounding box. |
 | 4 | Define the motion | Get the nesting from the machine, the order from its config, and the signs from the owner. |
@@ -41,12 +42,16 @@ The capture scripts move real geometry in the owner's open document.
    own MCP call so the file exists even if a later capture crashes.
 2. If the run will change appearances, snapshot those too — occurrence-level
    `appearance.name` for all occurrences is cheap (684 reads, no crash) and is
-   enough to restore from.
-3. Capture.
-4. Restore and **verify with numbers**, not assumption: report worst transform
+   enough to restore from. Record **body-level** names as well if the run will
+   write bodies; an occurrence-level restore cannot put a body override back.
+3. **Snapshot `viewport.camera`.** `save_state.py` does not, so the owner's view
+   cannot be returned. The prosthetic run left its capture camera behind and had
+   to ask the owner to press Home.
+4. Capture.
+5. Restore and **verify with numbers**, not assumption: report worst transform
    residual, visibility mismatches, appearance mismatches. Every session in
    this file ended at `residual 0.0 | vis 0 | appearance 0`.
-5. **Never save the document.** Fusion still flags it modified; that is expected
+6. **Never save the document.** Fusion still flags it modified; that is expected
    and the content is identical.
 
 State files land in the user's home directory: `fusion_orig_transforms.json`,
@@ -74,12 +79,22 @@ second.
 
 | Property | Value |
 |---|---|
-| `designType` | `1` = **Direct** (non-parametric) |
+| `designType` | `1` = **Parametric** (`DirectDesignType` is `0`) |
 | **Joints in design** | **0** |
 | Top-level occurrences | 31 |
 | Total occurrences | 684 |
 | **Vertical axis** | **Y** |
 | Overall extents | ~42.5 (X) × 36.1 (Y) × 62.4 (Z) cm |
+
+> **An earlier version of this table read `1` = Direct.** It is backwards:
+> `adsk.fusion.DesignTypes.DirectDesignType` is `0` and `ParametricDesignType`
+> is `1`. Both rigs are parametric with real timelines (`Box_assembly` has 314
+> entries). It matters in one place: adding BRep bodies needs
+> `component.features.baseFeatures.add()` plus `startEdit`/`finishEdit`, or
+> `bRepBodies.add` raises "A valid targetBaseFeature is required". Writing
+> `occurrence.transform2` still adds **no** timeline entries — verified across a
+> 121-frame run, timeline 314 before and after — so the conclusion below holds
+> even though the label was wrong.
 
 **Zero joints cuts both ways.** Good: no constraint solver to fight,
 `occurrence.transform2` can be set freely, and round-trips are exact (a 10 cm
@@ -153,6 +168,17 @@ screenshot.
 
 - `occurrence.transform2` is the one to use. JSON round-trip via `.asArray()`
   and `Matrix3D.setWithArray()`.
+- **A sub-assembly's children can only be moved through a root-context proxy.**
+  Setting `transform2` on a raw child raises "transform overrides can only be
+  set on Occurrence proxy from root component". Get the proxy with
+  `child.createForAssemblyContext(top_occ)`, and note that the proxy's
+  `transform2` is already in **root space** (verified: `proxy == S * raw`), so a
+  root-space rotation needs no conjugation into the sub-assembly frame. Reading
+  geometry off raw children instead invents a phantom tilt whenever the
+  sub-assembly carries a placement transform — `seesaw_assem` carries a flipped
+  one, and it produced a convincing but entirely fictional 2.2 degrees.
+- **`Appearances.itemByName` raises `RuntimeError: invalid name` on a miss**
+  rather than returning None. Iterate and compare `.name`, or wrap the call.
 - `Matrix3D.transformBy(m)` composes as `this = m * this`, so **call order is
   application order**. For a part that rotates about its own axis and then rides
   a stage, call the local rotation first, then the outer one, then add the
@@ -165,7 +191,11 @@ screenshot.
 - `Camera.isFitView = False` during the loop, and re-apply the same locked
   camera object each frame. Never call `fit()` inside the loop.
 - `visualStyle = ShadedWithVisibleEdgesOnlyVisualStyle`. Black edge lines are
-  what separate same-coloured parts.
+  what separate same-coloured parts — **except where T-slot extrusion
+  dominates.** The prosthetic box has eight 80/20 posts whose dense profile
+  edges collapse into solid black bars at 300 px, taking dark pixels from 66% to
+  75% and reading as black plastic rather than aluminium. That capture uses
+  plain `ShadedVisualStyle`. Compare both at display size before choosing.
 - MCP `execute` scripts must define `def run(_context: str)`. **Do not catch
   exceptions** — the traceback is the only debugging signal.
 
@@ -507,6 +537,19 @@ inside it at the one moment the animation exists to show, and **no camera angle
 sees in**. Drawing the enclosing vessel translucent is a standard
 technical-illustration convention; it is honest because the caption says so.
 
+**That appearance does not actually render translucent.** Measured on the
+prosthetic box, whose 24 × 24 in lid and rubber mat hide the entire mechanism:
+every `Plastic - Translucent *` variant, Matte and Glossy alike, renders **fully
+opaque** in the shaded viewport, at both `ShadedVisualStyle` and
+`ShadedWithVisibleEdgesOnlyVisualStyle`. What does render transparent is the
+true glass family — `Glass (Clear)`, **`Acrylic (Clear)`** (adopted for the
+prosthetic lid) and `Polycarbonate (Clear)`. `Glass - Window` is transparent but
+tints the whole frame teal.
+
+So **check the shipped pellet vat: it is probably opaque.** This is a render
+comparison, not an inference from a screenshot — the Acrylic frames show the
+Buttkicker and flexure beam through the lid, the Matte ones show a grey slab.
+
 ### What the shaded viewport actually honours
 
 - **Editing an appearance's colour does nothing.** Copying `Plastic - Matte
@@ -608,6 +651,8 @@ is unambiguous. **GPU texture limit is 16384 px** on the long edge.
 | pellet-close | 81 | 9×9 | 540 | 4860² | 1.43 MB | 4.2 s |
 | tunnel | 64 | 8×8 | 520 | 4160² | 839 KB | 3.6 s |
 | pcb | 64 | 8×8 | 520 | 4160² | 1.1 MB | 3.6 s |
+| prosthetic-build | 100 | 10×10 | 660 | 6600² | 1.82 MB | 6.0 s |
+| prosthetic-function | 121 | 11×11 | 540 | 5940² | 1.08 MB | 6.0 s |
 
 **Ship the uncropped square render canvas.** Cropping frames to a union alpha
 bbox produced a 614 × 618 cell against a declared `aspect-ratio: 1/1`; a few
