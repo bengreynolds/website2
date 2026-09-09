@@ -183,8 +183,9 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
             <figure className="rig-figure-wrap">
               <div
                 className={`rig-figure ${figureLive ? "is-live" : ""}`}
+                data-figure={project.figure}
                 role="img"
-                aria-label="Assembly sequence of the training rig, built up from bare corner legs through horizontal bars, platform rails, the cage, tunnel, pellet delivery, camera and Jetson modules, then the floor, side panels, doors and panel connectors."
+                aria-label={project.figureLabel}
               />
               <figcaption className="rig-figure-caption">
                 Full assembly sequence. Scroll to build.

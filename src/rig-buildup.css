@@ -2,7 +2,7 @@
    100 frames, 10x10 grid, cell 660x660 (square: uncropped canvas).
    .rig-figure must keep aspect-ratio 1/1 to match the cell.
    step-end holds each frame until the next keyframe. */
-.rig-figure.is-live {
+.rig-figure[data-figure="buildup"].is-live {
   background-size: 1000% 1000%; /* 10 columns x 10 rows */
 }
 

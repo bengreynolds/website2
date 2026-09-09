@@ -11,11 +11,11 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
+import "./rig-prosthetic-build.css";
 import "./demo-pellet.css";
 import "./demo-pellet-close.css";
 import "./demo-tunnel.css";
 import "./demo-pcb.css";
-import "./demo-prosthetic-build.css";
 import "./demo-prosthetic-function.css";
 import "./pipeline-demo.css";
 
