@@ -50,6 +50,19 @@ photoreal render *is* the content.
 **Live DOM** — HTML nodes rendered from data, animated with CSS. Right for a
 workflow, an architecture, a data flow.
 
+**[read] There is a third kind, and it beats both when the subject is your
+own software: a captured frame.** The NWB Forge walkthrough is six
+screenshots of the real desktop application driven through one conversion,
+paired with the numbers read off that run. It replaced a live-DOM demo that
+rebuilt the app's interface in the browser from invented data - a decent
+diagram, and poor evidence. A rebuild can only ever assert that the software
+refuses to write; a capture shows it. Reach for this when the artefact is
+proof that a thing exists and works, and for the two below when it is an
+explanation of how something behaves. Do not sprite a captured UI: the
+frames are 1400px because the interface has to survive being scaled, and a
+520px sprite cell would make it unreadable, which is the same trap rule 1
+guards against.
+
 **The test: does the thing have text in it?** A 520px sprite cell cannot hold
 a readable filename, a sprite adds roughly half a megabyte, and every copy
 edit means a re-capture. If the demo's content is labels, filenames, field

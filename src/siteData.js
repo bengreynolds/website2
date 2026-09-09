@@ -151,335 +151,106 @@ export const projects = [
     ],
     demos: [
       {
-        /* The software counterpart to the rig's sprite demos. A demo with no
-           kind is a sprite, which is why the three rig entries need no
-           change; this one has to say what it is. */
-        kind: "pipeline",
-        id: "nwb-pipeline",
-        label: "Conversion pipeline",
-        /* Window chrome for the walkthrough. Both are taken from the run
-           itself - the app stamps "nwbforge:2025-03-14_M241_run1" as the
-           identifier at normalize - rather than invented for the demo. */
+        /* Not a mock. Every frame is a screenshot of the real desktop app
+           driven through one conversion end to end, and every number beside
+           it was read off that run - including the nine conflicts it actually
+           found and the 197,056 bytes it actually wrote. The session is the
+           small checked-in hybrid example, so the figures are modest; they are
+           real, which the invented ones that used to sit here were not. */
+        kind: "walkthrough",
+        id: "nwbforge-walkthrough",
+        label: "Conversion walkthrough",
         app: "NWB Forge",
-        session: "2025-03-14 · M241 · run1",
-        /* How long a stage sits still and readable before the pointer starts
-           moving. The full cycle is this plus the pointer's travel and click,
-           so ~3.6s here lands each stage near five seconds and the whole run
-           around half a minute - a walkthrough you can actually read, rather
-           than a slideshow that outruns you. */
-        dwell: 3600,
+        session: "example-hybrid-01 · hybrid pathway · 2 sources",
+        dwell: 4600,
         caption:
-          "One hybrid session, stepped through the way the app runs it. Ten files off a SpikeGLX amplifier, a camera and the lab's own bookkeeping become one validated NWB file. The write stays blocked at validation until two metadata conflicts are resolved on the record.",
-        stages: [
+          "One hybrid session converted in the real application: a manifest-backed supported source and a custom source, normalised against one canonical key set, validated, and written to NWB with its evidence beside it. The write is gated - nothing reaches disk until the pre-write checklist clears.",
+        steps: [
           {
-            id: "sources",
-            label: "Sources",
-            status: "Scanning session · 10 files · 2 KB to 41.2 GB",
-            note: "Ten files, two acquisition systems and the lab's own notes, no shared metadata.",
-            /* Not a plain list: the point of this stage is that the inputs
-               have nothing in common, and a flat list of ten filenames hides
-               both halves of that. Size is the loudest part - 41.2 GB and
-               2 KB are the same number of characters as text - so bytes is a
-               number the renderer can draw, and provenance is a real grouping
-               rather than a prefix inside a string. */
-            view: {
-              type: "sources",
-              groups: [
-                { id: "spikeglx", label: "SpikeGLX", kind: "acquisition" },
-                { id: "camera", label: "Camera rig", kind: "acquisition" },
-                { id: "derived", label: "Derived", kind: "derived" },
-                { id: "records", label: "Lab records", kind: "records" },
-              ],
-              rows: [
-                {
-                  name: "run1_g0_t0.imec0.ap.bin",
-                  group: "spikeglx",
-                  size: "41.2 GB",
-                  bytes: 41200000000,
-                },
-                {
-                  name: "run1_g0_t0.imec0.ap.meta",
-                  group: "spikeglx",
-                  size: "14 KB",
-                  bytes: 14000,
-                },
-                {
-                  name: "run1_g0_t0.imec0.lf.bin",
-                  group: "spikeglx",
-                  size: "3.4 GB",
-                  bytes: 3400000000,
-                },
-                {
-                  name: "run1_g0_t0.imec0.lf.meta",
-                  group: "spikeglx",
-                  size: "14 KB",
-                  bytes: 14000,
-                },
-                {
-                  name: "cam0_2025-03-14.mp4",
-                  group: "camera",
-                  source: "Video",
-                  size: "8.9 GB",
-                  bytes: 8900000000,
-                },
-                {
-                  name: "phy_output/",
-                  group: "derived",
-                  source: "Phy",
-                  size: "212 MB",
-                  bytes: 212000000,
-                },
-                {
-                  name: "cam0DLC_resnet50_reachMar14.h5",
-                  group: "derived",
-                  source: "DeepLabCut",
-                  size: "47 MB",
-                  bytes: 47000000,
-                },
-                {
-                  name: "trials_run1.csv",
-                  group: "records",
-                  source: "Tabular",
-                  size: "62 KB",
-                  bytes: 62000,
-                },
-                {
-                  name: "notes_run1.txt",
-                  group: "records",
-                  source: "Free text",
-                  size: "2 KB",
-                  bytes: 2000,
-                },
-                {
-                  name: "rig_config.yaml",
-                  group: "records",
-                  source: "Config",
-                  size: "6 KB",
-                  bytes: 6000,
-                },
-              ],
-            },
+            id: "ingest",
+            label: "Ingest",
+            shot: "/app/nwbforge-ingest.webp",
+            alt: "NWB Forge conversion screen with the hybrid session loaded and readiness blocked.",
+            headline: "Session loaded, write blocked",
+            note: "Two sources arrive with nothing in common. The app will not write anything yet, and says exactly which gates are open rather than greying a button out silently.",
+            facts: [
+              { label: "Stage", value: "draft" },
+              { label: "Validation", value: "not available" },
+              { label: "Artifacts", value: "0" },
+              { label: "Readiness", value: "Blocked", state: "blocked" },
+            ],
           },
           {
-            id: "group",
-            label: "Group",
-            status: "3 datasets proposed · 2 supported routes, 1 custom",
-            note: "Heuristic grouping proposes three datasets and suggests a pathway. Supported and custom routes in one session is what makes this session hybrid.",
-            view: {
-              type: "groups",
-              rows: [
-                {
-                  name: "Ecephys",
-                  route: "SpikeGLX & Phy",
-                  count: 5,
-                  kind: "supported",
-                },
-                {
-                  name: "Behavior",
-                  route: "DeepLabCut, Video",
-                  count: 2,
-                  kind: "supported",
-                },
-                {
-                  name: "Trials & rig",
-                  route: "Custom mapping",
-                  count: 3,
-                  kind: "custom",
-                },
-              ],
-            },
+            id: "output",
+            label: "Output",
+            shot: "/app/nwbforge-output.webp",
+            alt: "The output path field filled in, with the output checklist row switched to done.",
+            headline: "One gate clears",
+            note: "Naming the destination flips a single checklist row. Preview and metadata review are still outstanding, so the write stays disabled - and the disabled label stays readable, which it was not before this pass.",
+            facts: [
+              { label: "Checklist", value: "2 of 4 done" },
+              { label: "Session loaded", value: "done", state: "done" },
+              { label: "Output path", value: "done", state: "done" },
+              { label: "Write", value: "still disabled", state: "blocked" },
+            ],
           },
           {
-            id: "normalize",
-            label: "Normalize",
-            status: "Metadata extracted · 2 fields disagree across sources",
-            note: "Metadata is extracted per source and standardized. Two fields disagree across sources, which is the whole reason a review gate exists.",
-            view: {
-              type: "status",
-              rows: [
-                {
-                  label: "identifier",
-                  value: "nwbforge:2025-03-14_M241_run1",
-                  state: "ok",
-                },
-                {
-                  label: "session_description",
-                  value: "Reach-to-grasp, run 1",
-                  state: "ok",
-                },
-                {
-                  label: "devices",
-                  value: "Neuropixels 1.0, cam0",
-                  state: "ok",
-                },
-                {
-                  label: "session_start_time",
-                  value: "2 sources disagree",
-                  state: "conflict",
-                },
-                {
-                  label: "subject_id",
-                  value: "2 sources disagree",
-                  state: "conflict",
-                },
-              ],
-            },
+            id: "preview",
+            label: "Preview",
+            shot: "/app/nwbforge-preview.webp",
+            alt: "After building the preview: stage review, nine metadata conflicts, readiness needs review.",
+            headline: "Nine disagreements found",
+            note: "Building the preview is where the work happens. Both sources are read, their metadata normalised onto one canonical key set, and every field where the two disagree is surfaced. Nine did.",
+            facts: [
+              { label: "Stage", value: "draft → review" },
+              { label: "Conflicts found", value: "9", state: "review" },
+              { label: "Sources compared", value: "2" },
+              { label: "Readiness", value: "Needs Review", state: "review" },
+            ],
           },
           {
-            id: "map",
-            label: "Map",
-            status: "7 containers planned · 3 metadata files consumed",
-            note: "A rule-based plan for where each source lands. Seven rows for ten files is right: the three metadata files were consumed at normalize and get no container of their own.",
-            view: {
-              type: "mapping",
-              rows: [
-                {
-                  from: "run1_g0_t0.imec0.ap.bin",
-                  to: "acquisition/ElectricalSeriesAP",
-                  note: "SpikeGLX route, NeuroConv",
-                },
-                {
-                  from: "run1_g0_t0.imec0.lf.bin",
-                  to: "acquisition/ElectricalSeriesLF",
-                  note: "NeuroConv",
-                },
-                { from: "phy_output/", to: "units", note: "Phy route" },
-                {
-                  from: "cam0_2025-03-14.mp4",
-                  to: "acquisition/ImageSeries",
-                  note: "external file, not copied",
-                },
-                {
-                  from: "cam0DLC_resnet50_reachMar14.h5",
-                  to: "processing/behavior/PoseEstimation",
-                  note: "DeepLabCut route",
-                },
-                {
-                  from: "trials_run1.csv",
-                  to: "intervals/trials",
-                  note: "start_s to start_time, stop_s to stop_time, outcome to success",
-                },
-                {
-                  from: "rig_config.yaml",
-                  to: "general/devices",
-                  note: "custom mapping",
-                },
-              ],
-            },
-          },
-          {
-            id: "validate",
-            label: "Validate",
-            status: "Blocked · 4 checks pass, 1 review, 1 conflict",
-            note: "Artifact policy, schema and NWB Inspector run before anything is written. Outcome: blocked. Nothing is written.",
-            view: {
-              type: "status",
-              rows: [
-                {
-                  label: "Artifact policy",
-                  value: "3 artifacts planned",
-                  state: "pass",
-                },
-                { label: "NWB schema 2.7.0", value: "conforms", state: "pass" },
-                {
-                  label: "check_timestamps_ascending",
-                  value: "ok",
-                  state: "pass",
-                },
-                { label: "check_data_orientation", value: "ok", state: "pass" },
-                {
-                  label: "check_subject_species_exists",
-                  value: "subject.species not supplied",
-                  state: "review",
-                },
-                {
-                  label: "session_start_time",
-                  value: "unresolved across 2 sources",
-                  state: "blocked",
-                },
-              ],
-            },
-          },
-          {
-            id: "review",
+            id: "conflicts",
             label: "Review",
-            status: "2 conflicts resolved · decisions persisted",
-            note: "The gate. A person resolves each conflict, the species check is acknowledged, and both decisions are persisted to the session snapshot. Outcome clears to pass.",
-            view: {
-              type: "conflicts",
-              rows: [
-                {
-                  field: "session_start_time",
-                  a: "2025-03-14T09:12:04-06:00 — run1_g0_t0.imec0.ap.meta",
-                  b: "2025-03-14T09:12:41-06:00 — cam0_2025-03-14.mp4",
-                  chosen: "09:12:04-06:00",
-                  why: "The amplifier clock starts the session; the camera start is kept as an offset on the ImageSeries rather than discarded.",
-                },
-                {
-                  field: "subject_id",
-                  a: "M241 — rig_config.yaml",
-                  b: "m-241 — notes_run1.txt",
-                  chosen: "M241",
-                  why: "Matches the colony registry format; the note spelling is recorded as an alias so the original is not lost.",
-                },
-              ],
-            },
+            shot: "/app/nwbforge-conflicts.webp",
+            alt: "The metadata review tab listing nine pending conflicts with the selected item's detail.",
+            headline: "Every conflict is on the record",
+            note: "Each one names the canonical key, the value that won, and the adapter that produced it - annotations.operator_note resolved from adapter_extracted - with the recommended action stated rather than implied.",
+            facts: [
+              { label: "Conflicts", value: "9" },
+              { label: "Pending review", value: "9", state: "review" },
+              { label: "Resolved", value: "0" },
+              { label: "Overrides applied", value: "0 session, 0 source" },
+            ],
           },
           {
-            id: "assemble",
-            label: "Assemble",
-            status: "session.nwb written · NWB 2.7.0 · 6 checks pass",
-            note: "PyNWB writes the file, and the evidence is written beside it.",
-            view: {
-              type: "list",
-              rows: [
-                { name: "session.nwb", meta: "NWB 2.7.0 · 45.1 GB" },
-                { name: "validation_report.json", meta: "6 checks · pass" },
-                {
-                  name: "provenance.log",
-                  meta: "inspect, normalize, map, review, assemble",
-                },
-              ],
-            },
+            id: "written",
+            label: "Write",
+            shot: "/app/nwbforge-written.webp",
+            alt: "Conversion completed: stage completed, zero validation issues, two artifacts.",
+            headline: "Written and validated in one run",
+            note: "PyNWB writes the file and NWB Inspector validates it in the same pass, so the file and the verdict on it are produced together rather than one being trusted about the other.",
+            facts: [
+              { label: "Stage", value: "completed", state: "done" },
+              { label: "Validation", value: "0 errors, 0 warnings", state: "done" },
+              { label: "Written", value: "197,056 bytes" },
+              { label: "Readiness", value: "Completed", state: "done" },
+            ],
+          },
+          {
+            id: "artifacts",
+            label: "Evidence",
+            shot: "/app/nwbforge-artifacts.webp",
+            alt: "The artifacts tab listing the written NWB file and its validation report.",
+            headline: "The evidence ships with the file",
+            note: "The validation report is written beside the NWB, so a reviewer can audit the conversion later instead of taking it on trust. That is the whole argument for the tool.",
+            facts: [
+              { label: "Artifacts", value: "2", state: "done" },
+              { label: "nwb", value: "example-hybrid-01.nwb" },
+              { label: "validation_report", value: "validation-report.json" },
+              { label: "Auditable", value: "yes", state: "done" },
+            ],
           },
         ],
-      },
-    ],
-  },
-  {
-    id: "automated-multicamera-training-control-system",
-    title: "Autonomous Behavioral Training Rig",
-    category: "automation",
-    tags: ["automation", "hardware", "data", "software"],
-    featured: true,
-    figure: "buildup",
-    /* Frame count of the generated sprite, used to map wheel notches to
-       frames. Must match the grid in src/rig-buildup.css. */
-    figureFrames: 100,
-    figureLabel:
-      "Assembly sequence of the training rig, built up from bare corner legs through horizontal bars, platform rails, the cage, tunnel, pellet delivery, camera and Jetson modules, then the floor, side panels, doors and panel connectors.",
-    demos: [
-      {
-        id: "pellet",
-        /* Two figures, one button, played together: the module as installed
-           and the same cycle close on the mechanism. Both sprites are 81
-           frames over the same duration, so they stay frame-locked. */
-        ids: ["pellet", "pellet-close"],
-        label: "Pellet delivery",
-        caption:
-          "One load-and-send cycle, in context and close up at the same time. Order and servo angles come from the rig's own move_config: barrier out, traverse, drop, scoop through 109°, lift, arm back to flush, barrier closed over the pellet, send. Colour marks what moves together — the lift rides the X carriage, which rides the base — and the vat is drawn translucent so the scoop stays visible inside it.",
-      },
-      {
-        id: "tunnel",
-        label: "Head-fix clamp",
-        caption:
-          "Releasing and re-engaging the head clamp, 28° off the shoulder-screw axis. Servo horn, push rod, spring and swing are solved as the four-bar they are, off pivots measured from the pin bores. Each part that moves carries its own colour.",
-      },
-      {
-        id: "pcb",
-        label: "Control board",
-        caption:
-          "The board that drives the pellet module, called out group by group across its layout. Six motor and CAN connectors, then the drive and sensing hardware.",
       },
     ],
     summary:
