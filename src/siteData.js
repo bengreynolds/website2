@@ -225,57 +225,40 @@ export const projects = [
     tags: ["data", "software"],
     featured: true,
     summary:
-      "GUI and command-line tools that turn raw reach-to-grasp recordings into results comparable across sessions.",
+      "A headless analysis engine folded into ReachX, so intersession and intrasession results come out of the same app that curates the reaches.",
     challenge:
-      "Raw recordings needed to become consistent outputs that could be compared across sessions, reviewed by researchers, and reused downstream.",
+      "Analysis lived in its own toolkit, apart from the app researchers curated in. Comparing sessions meant exporting from one program and reloading into another, and each figure was rebuilt by hand rather than rerun.",
     approach:
-      "Built GUI and CLI workflows for processing, aggregation, structured export, and NWB-compatible handling where standardized interchange was required.",
-    role: "Developed the processing workflow, multi-session aggregation, interface, and export structure.",
-    tools: ["Python", "Desktop GUI", "Command line", "Structured export"],
+      "Rebuilt analysis as a Qt-free backend inside ReachX on the development branch: stable request and result contracts, cancelable background tasks, and a thin interface layer over them. Nothing in the compute path imports a widget.",
+    role: "Designed the analysis backend, the session-selection and metric model, and the intersession workflow.",
+    tools: ["Python", "PySide6", "pyqtgraph", "NumPy"],
     bullets: [
-      "Supported interactive and headless processing.",
-      "Aggregated results across multiple recording sessions.",
-      "Standardized exports for downstream review and reuse.",
-      "Separated operator workflows from reusable processing logic.",
+      "Kept widgets out of the compute path so the analysis runs headless.",
+      "Compared session summaries across mice, dates, rigs, and named condition groups.",
+      "Added an intrasession mode for reach-level distributions inside a single session.",
+      "Covered training progression, outcome composition, reach timing, and kinematics.",
+      "Ran calculations as cancelable background tasks and saved reusable analysis workspaces.",
     ],
   },
   {
     id: "application-deployment-support-toolkit",
     title: "Research Application Deployment and Support Toolkit",
     category: "software",
-    tags: ["software", "automation"],
+    tags: ["software", "hardware", "automation"],
     summary:
-      "Installers, updaters, and recovery tools that let non-developers run internal research software without setup help.",
+      "One repository behind the lab's research software: install and update, camera alignment and recovery, model conversion, and git activity logging.",
     challenge:
-      "A growing internal software portfolio had to be installable, updateable, and supportable without repeated manual configuration.",
+      "A growing internal portfolio had to be installable, updateable, and supportable without a developer present, and the utilities that kept sessions usable were scattered as isolated scripts.",
     approach:
-      "Combined environment-aware installers, update flows, launch checks, and support utilities into a consistent deployment toolkit.",
-    role: "Owned release packaging, environment management, launch behavior, and support tooling.",
-    tools: ["Python", "PyInstaller", "Conda", "Git"],
+      "Structured the utilities as submodules of a single toolkit on one shared environment. Each installs and runs on its own, but they are released, launched, and documented together.",
+    role: "Owned release packaging, environment management, launch behavior, and the operator-facing utilities.",
+    tools: ["Python", "PySide6", "Conda", "Rust", "PowerShell"],
     bullets: [
-      "Built installer, updater, and launcher workflows.",
-      "Added environment checks and recoverable startup behavior.",
-      "Standardized release and support patterns across applications.",
-    ],
-  },
-  {
-    id: "multicamera-alignment-data-recovery-tool",
-    title: "Multi-Camera Alignment and Recording Recovery Tool",
-    category: "software",
-    tags: ["software", "hardware", "data"],
-    summary:
-      "A utility that catches timing mismatches between paired camera recordings and previews fixes before touching the originals.",
-    challenge:
-      "Camera alignment problems had to be corrected without hiding dropped frames, overwriting source files, or introducing new timing errors.",
-    approach:
-      "Implemented visual previews, dry-run mode, backup and undo, mismatch detection, and post-process verification.",
-    role: "Designed the operator-facing correction, recovery, and validation workflow.",
-    tools: ["Python", "OpenCV", "Desktop GUI", "File validation"],
-    bullets: [
-      "Previewed proposed alignment changes before writing files.",
-      "Added dry-run, backup, undo, and post-process verification.",
-      "Detected frame-count mismatches and stopped unsafe corrections.",
-      "Kept source recordings recoverable throughout processing.",
+      "Installer: Windows launcher, updater, and desktop shortcuts that manage the application environment for non-developers.",
+      "Camera alignment: previews compensated frames beside the originals, then applies the fix under dry-run, backup, and undo.",
+      "Recording recovery: detects frame-count mismatches, stops unsafe corrections, verifies paired output, and regenerates tracking artifacts from legacy folders.",
+      "Model conversion: GUI and command-line conversion of pose-estimation models between the analysis app and DeepLabCut formats.",
+      "Git monitor: a hook-based command logger that keeps a shared record of repository activity across machines.",
     ],
   },
   {
