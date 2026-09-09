@@ -513,6 +513,27 @@ export const projects = [
       "Framed the serial link so the interface and the board both recover from a partial message.",
     ],
   },
+  {
+    id: "lick-port-reward-hardware",
+    title: "Lick Port and Reward Delivery Hardware",
+    category: "hardware",
+    tags: ["hardware"],
+    summary:
+      "The reward port and detection hardware behind lick-based behavior rigs: an operant box designed to a colleague's protocol, and a build package that made an existing detection board deployable.",
+    challenge:
+      "Lick experiments depended on hardware that either did not exist yet or existed only as a bare circuit, so every new rig meant re-solving the same port geometry and packaging problems.",
+    approach:
+      "Designed the behavior box and reward port in Inventor around another researcher's protocol. Separately, took an existing dual-comparator detection circuit from bare board to deployable unit with an enclosure and a complete manufacturing release.",
+    role: "Designed the behavior box and reward port for a colleague's experiment. On the detection board, which I did not design, I built the enclosure and the manufacturing release and integrated it into rigs.",
+    tools: ["Inventor", "Fabrication release", "Electronics integration"],
+    bullets: [
+      "Designed a panel-built operant box with machined and PVC variants for different housing needs.",
+      "Drew the nose cone, spout clamp, dropper, and electronics mount as one reward-port assembly.",
+      "Released laser and waterjet files so panels and endplates could be cut to order.",
+      "Packaged the inherited detection board into an extruded aluminium enclosure with custom end plates and bezel.",
+      "Assembled its manufacturing release, schematic through pick-and-place data, so the board reorders without its original designer.",
+    ],
+  },
 ];
 
 export const contactLinks = [
