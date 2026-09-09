@@ -117,3 +117,140 @@
 .pipeline-count {
   align-self: center;
 }
+
+/* ---- rows ----------------------------------------------------------- */
+
+.pipeline-rows {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-row {
+  display: grid;
+  gap: 0.15rem 0.75rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--step--1);
+}
+
+.pipeline-row:first-child,
+.pipeline-conflict:first-child {
+  border-top: 0;
+}
+
+.pipeline-row-name,
+.pipeline-row-target,
+.pipeline-row-arrow {
+  font-family: var(--font-mono);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.pipeline-row-arrow,
+.pipeline-row-meta,
+.pipeline-row-count {
+  color: var(--text-subtle);
+}
+
+.pipeline-row-meta,
+.pipeline-row-count {
+  font-size: 0.75rem;
+  line-height: var(--lh-snug);
+}
+
+/* Single column below 34rem - the rows stack and every label wraps on its
+   own, which is the whole reason these are HTML nodes and not SVG text. */
+@media (min-width: 34rem) {
+  .pipeline-rows--list .pipeline-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pipeline-rows--status .pipeline-row {
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr) auto;
+  }
+
+  .pipeline-rows--groups .pipeline-row {
+    grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) auto auto;
+  }
+
+  .pipeline-rows--mapping .pipeline-row {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  /* The note is a third piece of information, not a fourth column: give it
+     its own line under the pair it annotates. */
+  .pipeline-rows--mapping .pipeline-row-meta {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Five semantic states, three treatments. ok/pass settle, review sits
+   between, conflict/blocked alert. Distinguished by border strength and
+   weight rather than hue, which keeps them legible in both themes and
+   survives colour blindness.
+
+   None of them may use --accent: AGENTS.md reserves it for interactive
+   things and a state label is static text. */
+.pipeline-chip {
+  justify-self: start;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-subtle);
+}
+
+.pipeline-chip[data-state="review"] {
+  border-color: var(--rule-strong);
+  color: var(--text-muted);
+}
+
+.pipeline-chip[data-state="conflict"],
+.pipeline-chip[data-state="blocked"],
+.pipeline-chip[data-state="custom"] {
+  border-color: var(--text);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---- conflicts ------------------------------------------------------ */
+
+.pipeline-conflict {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--step--1);
+}
+
+.pipeline-conflict-side,
+.pipeline-conflict-kept {
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  overflow-wrap: anywhere;
+}
+
+/* The kept value is the outcome of the gate, so it gets the strong rule -
+   the same weight the blocked chip uses, for the same reason. */
+.pipeline-conflict-kept {
+  border-left-color: var(--text);
+  color: var(--text);
+}
+
+.pipeline-conflict-why {
+  margin: 0.15rem 0 0;
+  max-width: 62ch;
+  color: var(--text-muted);
+  line-height: var(--lh-body);
+}
