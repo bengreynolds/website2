@@ -2,24 +2,33 @@
 
    The clip is on the outer box and the movement is on the track, so the
    faces themselves are never transformed and their text stays on the
-   pixel grid. line-height is fixed rather than inherited: the translate is
-   exactly 50% of a two-face track, which is only exactly one line if both
-   faces are exactly one line tall. */
+   pixel grid. The second face is taken out of flow (absolutely positioned
+   at 100% from the top of the track), so the box height is driven by the
+   first face alone at any wrap depth — the clip window is one face tall
+   whether a label sits on one line or wraps to two. */
 
 .nav-swap {
+  position: relative;
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
 }
 
 .nav-swap-track {
-  display: grid;
+  display: block;
   transform: translateY(0);
 }
 
 .nav-swap-face {
   display: block;
   line-height: 1.35;
+}
+
+.nav-swap-face:nth-child(2) {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -31,6 +40,6 @@
   .nav-link:focus-visible .nav-swap-track,
   .rail-link:hover .nav-swap-track,
   .rail-link:focus-visible .nav-swap-track {
-    transform: translateY(-50%);
+    transform: translateY(-100%);
   }
 }
