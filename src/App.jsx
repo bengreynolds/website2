@@ -11,6 +11,7 @@ import {
 import HomePage from "./HomePage";
 import ProjectPage from "./ProjectPage";
 import Rail from "./Rail";
+import NavSwap from "./NavSwap";
 
 const sectionIds = navigation.map((item) => item.id);
 const THEME_KEY = "theme";
@@ -249,7 +250,7 @@ export default function App() {
                     goToSection(item.id);
                   }}
                 >
-                  {item.label}
+                  <NavSwap>{item.label}</NavSwap>
                 </a>
               ))}
             </nav>

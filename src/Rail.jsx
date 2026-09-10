@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { skills, workIndex } from "./siteData";
 import { AppLink } from "./router";
+import NavSwap from "./NavSwap";
 
 /* --------------------------------------------------------------------------
    Rail
@@ -80,7 +81,9 @@ export default function Rail({ route, activeSection, activeStage, onJump }) {
                   style={depthOf(index, activeSkillIndex)}
                 >
                   <span className="rail-num">{skill.n}</span>
-                  <span className="rail-text">{skill.title}</span>
+                  <span className="rail-text">
+                    <NavSwap>{skill.title}</NavSwap>
+                  </span>
                 </a>
               </li>
             ))}
@@ -99,7 +102,9 @@ export default function Rail({ route, activeSection, activeStage, onJump }) {
                   style={depthOf(index, activeWorkIndex)}
                 >
                   <span className="rail-num">{entry.n}</span>
-                  <span className="rail-text">{entry.short}</span>
+                  <span className="rail-text">
+                    <NavSwap>{entry.short}</NavSwap>
+                  </span>
                 </AppLink>
               </li>
             );

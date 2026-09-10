@@ -1,0 +1,36 @@
+/* Stacked-label swap. See src/NavSwap.jsx for why the second face is hidden.
+
+   The clip is on the outer box and the movement is on the track, so the
+   faces themselves are never transformed and their text stays on the
+   pixel grid. line-height is fixed rather than inherited: the translate is
+   exactly 50% of a two-face track, which is only exactly one line if both
+   faces are exactly one line tall. */
+
+.nav-swap {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.nav-swap-track {
+  display: grid;
+  transform: translateY(0);
+}
+
+.nav-swap-face {
+  display: block;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-swap-track {
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .nav-link:hover .nav-swap-track,
+  .nav-link:focus-visible .nav-swap-track,
+  .rail-link:hover .nav-swap-track,
+  .rail-link:focus-visible .nav-swap-track {
+    transform: translateY(-50%);
+  }
+}
