@@ -55,6 +55,17 @@
         transform: translateZ(26px);
       }
 
+      /* .tile-read is a grid, and a grid's default transform-style is flat:
+         it flattens its children's 3D transforms into its own 2D plane
+         before that plane composites into .tile's 3D space. A pure
+         translateZ has no x/y component, so once flattened it renders
+         identically to translateZ(0) - .tile-num and .tile-title would
+         rotate flush with the tile instead of separating from it. This is
+         the only thing that makes their translateZ below do anything. */
+      .tile-read {
+        transform-style: preserve-3d;
+      }
+
       .tile-num {
         display: inline-block;
         transform: translateZ(40px);
