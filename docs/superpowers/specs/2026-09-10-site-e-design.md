@@ -32,9 +32,10 @@ would mean retuning A's whole stylesheet.
    before the class lands.
 4. Posters become the final frame for the three assembly sequences only;
    cyclic demos keep frame 0, because a cycle ends where it began.
-5. Project pages draw on all six GitHub repos, private included, extracted
-   freely. Credentials, participant data and collaborator personal details
-   stay out of published copy regardless.
+5. Project pages draw on the Mouse-GYM and Cerebellum-Lab repositories,
+   private included, extracted freely, scoped to those backing one of the
+   nine projects. Credentials, participant data and collaborator personal
+   details stay out of published copy regardless.
 6. Project page depth defaults to expansion from existing plus repo-derived
    facts. The owner reviews later, so a wrong emphasis is recoverable.
 
