@@ -124,6 +124,10 @@
      bar's height has to come out of every anchor offset and every pin, so it
      is a token rather than a number repeated in six places. */
   --rail-w: 15rem;
+  /* The collapsed strip: one column of two-digit numbers plus its padding.
+     The shell reserves this and never reserves more, so opening the rail
+     cannot reflow the article. */
+  --rail-w-strip: 3.5rem;
   --rail-h: 2.75rem;
 }
 
@@ -663,13 +667,20 @@ summary {
 
 /* --------------------------------------------------------------------------
    7. Index rail
-   The escape hatch, and the thing that makes a narrative page usable at all.
-   Seven stages and nine projects, one click away for the whole scroll.
+   A strip that opens itself. Collapsed it shows the numbers alone, which is
+   enough to see where you are; it widens to the titles when the reader
+   enters a section that has a list, when the pointer or keyboard focus lands
+   in it, or when the reader pins it.
 
-   One DOM, two presentations. Above 78rem it is a fixed column and the toggle
-   is removed, so the lists are simply always there and aria-expanded never
-   describes anything. Below that it collapses to a sticky bar with a real
-   disclosure button.
+   Width rather than transform, and only on this element. The rail is fixed,
+   so its width change reflows nothing outside itself, and the shell's
+   padding is reserved at the COLLAPSED width and never changes - the open
+   rail overlays the page instead of pushing it, because reflowing the
+   article every time the rail breathes would move whatever the reader was
+   looking at.
+
+   One DOM, two presentations. Above 78rem it is that fixed column. Below
+   that it is a sticky bar under the header with the lists overlaid.
    -------------------------------------------------------------------------- */
 
 .rail {
@@ -677,7 +688,7 @@ summary {
   z-index: 45;
 }
 
-.rail-toggle {
+.rail-pin {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -691,35 +702,17 @@ summary {
   transition: color var(--dur-fast) var(--ease);
 }
 
-.rail-toggle:hover {
+.rail-pin:hover {
   color: var(--accent);
 }
 
-.rail-toggle-label {
+.rail-pin-label {
   font-weight: 500;
   color: var(--text);
 }
 
-.rail-toggle-label::after {
-  content: " +";
-  display: inline-block;
-  transition: transform var(--dur-med) var(--ease);
-}
-
-.rail.is-open .rail-toggle-label::after {
-  transform: rotate(45deg);
-}
-
-.rail-toggle-hint {
+.rail-pin-hint {
   color: var(--text-subtle);
-}
-
-.rail-lists {
-  display: none;
-}
-
-.rail.is-open .rail-lists {
-  display: grid;
 }
 
 .rail-label {
@@ -732,6 +725,7 @@ summary {
   padding-bottom: 0.5rem;
   margin-bottom: 0.4rem;
   border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
 }
 
 .rail-list {
@@ -791,6 +785,9 @@ summary {
   }
 
   .rail-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
     width: 100%;
     max-width: var(--content-max);
     margin-inline: auto;
@@ -798,53 +795,113 @@ summary {
   }
 
   /* Overlays the page rather than pushing it: the bar is a jump menu, and
-     reflowing the article every time it opens would move the thing the reader
-     was looking at. */
-  .rail-lists {
+     reflowing the article every time it opens would move the thing the
+     reader was looking at. */
+  .rail-group {
     position: absolute;
     left: 0;
     right: 0;
     top: 100%;
+    display: none;
     padding: 1rem var(--gutter) 1.25rem;
     background: var(--page);
     border-bottom: 1px solid var(--rule);
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 1.5rem clamp(1.5rem, 4vw, 3rem);
     max-height: min(70dvh, 34rem);
     overflow-y: auto;
+  }
+
+  .rail-group.is-open {
+    display: block;
+  }
+
+  /* Two open groups would stack on top of each other at the same offset, so
+     below the breakpoint the second one is pushed clear of the first. It only
+     happens while pinned; section focus opens one at a time. */
+  .rail-group.is-open ~ .rail-group.is-open {
+    position: static;
+    border-top: 1px solid var(--rule);
   }
 }
 
 @media (min-width: 78rem) {
-  /* Room for the fixed column. Everything inside .page, masthead included,
-     starts to the right of it. */
-  .page {
-    padding-left: var(--rail-w);
+  /* Room for the collapsed strip. Everything in the shell, masthead
+     included, starts to the right of it. */
+  .page-shell {
+    padding-left: var(--rail-w-strip);
   }
 
   .rail {
     position: fixed;
     left: 0;
     top: var(--header-h);
-    width: var(--rail-w);
+    width: var(--rail-w-strip);
     height: calc(100dvh - var(--header-h));
+    overflow: hidden;
     border-right: 1px solid var(--rule);
     background: var(--page);
+  }
+
+  .rail.is-open,
+  .rail.is-pinned,
+  .rail:hover,
+  .rail:focus-within {
+    width: var(--rail-w);
+    box-shadow: 1px 0 0 var(--rule-strong);
   }
 
   .rail-inner {
     height: 100%;
     overflow-y: auto;
+    display: grid;
+    align-content: start;
+    gap: 1.5rem;
     padding: clamp(1.25rem, 2vw, 1.75rem) 0.9rem;
   }
 
-  .rail-toggle {
+  /* Collapsed, the rail is a column of numbers: narrow enough to ignore and
+     specific enough to locate yourself in. The titles and the group labels
+     are what the extra width buys. */
+  .rail-text,
+  .rail-label,
+  .rail-pin-hint {
     display: none;
   }
 
-  .rail-lists {
-    display: grid;
-    gap: 1.75rem;
+  .rail.is-open .rail-text,
+  .rail.is-pinned .rail-text,
+  .rail:hover .rail-text,
+  .rail:focus-within .rail-text,
+  .rail.is-open .rail-label,
+  .rail.is-pinned .rail-label,
+  .rail:hover .rail-label,
+  .rail:focus-within .rail-label,
+  .rail.is-open .rail-pin-hint,
+  .rail.is-pinned .rail-pin-hint,
+  .rail:hover .rail-pin-hint,
+  .rail:focus-within .rail-pin-hint {
+    display: revert;
+  }
+
+  /* The group the reader is standing in is the one at full strength. The
+     other stays legible rather than being hidden, because it is still the
+     way out of the section. */
+  .rail-group {
+    opacity: 0.55;
+  }
+
+  .rail-group.is-open {
+    opacity: 1;
+  }
+
+  .rail-pin {
+    height: auto;
+    padding: 0 0.4rem 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 78rem) {
+  .rail {
+    transition: width var(--dur-med) var(--ease);
   }
 }
 
@@ -946,8 +1003,12 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   9. Signal path - the pinned spine
+   9. Skills - the pinned spine
    --------------------------------------------------------------------------
+   Eight competences, one per stage. Inherited from the exploration branch's
+   signal path with the project coupling removed, because the mechanics were
+   the part worth keeping and the subject was not.
+
    One stage is one .stage-track, taller than the viewport, holding one
    .stage-frame that sticks under the two bars while the track scrolls past.
    The tracks abut rather than overlap, so no z-index ordering is needed: a
@@ -956,7 +1017,7 @@ summary {
 
    The pin is gated on width, height AND motion preference. Under
    prefers-reduced-motion: reduce, or on anything narrow or short, the tracks
-   collapse to their content and the frames go static - seven plain stacked
+   collapse to their content and the frames go static - eight plain stacked
    sections in document order, which is the fallback the direction is required
    to have.
    -------------------------------------------------------------------------- */
@@ -1083,6 +1144,17 @@ summary {
   max-width: 20ch;
 }
 
+/* Between the title and the lede: the same words the rail cannot fit, so a
+   reader who arrives by jumping still gets the qualifier. */
+.stage-subtitle {
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.01em;
+  color: var(--text-subtle);
+  text-wrap: pretty;
+}
+
 .stage-lede {
   margin-top: 1.1rem;
   max-width: 48ch;
@@ -1122,50 +1194,72 @@ summary {
   color: var(--text);
 }
 
-.stage-owners {
-  margin-top: 1.6rem;
+/* ---- the skill plate --------------------------------------------------
+   A sourced still, or a labelled slot saying which one is missing. The
+   section ships before every image is found, and an empty plate that names
+   what belongs in it is more use to whoever fills it than a collapsed box.
+
+   --plate, not --surface: it is the same light sheet the CAD renders sit on,
+   so a photograph and a render read as the same kind of object on the page. */
+
+.skill-plate {
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
 }
 
-.stage-owners-label {
+.skill-shot {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: var(--plate);
+  border: 1px solid var(--rule);
+}
+
+.skill-plate--empty {
+  aspect-ratio: 16 / 10;
+  place-items: center;
+  background: var(--plate);
+  border: 1px dashed var(--rule-strong);
+}
+
+.skill-plate-note {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  font-weight: 500;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-subtle);
-  margin-bottom: 0.65rem;
+  /* --plate is light in both themes, so this cannot use a theme-dependent
+     text token or it fails contrast in dark mode. */
+  color: var(--n-600);
 }
 
-.stage-owners ul {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.stage-owners li {
-  display: grid;
-  gap: 0.1rem;
-  padding-left: 0.85rem;
-  border-left: 1px solid var(--rule-strong);
-}
-
-.stage-owner {
-  font-size: var(--step--1);
+.skill-plate-slug {
   font-weight: 600;
-  color: var(--accent);
-  transition: color var(--dur-fast) var(--ease);
+  color: var(--n-800);
 }
 
-.stage-owner:hover {
-  color: var(--accent-hover);
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-}
-
-.stage-owner-note {
-  font-size: var(--step--1);
-  line-height: 1.5;
-  color: var(--text-muted);
+/* Attribution is a requirement of the licences, not decoration, so it is
+   rendered rather than kept in a file nobody opens. */
+.skill-credit {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: var(--text-subtle);
   text-wrap: pretty;
+}
+
+.skill-credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.skill-credit a:hover {
+  color: var(--accent);
 }
 
 /* ---- figure column ---------------------------------------------------- */
@@ -1510,371 +1604,175 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   11. Work index - the complete portfolio, no narrative required
+   11. Work grid - nine panels, number, title, stack
+   Simple panels rather than a bento: every cell is the same width, and the
+   asymmetry comes from which four carry a plate and which side of the plate
+   their text sits on. Where that is per project is frozen in siteData by
+   scripts/seed_tile_placements.py, so the arrangement is stable across loads
+   and shows up in a diff when it changes.
+
+   One type scale for all nine. Nothing is "featured", so there is no second
+   size: the number is the large element at --step-3 and the title sits with
+   it at --step-2.
+
+   The plate is square in every placement, without exception. The generated
+   sprite CSS computes background-size as a percentage of a square cell, so a
+   plate that is not square draws every sprite stretched.
    -------------------------------------------------------------------------- */
 
-.work-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1.25rem;
-  margin-bottom: clamp(1.5rem, 3vw, 2rem);
-}
-
-.filter {
-  position: relative;
-  padding-block: 0.35rem;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  transition: color var(--dur-fast) var(--ease);
-}
-
-.filter::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1.5px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur-med) var(--ease);
-}
-
-.filter:hover {
-  color: var(--text);
-}
-
-.filter.is-active {
-  color: var(--text);
-}
-
-.filter.is-active::after {
-  transform: scaleX(1);
-}
-
-.work-index {
-  border-top: 1px solid var(--rule-strong);
-}
-
-.work-entry {
-  padding-block: clamp(1.5rem, 3vw, 2.25rem);
-  border-bottom: 1px solid var(--rule);
-}
-
-/* Number, thumbnail, body. At mobile the number keeps column one and the
-   thumbnail sits beside it as a banner with the prose underneath; from 52rem
-   the three sit in one row and the entry becomes a dense index line. */
-.work-entry-head {
+.work-grid {
   display: grid;
-  gap: 0.9rem clamp(1rem, 2.5vw, 2rem);
-  grid-template-columns: 2.75rem minmax(0, 1fr);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
-.work-num {
-  grid-column: 1;
-  grid-row: 1;
-  font-family: var(--font-mono);
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-  /* Not accent: accent means interactive in this system, and a figure number
-     is not. Border weight and mono treatment do the work instead. */
-  color: var(--text-subtle);
-  padding-top: 0.35em;
-  letter-spacing: 0.02em;
+@media (min-width: 48rem) {
+  .work-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.work-shot {
-  grid-column: 2;
-  grid-row: 1;
-  width: min(100%, 16rem);
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--rule);
+@media (min-width: 68rem) {
+  .work-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  position: relative;
+  display: grid;
+  gap: clamp(0.9rem, 2vw, 1.25rem);
+  align-content: start;
+  padding: clamp(1rem, 2vw, 1.4rem);
   background: var(--surface);
+  border: 1px solid var(--rule);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.tile:hover {
+  border-color: var(--accent);
+}
+
+/* Focus lands on the title link, whose hit area is the whole cell, so the
+   ring belongs on the cell. Guarded: without :has() the link keeps its own
+   ring rather than losing the indicator entirely. */
+@supports selector(:has(*)) {
+  .tile:has(.tile-link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .tile:has(.tile-link:focus-visible) .tile-link {
+    outline: none;
+  }
+}
+
+.tile-plate {
+  min-width: 0;
+  aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
   overflow: hidden;
-}
-
-/* CAD posters need a light sheet in BOTH themes or the near-black renders
-   vanish; app screenshots are already light and do not. */
-.work-shot--plate {
   background: var(--plate);
 }
 
-.work-body {
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 0;
+/* The generated demo-<id>.css owns the poster, the grid and the keyframes.
+   All this does is drop the standalone figure's own border, because the
+   wrapper is the plate now. aspect-ratio and background-size: contain come
+   from .demo-figure and are left alone. */
+.tile-figure {
+  width: 100%;
+  border: 0;
 }
 
-@media (min-width: 52rem) {
-  .work-entry-head {
-    grid-template-columns: 3rem 10.5rem minmax(0, 1fr);
-  }
-
-  .work-shot {
-    grid-column: 2;
-    grid-row: 1;
-    width: 100%;
-  }
-
-  .work-body {
-    grid-column: 3;
-    grid-row: 1;
-  }
-}
-
-.work-shot-img {
+.tile-shot {
   width: 100%;
   height: 100%;
-}
-
-.work-shot-img[data-fit="contain"] {
   object-fit: contain;
 }
 
-.work-shot-img[data-fit="cover"] {
-  object-fit: cover;
-  object-position: left top;
+.tile-read {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "num title"
+    "num tools";
+  gap: 0.5rem 0.9rem;
+  align-content: start;
 }
 
-/* Five projects have no render at all. Rather than a grey box, the slot shows
-   the stage numbers that project owns - which is real information and also a
-   route back into the narrative. */
-.work-shot-stages {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.5rem;
-}
-
-.work-shot-stages li {
+.tile-num {
+  grid-area: num;
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: var(--step-3);
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
   color: var(--text-subtle);
-  border: 1px solid var(--rule);
-  padding: 0.1rem 0.4rem;
 }
 
-.work-title {
+.tile-title {
+  grid-area: title;
   font-size: var(--step-2);
-  letter-spacing: -0.022em;
-  max-width: 26ch;
+  letter-spacing: -0.024em;
+  line-height: 1.12;
+  text-wrap: balance;
 }
 
-.work-anchor {
+.tile-link {
   color: inherit;
   transition: color var(--dur-fast) var(--ease);
 }
 
-.work-anchor:hover {
+.tile:hover .tile-link {
   color: var(--accent);
 }
 
-.work-outcome {
-  margin-top: 0.6rem;
-  font-size: var(--step-0);
-  line-height: 1.55;
-  color: var(--text);
-  max-width: var(--measure);
-  text-wrap: pretty;
+/* Stretched hit area, so the whole panel is clickable while exactly one
+   thing in it is focusable. */
+.tile-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
-.work-meta-text {
-  color: var(--text-muted);
-  font-size: var(--step--1);
-  max-width: var(--measure);
-}
-
-/* Spec plate: ruled off from the prose above so the stack and stages read as
-   tabulated data rather than more sentences. */
-.work-meta {
-  margin-top: 1rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--rule);
-  display: grid;
-  gap: 0.45rem;
-}
-
-.work-meta-row {
+.tile-tools {
+  grid-area: tools;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.6rem;
-  align-items: baseline;
-}
-
-/* A wrapping flex line breaks on an item's max-content size, so a long stack
-   dropped the whole list below its label while a short one stayed beside it -
-   the same row reading two different ways from card to card. A grid gives the
-   label a column and lets the list wrap inside its own. */
-@media (min-width: 40rem) {
-  .work-meta-row {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-  }
-}
-
-.work-meta-label {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-subtle);
-  flex: 0 0 auto;
-  min-width: 5.5rem;
-}
-
-.work-meta-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 0.55rem;
+  gap: 0.25rem 0.5rem;
   font-family: var(--font-mono);
   font-size: var(--step--1);
   color: var(--text-muted);
 }
 
-.work-meta-items li:not(:last-child)::after {
+.tile-tools li:not(:last-child)::after {
   content: "/";
-  margin-left: 0.55rem;
+  margin-left: 0.5rem;
   color: var(--decor);
 }
 
-/* Stage links are links, so they get the accent and no slash separator - the
-   titles beside the numbers already read as separate items. */
-.work-stage-links {
-  gap: 0.25rem 1rem;
+/* ---- placements -------------------------------------------------------
+   Stacked below 48rem regardless: a plate beside its text in a single
+   column leaves both too narrow to read, so every placement collapses to
+   plate-above there and only the two side placements differ above it. */
+
+.tile[data-placement="plate-bottom"] .tile-plate {
+  order: 2;
 }
 
-.work-stage-links li:not(:last-child)::after {
-  content: none;
-}
-
-.work-stage-links a {
-  color: var(--accent);
-  transition: color var(--dur-fast) var(--ease);
-}
-
-.work-stage-links a:hover {
-  color: var(--accent-hover);
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-}
-
-/* Case study disclosure. Deliberately NOT indented to line up with the body
-   column: the case body is a two-column grid above 56rem and the walkthrough
-   inside it claims the full width, so every rem given to an indent comes out
-   of a 1400px screenshot. */
-.case {
-  margin-top: 1.25rem;
-}
-
-.case-summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding-block: 0.4rem;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--accent);
-  cursor: pointer;
-  list-style: none;
-  transition: color var(--dur-fast) var(--ease);
-}
-
-.case-summary::-webkit-details-marker {
-  display: none;
-}
-
-.case-summary:hover {
-  color: var(--accent-hover);
-}
-
-.case-summary::after {
-  content: "+";
-  font-size: 1rem;
-  line-height: 1;
-  transition: transform var(--dur-med) var(--ease);
-}
-
-.case[open] > .case-summary::after {
-  transform: rotate(45deg);
-}
-
-.case-body {
-  display: grid;
-  gap: clamp(1.25rem, 2.5vw, 2rem);
-  padding-top: 1.5rem;
-  max-width: var(--measure);
-}
-
-@media (min-width: 56rem) {
-  .case-body {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: none;
+@media (min-width: 48rem) {
+  .tile[data-placement="plate-left"],
+  .tile[data-placement="plate-right"] {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-content: center;
+    align-items: center;
   }
-}
 
-.case-block {
-  display: grid;
-  gap: 0.4rem;
-  align-content: start;
-}
-
-.case-block h4 {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-subtle);
-}
-
-.case-block p {
-  color: var(--text-muted);
-  max-width: var(--measure);
-}
-
-.case-list {
-  display: grid;
-  gap: 0.5rem;
-  color: var(--text-muted);
-}
-
-.case-list li {
-  padding-left: 1.1rem;
-  position: relative;
-}
-
-.case-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.72em;
-  width: 5px;
-  height: 1px;
-  background: var(--decor);
-}
-
-.work-empty {
-  padding-block: clamp(2.5rem, 6vw, 4rem);
-  border-bottom: 1px solid var(--rule);
-  color: var(--text-muted);
-  max-width: var(--measure-narrow);
-}
-
-.work-empty p + p {
-  margin-top: 0.75rem;
+  .tile[data-placement="plate-right"] .tile-plate {
+    order: 2;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -2022,98 +1920,89 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   13. Capabilities - prose, then grouped clusters
+   13. Capabilities - three statements over a spec sheet
+   Even cells here on purpose. The varied panel is the work grid's move, and
+   repeating it in a section of tool lists would flatten the difference
+   between an index of work and an inventory of tools. The 1px gaps are the
+   sheet's own rules showing through.
    -------------------------------------------------------------------------- */
 
-.cap-intro {
-  max-width: var(--measure);
-  font-size: var(--step-1);
-  line-height: 1.55;
-  color: var(--text);
-  text-wrap: pretty;
-}
-
-/* Two tracks: how the work is approached on the left, what it is built with
-   on the right. */
-.cap-body {
-  margin-top: clamp(2.25rem, 4.5vw, 3.25rem);
+.cap-lead {
   display: grid;
-  gap: clamp(2.25rem, 4vw, 3.5rem) clamp(2.5rem, 6vw, 5rem);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  padding-bottom: clamp(2rem, 4vw, 3rem);
 }
 
-@media (min-width: 64rem) {
-  .cap-body {
-    grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
+@media (min-width: 48rem) {
+  .cap-lead {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-.cap-notes {
+.cap-lead-item {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  padding-top: 1rem;
   border-top: 1px solid var(--rule-strong);
 }
 
-.cap-note {
-  display: grid;
-  gap: 0.35rem;
-  padding-block: 1.25rem;
-  border-bottom: 1px solid var(--rule);
+.cap-lead-item h3 {
+  font-size: var(--step-1);
+  letter-spacing: -0.024em;
 }
 
-.cap-note h3 {
-  font-size: var(--step-0);
-}
-
-.cap-note p {
+.cap-lead-item p {
+  font-size: var(--step--1);
+  line-height: var(--lh-body);
   color: var(--text-muted);
 }
 
-.cap-groups {
+.cap-grid {
   display: grid;
-  gap: clamp(1.5rem, 3vw, 2.25rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
 }
 
-/* Six groups in one column would run twice the height of the notes beside
-   them, so the tool lists pair up from tablet width on. Columns rather than a
-   two-track grid: the groups are different heights, and grid rows would hold
-   a short group's column open to the height of the tall one beside it. */
-@media (min-width: 40rem) {
-  .cap-groups {
-    display: block;
-    columns: 2;
-    column-gap: clamp(2rem, 4vw, 3rem);
+@media (min-width: 48rem) {
+  .cap-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .cap-group {
-    break-inside: avoid;
-    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
-  }
-
-  /* The last group carries that margin, so the footnote needs none. */
-  .cap-footnote {
-    margin-top: 0;
+@media (min-width: 62rem) {
+  .cap-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .cap-group {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.75rem;
   align-content: start;
-  padding-top: 1.15rem;
-  border-top: 1px solid var(--rule-strong);
+  padding: clamp(1.1rem, 2vw, 1.5rem);
+  background: var(--surface);
 }
 
 .cap-group-title {
-  font-size: var(--step-0);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
 }
 
 .cap-items {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem 0.55rem;
-  font-family: var(--font-mono);
   font-size: var(--step--1);
-  color: var(--text-muted);
   line-height: 1.5;
+  color: var(--text);
 }
 
 .cap-items li:not(:last-child)::after {
@@ -2191,7 +2080,279 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   15. Footer
+   15. Project page - the /work/<id> route
+   The reason the route exists: on the home grid a plated cell is about
+   420px, and a 520px sprite cell cannot hold a readable filename. Here the
+   figure gets the whole column.
+
+   Prose returns to a measure here. The grid is scan-first by design, but a
+   page somebody opened deliberately is the one place on the site where
+   several paragraphs are the right answer, so the body is a single column
+   at --measure rather than a two-track layout.
+   -------------------------------------------------------------------------- */
+
+.project {
+  padding-block: clamp(2rem, 5vh, 3.5rem) clamp(3rem, 8vh, 6rem);
+}
+
+.project-head {
+  padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.project-back {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.project-back::before {
+  content: "90  ";
+}
+
+.project-back:hover {
+  color: var(--accent);
+}
+
+.project-title {
+  margin-top: 0.9rem;
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.03em;
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.project-summary {
+  margin-top: 1.1rem;
+  max-width: var(--measure);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.project-meta {
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+  display: grid;
+  gap: 0.55rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+}
+
+.project-meta-row {
+  display: grid;
+  gap: 0.2rem 0.9rem;
+}
+
+@media (min-width: 40rem) {
+  .project-meta-row {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+}
+
+.project-meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.project-meta dd {
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-width: var(--measure);
+}
+
+.project-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.55rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.project-tools li:not(:last-child)::after {
+  content: "/";
+  margin-left: 0.55rem;
+  color: var(--decor);
+}
+
+/* ---- the figure -------------------------------------------------------- */
+
+.project-figure {
+  margin: 0 0 clamp(2rem, 4vw, 3rem);
+}
+
+/* Capped rather than full-bleed. The scroll figure is square, so at 1440 an
+   uncapped one would be taller than the viewport and could never be seen
+   whole - which for an assembly sequence is the only useful way to see it. */
+.project-figure .rig-figure {
+  max-width: min(100%, 40rem);
+  margin-inline: auto;
+}
+
+.project-figure-caption {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.project-demo {
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+/* ---- the body ---------------------------------------------------------- */
+
+.project-body {
+  display: grid;
+  gap: clamp(1.75rem, 3.5vw, 2.75rem);
+  border-top: 1px solid var(--rule-strong);
+  padding-top: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.project-block {
+  display: grid;
+  gap: 0.7rem;
+  max-width: var(--measure);
+}
+
+.project-block h2 {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.project-block p {
+  font-size: var(--step-0);
+  line-height: var(--lh-body);
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.project-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.project-list li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: var(--step-0);
+  line-height: var(--lh-body);
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.project-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 0.45rem;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.project-deep {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+
+.project-deep h3 {
+  font-size: var(--step-1);
+  letter-spacing: -0.02em;
+}
+
+/* Where a claim came from, so a reader can check it and a reviewer can find
+   it. Mono because it is a path, not a sentence. */
+.project-source {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-subtle);
+  word-break: break-word;
+}
+
+/* ---- previous / index / next -------------------------------------------
+   Three controls, not two. The index between them is the reason the bottom
+   of the page is not a dead end for anyone who does not want either
+   neighbour. */
+
+.project-nav {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule-strong);
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 48rem) {
+  .project-nav {
+    grid-template-columns: 1fr auto 1fr;
+    gap: clamp(1rem, 3vw, 2.5rem);
+  }
+
+  .project-nav-link--next {
+    text-align: right;
+  }
+}
+
+.project-nav-link {
+  display: grid;
+  gap: 0.2rem;
+  color: inherit;
+}
+
+.project-nav-dir {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.project-nav-title {
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.25;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.project-nav-link:hover .project-nav-title {
+  color: var(--accent);
+}
+
+.project-nav-index {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.project-nav-index:hover {
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   16. Footer
    -------------------------------------------------------------------------- */
 
 .site-foot {
@@ -2211,7 +2372,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   16. Mobile
+   17. Mobile
    Every multi-column layout above collapses to one column via the min-width
    queries. The nav is the only pattern needing an explicit switch, and it
    collapses at 62rem rather than 48rem because the signal path added a sixth
@@ -2262,7 +2423,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   17. Reduced motion
+   18. Reduced motion
    The pin, the scrub and every reveal come off. What is left is seven stacked
    sections in document order, nine index entries, and a page that reads as an
    ordinary document.
@@ -2309,7 +2470,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   18. Print - the resume case
+   19. Print - the resume case
    -------------------------------------------------------------------------- */
 
 @media print {
