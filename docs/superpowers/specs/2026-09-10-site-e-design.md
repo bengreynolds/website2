@@ -15,7 +15,7 @@ best sections, with B's router added so a project can have its own page.
 | Experience, education | D | unchanged |
 | Skills section | D's signal path | rebuilt as general skills, no project ties |
 | Selected work grid | A `design/contact-sheet` | simplified, see 4.3 |
-| Capabilities | A | unchanged |
+| Capabilities | A | deleted, see 4.4 |
 | Router | B `design/systems-map` | `src/router.jsx` lifted as-is |
 | Everything else in B and C | - | discarded |
 
@@ -46,7 +46,7 @@ path to `/index.html`, so deep links resolve.
 
 | Route | Content |
 | --- | --- |
-| `/` | hero, skills, selected work, experience, capabilities, contact |
+| `/` | hero, skills, selected work, experience, contact |
 | `/work/<project-id>` | one page per project, existing ids |
 | unknown | renders `/`, URL left alone so a bad link stays visible |
 
@@ -56,9 +56,17 @@ document, resets scroll instantly (not smoothly), and moves focus to `<main>`.
 
 ## 4. Home route
 
-Order: hero, skills, selected work, experience, capabilities, contact. Skills
-sits before the work so the page answers "who is this" before "what did he
-build". Reversible in one move if the owner prefers work first.
+Order: hero, skills, selected work, experience, contact. Skills sits before
+the work so the page answers "who is this" before "what did he build".
+
+Capabilities is gone. It carried three summary statements over a grid of six
+tool groups, and once the skills section existed it was a second printing of
+the same inventory: 27 of its 41 items were named again in the skills
+readouts, and most of the remaining 14 were near-synonyms. A matrix of skills
+against projects was built and previewed as an alternative, and the owner
+chose deletion. Contact inherits the tint the section carried, because the
+page uses a change of ground as its section separator and without it the last
+two sections run together.
 
 ### 4.1 Hero
 
@@ -125,11 +133,11 @@ A's tile grid with four changes.
 Clicking a panel navigates to `/work/<id>`. The inline case panel A used is
 removed; the project page replaces it.
 
-### 4.4 Experience, capabilities, contact
+### 4.4 Experience and contact
 
-Experience and education: D's markup unchanged. Capabilities: A's three lead
-statements plus the six-group tool grid, unchanged. Contact keeps the single
-resume download, which stays the only route to the file.
+Experience and education: D's markup unchanged. Contact keeps the single
+resume download, which stays the only route to the file, and now carries the
+tint that Capabilities used to.
 
 ## 5. Project route
 

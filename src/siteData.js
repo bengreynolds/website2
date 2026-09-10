@@ -1,11 +1,12 @@
-/* Section order is the page order. "skills" is the one new anchor; the other
-   five are load-bearing permalinks and must not change. */
+/* Section order is the page order. "skills" is the one new anchor. The
+   others are load-bearing permalinks and must not change - except
+   "capabilities", which is gone: that section repeated the skills inventory
+   and was deleted rather than redesigned. */
 export const navigation = [
   { id: "home", label: "Home" },
   { id: "skills", label: "Skills" },
   { id: "projects", label: "Selected Work" },
   { id: "experience", label: "Experience" },
-  { id: "capabilities", label: "Capabilities" },
   { id: "contact", label: "Contact" },
 ];
 
@@ -34,82 +35,6 @@ export const projectFilters = [
   { id: "automation", label: "Automation" },
   { id: "data", label: "Data" },
   { id: "hardware", label: "Hardware" },
-];
-
-/* Three kinds of work, usually on the same project. */
-export const aboutCards = [
-  {
-    title: "Systems that hold up",
-    body: "Validation, recovery paths, documentation, and packaging, so a system survives contact with daily use.",
-  },
-  {
-    title: "Software and data",
-    body: "Scientific Python, desktop applications, computer vision, and validated conversion between data formats.",
-  },
-  {
-    title: "Hardware and integration",
-    body: "CAD, PCB layout, electronics, embedded control, and the wiring between software and physical devices.",
-  },
-];
-
-/* Primary tools only. The resume carries the exhaustive list. Grouped by the
-   kind of work rather than by language, so the breadth is visible: the same
-   project usually draws on four of these six. */
-export const skillGroups = [
-  {
-    title: "Languages",
-    items: ["Python", "C++", "MATLAB", "Rust", "SQL", "JavaScript"],
-  },
-  {
-    title: "Scientific Python",
-    items: ["NumPy / SciPy", "Pandas", "OpenCV", "pyqtgraph", "PyNWB / NeuroConv"],
-  },
-  {
-    title: "Applications and delivery",
-    items: [
-      "PySide6",
-      "wxPython",
-      "PyInstaller",
-      "Conda",
-      "Docker",
-      "Git",
-      "Linux / Windows",
-    ],
-  },
-  {
-    title: "Acquisition and control",
-    items: [
-      "DeepLabCut",
-      "Multi-camera capture",
-      "NI-DAQ / PXI",
-      "FLIR Spinnaker",
-      "Closed-loop control",
-      "Frame and TTL sync",
-      "CAN bus",
-    ],
-  },
-  {
-    title: "Embedded and electronics",
-    items: [
-      "Arduino",
-      "Serial protocols",
-      "KiCad",
-      "PCB layout",
-      "Load-cell sensing",
-      "Sensor calibration",
-    ],
-  },
-  {
-    title: "Mechanical and fabrication",
-    items: [
-      "Fusion 360",
-      "Inventor",
-      "SolidWorks",
-      "3D printing",
-      "Fabrication release",
-      "Bench testing",
-    ],
-  },
 ];
 
 export const experience = [

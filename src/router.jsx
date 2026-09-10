@@ -31,7 +31,7 @@ export function isPlainClick(event) {
 /* Two routes: the single-page home, and one page per project. Everything the
    old exploration branch put on /about and /contact is a section of home, so
    those paths are not routes here - they resolve to home, and the in-page
-   anchors #experience, #capabilities and #contact are what address them.
+   anchors #experience and #contact are what address them.
 
    Trailing slashes are trimmed, so /work/<id>/ and /work/<id> are one route
    rather than one route and one 'unknown'. */

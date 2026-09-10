@@ -1,20 +1,25 @@
 import {
-  aboutCards,
   contactLinks,
   education,
   experience,
   heroFacts,
   heroStatement,
   roleLabel,
-  skillGroups,
 } from "./siteData";
 import Skills from "./Skills";
 import WorkGrid from "./WorkGrid";
 
 /* --------------------------------------------------------------------------
    Home
-   Six sections in page order. Skills sits before the work so the page answers
-   "who is this" before "what did he build".
+   Five sections in page order. Skills sits before the work so the page
+   answers "who is this" before "what did he build".
+
+   There was a sixth. Capabilities held three summary statements over a grid
+   of six tool groups, and once the skills section existed it was a second
+   printing of the same inventory: 27 of its 41 items were named again in the
+   skills readouts, and most of the other 14 were near-synonyms. Repeating an
+   inventory does not reinforce it, so the section is gone rather than
+   redesigned.
 
    No animation in the hero. The renders are the work's own material and they
    belong in the grid and on the project pages, not decorating a name.
@@ -115,49 +120,11 @@ export default function HomePage({ goToSection, isPlainClick }) {
         </div>
       </section>
 
-      <section id="capabilities" className="section section--tinted">
-        <div className="container">
-          <div className="section-head reveal">
-            <h2 className="section-title">Capabilities</h2>
-            <p className="section-lead">
-              Three kinds of work, usually on the same project. Getting a system from
-              prototype into daily use tends to need all of them.
-            </p>
-          </div>
-
-          {/* .reveal on the containers, not the cells. Three statements and six
-              blocks settling individually is nine animations on one screen; the
-              row moving as one is the same gesture, once. */}
-          <div className="cap-lead reveal">
-            {aboutCards.map((card) => (
-              <div className="cap-lead-item" key={card.title}>
-                <h3>{card.title}</h3>
-                <p>{card.body}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="cap-grid reveal">
-            {skillGroups.map((group) => (
-              <div className="cap-group" key={group.title}>
-                <h3 className="cap-group-title">{group.title}</h3>
-                <ul className="cap-items">
-                  {group.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <p className="cap-footnote reveal">
-            Primary tools only. The resume, linked at the end of the page, carries the
-            full list.
-          </p>
-        </div>
-      </section>
-
-      <section id="contact" className="section">
+      {/* Tinted. Capabilities used to sit between experience and contact and
+          carried the tint, and the page uses a change of ground as its
+          section separator rather than a rule, so without this the last two
+          sections run together. */}
+      <section id="contact" className="section section--tinted">
         <div className="container">
           <div className="reveal">
             <h2 className="contact-title">Start a technical conversation</h2>

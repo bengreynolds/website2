@@ -216,8 +216,6 @@ h4 {
 
 /* Syne is a display face and gets busy under about 1.2rem, so the small
    headings stay in the body face and separate themselves by weight. */
-.cap-note h3,
-.cap-group-title,
 .edu-entry h4 {
   font-family: var(--font-body);
   font-weight: 600;
@@ -1870,106 +1868,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   13. Capabilities - three statements over a spec sheet
-   Even cells here on purpose. The varied panel is the work grid's move, and
-   repeating it in a section of tool lists would flatten the difference
-   between an index of work and an inventory of tools. The 1px gaps are the
-   sheet's own rules showing through.
-   -------------------------------------------------------------------------- */
-
-.cap-lead {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  padding-bottom: clamp(2rem, 4vw, 3rem);
-}
-
-@media (min-width: 48rem) {
-  .cap-lead {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.cap-lead-item {
-  display: grid;
-  gap: 0.45rem;
-  align-content: start;
-  padding-top: 1rem;
-  border-top: 1px solid var(--rule-strong);
-}
-
-.cap-lead-item h3 {
-  font-size: var(--step-1);
-  letter-spacing: -0.024em;
-}
-
-.cap-lead-item p {
-  font-size: var(--step--1);
-  line-height: var(--lh-body);
-  color: var(--text-muted);
-}
-
-.cap-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-}
-
-@media (min-width: 48rem) {
-  .cap-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 62rem) {
-  .cap-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.cap-group {
-  display: grid;
-  gap: 0.75rem;
-  align-content: start;
-  padding: clamp(1.1rem, 2vw, 1.5rem);
-  background: var(--surface);
-}
-
-.cap-group-title {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-subtle);
-}
-
-.cap-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 0.55rem;
-  font-size: var(--step--1);
-  line-height: 1.5;
-  color: var(--text);
-}
-
-.cap-items li:not(:last-child)::after {
-  content: "/";
-  margin-left: 0.55rem;
-  color: var(--decor);
-}
-
-/* Points the exhaustive tool list at the resume instead of printing it. */
-.cap-footnote {
-  margin-top: 1.25rem;
-  font-size: var(--step--1);
-  color: var(--text-subtle);
-}
-
-/* --------------------------------------------------------------------------
-   14. Contact - type forward close
+   13. Contact - type forward close
    -------------------------------------------------------------------------- */
 
 .contact-title {
@@ -2030,7 +1929,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   15. Project page - the /work/<id> route
+   14. Project page - the /work/<id> route
    The reason the route exists: on the home grid a plated cell is about
    420px, and a 520px sprite cell cannot hold a readable filename. Here the
    figure gets the whole column.
@@ -2430,7 +2329,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   16. Footer
+   15. Footer
    -------------------------------------------------------------------------- */
 
 .site-foot {
@@ -2450,7 +2349,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   17. Mobile
+   16. Mobile
    Every multi-column layout above collapses to one column via the min-width
    queries. The nav is the only pattern needing an explicit switch, and it
    collapses at 62rem rather than 48rem because the signal path added a sixth
@@ -2501,7 +2400,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   18. Reduced motion
+   17. Reduced motion
    The pin, the scrub and every reveal come off. What is left is seven stacked
    sections in document order, nine index entries, and a page that reads as an
    ordinary document.
@@ -2548,7 +2447,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   19. Print - the resume case
+   18. Print - the resume case
    -------------------------------------------------------------------------- */
 
 @media print {
