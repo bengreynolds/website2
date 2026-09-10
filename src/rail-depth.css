@@ -1,0 +1,53 @@
+/* Rail depth gauge.
+   The rail stops being a list and becomes a position: links recede and turn
+   away from the one the reader is standing on, so the group reads as a
+   surface curving off in both directions.
+
+   React owns one number. --depth is a signed integer written per link in
+   Rail.jsx; every value below is CSS derived from it, so no layout is
+   computed in JavaScript.
+
+   Opacity is animated here deliberately, and it is legal here specifically.
+   The rule in AGENTS.md bans opacity on a scroll-driven timeline, where a
+   timeline that cannot advance holds the element at its start state and can
+   leave it permanently invisible. This is a state-driven transition with no
+   timeline to stall, so that failure mode does not exist. Do not copy this
+   into anything using animation-timeline: view(). */
+
+@supports (transform-style: preserve-3d) {
+  @media (prefers-reduced-motion: no-preference) {
+    .rail-list {
+      perspective: 620px;
+      perspective-origin: 0% 50%;
+      transform-style: preserve-3d;
+    }
+
+    .rail-link {
+      /* --dist is the absolute distance and --depth the signed one, both
+         written by Rail.jsx. Recession is symmetric either side of the
+         reader; only the turn takes a direction. */
+      transform:
+        translateZ(calc(var(--dist, 0) * -14px))
+        rotateY(calc(var(--depth, 0) * -1.1deg));
+      opacity: max(0.42, calc(1 - 0.13 * var(--dist, 0)));
+      transition:
+        color var(--dur-fast) var(--ease),
+        border-color var(--dur-fast) var(--ease),
+        opacity var(--dur-med) var(--ease),
+        transform var(--dur-med) var(--ease);
+    }
+
+    /* The reader's own position comes forward rather than merely colouring
+       differently, so the marked link is legible as the near one. */
+    .rail-link.is-current {
+      transform: translateZ(10px);
+      opacity: 1;
+    }
+
+    .rail-group:hover .rail-link,
+    .rail-group:focus-within .rail-link {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
