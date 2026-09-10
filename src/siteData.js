@@ -49,29 +49,63 @@ export const aboutCards = [
   },
 ];
 
-/* Primary tools only. The resume carries the exhaustive list. */
+/* Primary tools only. The resume carries the exhaustive list. Grouped by the
+   kind of work rather than by language, so the breadth is visible: the same
+   project usually draws on four of these six. */
 export const skillGroups = [
   {
-    title: "Software and data",
-    items: ["Python", "NumPy / SciPy", "Pandas", "OpenCV", "PySide6", "NWB"],
+    title: "Languages",
+    items: ["Python", "C++", "MATLAB", "Rust", "SQL", "JavaScript"],
   },
   {
-    title: "Automation and acquisition",
+    title: "Scientific Python",
+    items: ["NumPy / SciPy", "Pandas", "OpenCV", "pyqtgraph", "PyNWB / NeuroConv"],
+  },
+  {
+    title: "Applications and delivery",
+    items: [
+      "PySide6",
+      "wxPython",
+      "PyInstaller",
+      "Conda",
+      "Docker",
+      "Git",
+      "Linux / Windows",
+    ],
+  },
+  {
+    title: "Acquisition and control",
     items: [
       "DeepLabCut",
       "Multi-camera capture",
+      "NI-DAQ / PXI",
+      "FLIR Spinnaker",
       "Closed-loop control",
       "Frame and TTL sync",
       "CAN bus",
     ],
   },
   {
-    title: "Deployment and systems",
-    items: ["Linux", "Windows", "Docker", "Conda", "PyInstaller", "Git"],
+    title: "Embedded and electronics",
+    items: [
+      "Arduino",
+      "Serial protocols",
+      "KiCad",
+      "PCB layout",
+      "Load-cell sensing",
+      "Sensor calibration",
+    ],
   },
   {
-    title: "Hardware",
-    items: ["KiCad", "Fusion 360", "SolidWorks", "PCB layout", "Bench testing"],
+    title: "Mechanical and fabrication",
+    items: [
+      "Fusion 360",
+      "Inventor",
+      "SolidWorks",
+      "3D printing",
+      "Fabrication release",
+      "Bench testing",
+    ],
   },
 ];
 
@@ -142,7 +176,7 @@ export const projects = [
     approach:
       "Designed a staged PySide6 workflow for import, metadata review, mapping, file assembly, provenance tracking, recovery, and validation against the Neurodata Without Borders standard.",
     role: "Designed the desktop workflow, conversion architecture, metadata controls, and validation safeguards.",
-    tools: ["Python", "PySide6", "NWB", "Metadata validation"],
+    tools: ["PySide6", "PyNWB", "NeuroConv", "NWB Inspector"],
     bullets: [
       "Grouped related recording files into reviewable sessions.",
       "Added metadata conflict review before file assembly.",
@@ -297,7 +331,7 @@ export const projects = [
     approach:
       "Designed the enclosure, pellet mechanism, and mounts in CAD, then integrated multi-camera acquisition, DeepLabCut tracking, CAN bus motor control, and load-cell sensing into a closed loop with tone cues, barrier servos, and recovery paths for unattended overnight operation.",
     role: "Designed the enclosure and mechanisms in CAD, and built, deployed, and maintain the integration that runs on them.",
-    tools: ["Fusion 360", "Python", "DeepLabCut", "CAN bus"],
+    tools: ["Fusion 360", "DeepLabCut", "CAN bus", "Jetson"],
     bullets: [
       "Designed a 215-part enclosure carrying every module, cable route, and panel connector.",
       "Built a three-axis pellet delivery with servo scoop and barrier, driven over CAN.",
@@ -319,7 +353,7 @@ export const projects = [
     approach:
       "Took the trainer's module set as the base rather than forking a copy, and re-adapted it for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
     role: "Led the re-platforming, the instrumentation swap, and the reproducible offline install path.",
-    tools: ["Python", "NI-DAQ / PXI", "PEAK CAN", "FLIR Spinnaker"],
+    tools: ["Ubuntu x86_64", "NI-DAQ / PXI", "PEAK CAN", "FLIR Spinnaker"],
     bullets: [
       "Carried the trainer's core, video, device, inference, and behavior modules onto a new platform.",
       "Replaced Jetson-native CAN with PEAK CAN and added NI-DAQ and PXI acquisition.",
@@ -340,7 +374,7 @@ export const projects = [
     approach:
       "Rebuilt analysis as a Qt-free backend inside ReachX on the development branch: stable request and result contracts, cancelable background tasks, and a thin interface layer over them. Nothing in the compute path imports a widget.",
     role: "Designed the analysis backend, the session-selection and metric model, and the intersession workflow.",
-    tools: ["Python", "PySide6", "pyqtgraph", "NumPy"],
+    tools: ["NumPy", "pyqtgraph", "PySide6", "Headless compute"],
     bullets: [
       "Kept widgets out of the compute path so the analysis runs headless.",
       "Compared session summaries across mice, dates, rigs, and named condition groups.",
@@ -361,7 +395,7 @@ export const projects = [
     approach:
       "Structured the utilities as submodules of a single toolkit on one shared environment. Each installs and runs on its own, but they are released, launched, and documented together.",
     role: "Owned release packaging, environment management, launch behavior, and the operator-facing utilities.",
-    tools: ["Python", "PySide6", "Conda", "Rust", "PowerShell"],
+    tools: ["Conda", "PowerShell", "Rust", "Git hooks"],
     bullets: [
       "Installer: Windows launcher, updater, and desktop shortcuts that manage the application environment for non-developers.",
       "Camera alignment: previews compensated frames beside the originals, then applies the fix under dry-run, backup, and undo.",
@@ -397,7 +431,7 @@ export const projects = [
     approach:
       "Combined mechanical design, frequency control, sensing, electronics, and load-cell feedback into a calibrated test workflow.",
     role: "Led the mechanical and electrical integration, calibration strategy, and validation workflow.",
-    tools: ["CAD", "Load-cell sensing", "Embedded control", "Electronics"],
+    tools: ["Fusion 360", "Load-cell sensing", "Signal conditioning", "Frequency control"],
     bullets: [
       "Designed mechanical fixtures for repeatable device placement.",
       "Integrated stimulation control, sensing, and calibration.",
@@ -435,7 +469,7 @@ export const projects = [
     approach:
       "Designed the carousel and its gear train in Inventor, then wrote the firmware and a wxPython interface against one serial protocol. The interface holds the protocol and the per-vial assignments, the board holds the trial state machine and the timing.",
     role: "Designed the mechanism, wrote the firmware and the operator interface, and defined the serial protocol between them.",
-    tools: ["Inventor", "Arduino", "Python", "wxPython"],
+    tools: ["Inventor", "Arduino", "wxPython", "Serial protocol"],
     bullets: [
       "Built a four-stage gear train that indexes eight vials off a single servo.",
       "Gated delivery with two shutter servos and two solenoid valves, with manual purge for priming.",
@@ -456,7 +490,7 @@ export const projects = [
     approach:
       "Designed the behavior box and reward port in Inventor around another researcher's protocol. Separately, took an existing dual-comparator detection circuit from bare board to deployable unit with an enclosure and a complete manufacturing release.",
     role: "Designed the behavior box and reward port for a colleague's experiment. On the detection board, which I did not design, I built the enclosure and the manufacturing release and integrated it into rigs.",
-    tools: ["Inventor", "Fabrication release", "Electronics integration"],
+    tools: ["Inventor", "Enclosure design", "Laser and waterjet release", "Pick-and-place data"],
     bullets: [
       "Designed a panel-built operant box with machined and PVC variants for different housing needs.",
       "Drew the nose cone, spout clamp, dropper, and electronics mount as one reward-port assembly.",
@@ -477,7 +511,7 @@ export const projects = [
     approach:
       "Designed the chamber for sealing first, then built the instrumentation around it: an oxygen sensor with stored calibration, nitrogen and air on face-mount solenoids, a mixing fan, and a display and encoder so the rig is usable with no computer attached.",
     role: "Designed the chamber and its gas handling, built the monitoring and calibration firmware, and am developing the automated protocol runner.",
-    tools: ["Inventor", "Arduino", "Gas handling", "Sensor calibration"],
+    tools: ["Inventor", "Arduino", "Gas handling", "EEPROM calibration"],
     bullets: [
       "Sealed the enclosure with an O-ring groove, magnetic latch, and captive panel screws, iterating through internal and external hinge layouts.",
       "Plumbed nitrogen and air through face-mount solenoids and quick-turn couplings, with a tachometer fan mixing the volume.",

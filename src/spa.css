@@ -1402,12 +1402,28 @@ summary {
 
 .cap-groups {
   display: grid;
-  gap: clamp(1.5rem, 3vw, 2.25rem) clamp(2rem, 4vw, 3rem);
+  gap: clamp(1.5rem, 3vw, 2.25rem);
 }
 
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+/* Six groups in one column would run twice the height of the notes beside
+   them, so the tool lists pair up from tablet width on. Columns rather than a
+   two-track grid: the groups are different heights, and grid rows would hold
+   a short group's column open to the height of the tall one beside it. */
+@media (min-width: 40rem) {
   .cap-groups {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: block;
+    columns: 2;
+    column-gap: clamp(2rem, 4vw, 3rem);
+  }
+
+  .cap-group {
+    break-inside: avoid;
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  /* The last group carries that margin, so the footnote needs none. */
+  .cap-footnote {
+    margin-top: 0;
   }
 }
 
@@ -1442,7 +1458,7 @@ summary {
 
 /* Points the exhaustive tool list at the resume instead of printing it. */
 .cap-footnote {
-  margin-top: 0.35rem;
+  margin-top: 1.25rem;
   font-size: var(--step--1);
   color: var(--text-subtle);
 }
