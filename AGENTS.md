@@ -43,11 +43,17 @@
   capturing) is the one that pays for itself. Reusable helpers, all of them
   replacing an approach that produced a wrong result, are in
   `scripts/fusion/animation_helpers.py`.
-- Software demos: follow `docs/software-animation-patterns.md`. Sprite for a
-  mechanism, live DOM for anything with words in it — a 520px sprite cell
-  cannot hold a readable filename. Put the content in `siteData.js` and keep
-  the renderer generic. React owns one number; CSS reads it off `data-*` and
-  custom properties.
+- Software demos: follow `docs/software-animation-patterns.md`. **If the
+  subject is an application that runs, capture it running** — launch it, drive
+  the real workflow, take a frame at each beat, and put that run's own numbers
+  beside them (`scripts/uicapture/`). A rebuilt interface can only assert what
+  the software does; a capture shows it, and driving the real one is what found
+  the bug the replica could not. Rebuild only when there is nothing to run: then
+  sprite for a mechanism, live DOM for anything with words in it — a 520px
+  sprite cell cannot hold a readable filename. This applies to software only;
+  hardware figures stay CAD renders under `docs/fusion-animation-pipeline.md`.
+  Either way, put the content in `siteData.js` and keep the renderer generic.
+  React owns one number; CSS reads it off `data-*` and custom properties.
 - Declare `animation-delay` only inside `prefers-reduced-motion: no-preference`.
   Section 14 of `src/spa.css` crushes every duration but leaves delay alone, so
   a delay outside that query makes the element land late under reduce. `.rise`

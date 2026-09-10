@@ -23,7 +23,8 @@ and its plan, which is where most of this came from.
 
 | # | Step | The rule in one line |
 |---|---|---|
-| 1 | Choose the kind | Sprite for a mechanism, live DOM for anything with words in it. |
+| 0 | **Default to a real playthrough** | *Software only.* If the subject is an application that runs, capture it running. Rebuild only when there is nothing to run. Hardware is not in scope — see `docs/fusion-animation-pipeline.md`. |
+| 1 | Choose the kind | If you must rebuild: sprite for a mechanism, live DOM for anything with words in it. |
 | 2 | Stages are data | Put the content in `siteData.js` and keep the renderer generic. Merge view types with identical row shapes. |
 | 3 | Layout | HTML nodes in a CSS grid, not SVG, wherever text must reflow. Measure the slot and fit the type; never drop the layout on an estimate. |
 | 4 | State | React owns one number. Everything visual reads it off `data-*` and custom properties. |
@@ -37,8 +38,37 @@ and its plan, which is where most of this came from.
 
 ## 1. Choose the demo kind
 
-**[read]** There are two, and picking wrong is the most expensive mistake
-available.
+**[read] Start from the real thing.** If the demo's subject is software that
+runs, the default is a playthrough: launch it, drive it, capture a frame at
+each beat, and put the numbers from that run beside them. Everything else in
+this section is what to do when that is not available.
+
+The reason is not fidelity, it is category. A rebuild can *assert* that the
+software refuses to write until its checklist clears; a capture *shows* it
+refusing. One is a diagram of a claim, the other is evidence for it, and on a
+portfolio the difference is the whole point. The NWB Forge demo was a rebuild
+for three revisions and read as a plausible tool nobody could verify existed.
+
+Two things settled it beyond argument. The rebuilt version had **seven stages
+invented from the outside**; the real application has four, and names them
+itself in its own Run Overview. And driving the real one end to end **found a
+bug** — the write completed with nine conflicts outstanding while the panel
+still said they had to be resolved "before the write can run". No amount of
+care with a replica surfaces that, because a replica only ever contains what
+its author already believed.
+
+**Rebuild only when there is nothing to run**: an architecture, a data flow, a
+protocol, or software that does not exist yet. Then the two kinds below apply,
+and picking wrong between them is the most expensive mistake available.
+
+**This rule is for software and stops there.** Hardware demos are governed by
+`docs/fusion-animation-pipeline.md` and are unaffected: the training rig and
+the prosthetic bench are CAD sprites because there is no running application to
+drive and no window to capture — the subject is a physical assembly, and a
+render of the geometry *is* the primary source, not a stand-in for one. Do not
+read "capture the real thing" as an argument for filming a rig. The equivalent
+discipline over there is step 7 of that pipeline: preview stills and send them
+to the owner before capturing.
 
 **Sprite** — a pre-rendered frame grid played back with `steps(1)` on
 `background-position`. `scripts/build_demo_sprite.py` writes
@@ -49,19 +79,6 @@ photoreal render *is* the content.
 
 **Live DOM** — HTML nodes rendered from data, animated with CSS. Right for a
 workflow, an architecture, a data flow.
-
-**[read] There is a third kind, and it beats both when the subject is your
-own software: a captured frame.** The NWB Forge walkthrough is six
-screenshots of the real desktop application driven through one conversion,
-paired with the numbers read off that run. It replaced a live-DOM demo that
-rebuilt the app's interface in the browser from invented data - a decent
-diagram, and poor evidence. A rebuild can only ever assert that the software
-refuses to write; a capture shows it. Reach for this when the artefact is
-proof that a thing exists and works, and for the two below when it is an
-explanation of how something behaves. Do not sprite a captured UI: the
-frames are 1400px because the interface has to survive being scaled, and a
-520px sprite cell would make it unreadable, which is the same trap rule 1
-guards against.
 
 **The test: does the thing have text in it?** A 520px sprite cell cannot hold
 a readable filename, a sprite adds roughly half a megabyte, and every copy
@@ -74,6 +91,73 @@ Both kinds live in the same `project.demos[]` array and share the
 one family on the page. A demo with no `kind` is a sprite; only the newer
 kinds declare themselves. That keeps existing sprite entries untouched when
 a kind is added.
+
+## 1b. Running the playthrough
+
+**[read]** Done once, for NWB Forge, and every item below is something that
+went wrong the first time. The helpers live in `scripts/uicapture/`.
+
+**Launch it the way it is actually launched**, not through a harness you write.
+NWB Forge has `scripts/run_app.py --session <path>`; use that. A harness that
+constructs the widgets itself is a rebuild again, one layer down.
+
+**Budget for the import.** The app took ~25s to show a window (neuroconv and
+pynwb are not cheap), and a fixed `sleep` raced it more than once. Poll for the
+window title instead — `capture.ps1 -WaitFor` does.
+
+**Capture the window, never the screen.** `PrintWindow` with
+`PW_RENDERFULLCONTENT` asks the window to draw itself into your DC, so you get
+the application alone: nothing else on the owner's desktop can appear in a
+frame, and nothing sitting on top of it occludes one. A screen-region grab
+gives you neither guarantee.
+
+**Pin the window before the first frame and restore it before every later
+one.** Qt re-places the window on relaunch and it genuinely wandered between
+monitors mid-session. Record the geometry once, put it back each time, and
+frames stay identical in size and position — which is what lets them
+cross-dissolve cleanly instead of jumping.
+
+**Maximise first.** The default 1236x859 window needed scrolling to reach the
+buttons, and scrolled frames are useless in a sequence. At 1900x1050 the whole
+workflow fits, and the extra pixels survive being scaled down on the page.
+
+**Coordinate clicks are measured off a capture, so they expire.** Every
+styling change moved them: raising the base font from 13px to 14px widened the
+tab bar enough that the old x-coordinate landed on the wrong tab, twice. Re-probe
+after any change to type or spacing. And a click issued before the layout
+settles selects nothing — wait, then verify what actually got selected rather
+than assuming.
+
+**Type into fields; do not open native dialogs.** "Choose Output..." opens a
+modal file picker that is painful to drive. The path field next to it takes
+`SendKeys` directly. Escape `+ ^ % ~ ( ) { } [ ]` — a Windows path contains
+none of them, which is luck rather than design.
+
+**Expect the run to do real work.** Step 4 wrote an actual 197,056-byte `.nwb`
+plus a validation report. Point the output at a scratch directory, and say so
+before running it.
+
+**Drive it to completion even if you only need early frames.** The one real bug
+this exercise found was in the final state, and nothing short of finishing the
+run would have shown it.
+
+**Frames: 1400px WebP, quality ~82.** Six came to 223KB. That is ~1.7x the
+largest size they are displayed at, so they stay crisp on a hidpi panel without
+shipping the 1900px original. Lazy-load them.
+
+**Do not sprite a captured UI.** The interface has to survive being scaled, and
+a 520px sprite cell makes it unreadable — the same trap rule 1 guards against,
+arrived at from the other direction.
+
+**Accept that the app's own text will be small on the page.** At an ~810px
+frame the captured 14px body lands near 8px. That is fine, and it is why the
+layout puts a facts column beside the frame: the screenshot carries *that this
+happened*, the column carries *the numbers*, at full size. Do not fight it by
+shrinking the frame further; crop to the region that matters instead.
+
+**A Qt app driven under `QT_QPA_PLATFORM=offscreen` segfaults on teardown.**
+Harmless — the measurements print first — but flush stdout and `os._exit(0)`
+if you want a clean exit code.
 
 ## 2. Make the stages data
 

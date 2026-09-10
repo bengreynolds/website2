@@ -8,7 +8,9 @@ wrong results.
 
 - Animating CAD geometry: `docs/fusion-animation-pipeline.md`
 - A demo of software — a workflow, an architecture, a data flow:
-  `docs/software-animation-patterns.md`
+  `docs/software-animation-patterns.md`. Its rule 0: if the software actually
+  runs, capture it running rather than rebuilding its interface. That one is
+  for software only — hardware stays with the Fusion pipeline above.
 
 Section 0 of each is a one-line-per-rule table. Read that much even for a
 change that looks small; most of the expensive mistakes in both files came
