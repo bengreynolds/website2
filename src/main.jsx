@@ -21,6 +21,7 @@ import "./demo-prosthetic-function.css";
 import "./demo-lickrevolver-build.css";
 import "./demo-lickrevolver-trial.css";
 import "./demo-lickrevolver-trial-close.css";
+import "./demo-lickrevolver-ui.css";
 import "./pipeline-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

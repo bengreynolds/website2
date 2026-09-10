@@ -758,6 +758,24 @@ summary {
   max-width: 62rem;
 }
 
+/* Three frame-locked figures: the rig in context, the mechanism close up, and
+   the operator interface stepping through the same trial.
+
+   Not three across. The case body only affords this stage about 480px, so a
+   third column would leave each figure near 145px and the interface panel
+   carries text. The two rig views pair on the top row and the interface takes
+   the row beneath, capped so it stays square rather than stretching. */
+.demo-stage--trio {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 62rem;
+}
+
+.demo-stage--trio > :nth-child(3) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 26rem);
+}
+
 /* One base rule for every demo. The per-demo poster, grid and keyframes come
    from the generated src/demo-<id>.css files. */
 /* No padding and no background-origin change here: the generated

@@ -502,7 +502,11 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
             const running = play.id === active.id && play.runs > 0;
             return (
               <figure className="demo-wrap case-demos">
-                <div className={`demo-stage ${ids.length > 1 ? "demo-stage--pair" : ""}`}>
+                <div
+                  className={`demo-stage ${
+                    ids.length === 2 ? "demo-stage--pair" : ""
+                  } ${ids.length > 2 ? "demo-stage--trio" : ""}`}
+                >
                   {ids.map((id) => (
                     <div
                       key={`${id}-${play.runs}`}

@@ -381,10 +381,11 @@ export const projects = [
       },
       {
         id: "lickrevolver-trial",
-        /* Two figures, one button: the trial in context and the spout
-           mechanism close up. Both sprites are 81 frames over the same
-           duration, so they stay frame-locked. */
-        ids: ["lickrevolver-trial", "lickrevolver-trial-close"],
+        /* Three figures, one button: the trial in context, the spout
+           mechanism close up, and the operator interface stepping through
+           the same trial. All three are 81 frames over the same duration,
+           so the protocol table tracks the rig rather than sitting still. */
+        ids: ["lickrevolver-trial", "lickrevolver-trial-close", "lickrevolver-ui"],
         label: "Trial demo",
         caption:
           "Two trials, structured the way the rig runs them. One protocol row is one trial. The spouts sit retracted while the carousel indexes a single 45° step to the next vial; the spouts are then presented once, 90° about the servo's gear axis taken from the assembly's coaxial mate. The rewarded side shows green and the other red, the outcome flashes with a ring around that side, and the spouts retract once — that retraction is where the next trial begins. The second trial swaps which side pays out and flashes red: a miss rather than a reward. Colour marks what moves; every other part keeps its Inventor appearance. The rig is symmetric and the second spout and solenoid are reconstructed across the assembly's own centre plane, since the master CAD currently carries one side.",
