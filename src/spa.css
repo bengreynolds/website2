@@ -1575,10 +1575,6 @@ summary {
   .masthead-inner {
     position: relative;
   }
-
-  .masthead .btn--quiet {
-    display: none;
-  }
 }
 
 /* --------------------------------------------------------------------------

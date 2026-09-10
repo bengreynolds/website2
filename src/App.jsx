@@ -9,7 +9,6 @@ import {
   navigation,
   projectFilters,
   projects,
-  resumeHref,
   roleLabel,
   skillGroups,
 } from "./siteData";
@@ -727,9 +726,6 @@ export default function App() {
             >
               {theme === "dark" ? "Light" : "Dark"}
             </button>
-            <a className="btn btn--quiet" href={resumeHref} download>
-              Resume
-            </a>
             <button
               type="button"
               className="menu-button"
@@ -769,8 +765,16 @@ export default function App() {
                 >
                   Selected work
                 </a>
-                <a className="btn btn--quiet" href={resumeHref} download>
-                  Resume
+                <a
+                  className="btn btn--quiet"
+                  href="#contact"
+                  onClick={(event) => {
+                    if (!isPlainClick(event)) return;
+                    event.preventDefault();
+                    goToSection("contact");
+                  }}
+                >
+                  Get in touch
                 </a>
               </div>
             </div>
@@ -901,22 +905,24 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="cap-groups">
-                {skillGroups.map((group) => (
-                  <div className="cap-group reveal" key={group.title}>
-                    <h3 className="cap-group-title">{group.title}</h3>
-                    <ul className="cap-items">
-                      {group.items.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+              {/* The footnote sits outside the group flow: the groups pack
+                  into balanced columns and a paragraph in that flow would be
+                  packed with them. */}
+              <div className="cap-stack">
+                <div className="cap-groups">
+                  {skillGroups.map((group) => (
+                    <div className="cap-group reveal" key={group.title}>
+                      <h3 className="cap-group-title">{group.title}</h3>
+                      <ul className="cap-items">
+                        {group.items.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
                 <p className="cap-footnote">
-                  Primary tools only. The{" "}
-                  <a className="link" href={resumeHref} download>
-                    resume
-                  </a>{" "}
+                  Primary tools only. The resume, linked at the end of the page,
                   carries the full list.
                 </p>
               </div>
