@@ -315,8 +315,10 @@ export const projects = [
         ],
       },
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "Layered so the domain does not know about Qt",
@@ -324,7 +326,6 @@ export const projects = [
           "The package splits into domain, adapters, normalization, mapping, validation, persistence, an app service layer, and only then the Qt widgets. The architecture notes state the constraint directly: the domain models stay independent of the interface, the adapters and PyNWB. That is what lets the conversion run without a window open.",
           "The workflow itself is a ten-state machine, from draft through sources added, inspecting, normalizing, mapping, review, validating and ready to write to completed or failed, over three declared pathways: supported, custom and hybrid. The walkthrough on this page is the hybrid one.",
         ],
-        source: "nwbforge/src/nwbforge/domain/enums, docs/architecture",
       },
       {
         heading: "Sixty-one adapters, and only the ones you need",
@@ -332,7 +333,6 @@ export const projects = [
           "Supported formats go through NeuroConv first; only custom or hybrid assembly falls back to writing PyNWB directly. Sixty-one NeuroConv-backed source adapters are exported lazily across nine families, and a registry matches each source against every adapter's own capability check rather than a filename convention.",
           "Each acquisition format is an independently installable extra: the project declares forty-nine optional dependency groups, so a machine installs SpikeGLX or Suite2p or ScanImage and nothing else, and a route is only registered when its dependencies are actually present.",
         ],
-        source: "nwbforge/pyproject.toml, src/nwbforge/adapters/registry",
       },
       {
         heading: "Validation and review are separate services on purpose",
@@ -340,14 +340,12 @@ export const projects = [
           "Artifact existence, PyNWB schema validation and NWB Inspector best-practice checks are three services rather than one pass, and each writes its report as an artifact. Review state is kept apart from validation output: approve, reject and acknowledge decisions are recorded as their own machine-readable artifact, and warnings or blocks require an explicit decision rather than defaulting through.",
           "Normalization is alias-rule driven, and a value it cannot resolve is surfaced instead of guessed. That is the mechanism behind the nine conflicts the walkthrough finds.",
         ],
-        source: "nwbforge/docs/architecture/validation-services.md, review-workflow.md",
       },
       {
         heading: "Where it actually is",
         body: [
           "Worth stating plainly, because the walkthrough looks finished: the README says the platform is not yet packaged for release, and there is no console-script entry point. It launches through a script whose own docstring calls it a temporary desktop launcher. What the frames show is real and reproducible; what it is not yet is installable by somebody else.",
         ],
-        source: "nwbforge/README.md, scripts/run_app.py",
       },
     ],
   },
@@ -441,8 +439,10 @@ export const projects = [
       "Closed the loop on detected movement, with load-cell and presence sensing as guards.",
       "Designed repeatable startup, validation, and recovery so sessions survive being left alone.",
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "One namespace, seven modules, installed separately",
@@ -450,7 +450,6 @@ export const projects = [
           "The codebase is a monorepo by convenience rather than by architecture, and says so: the modules install on devices independently and the loose coupling is meant to be assumed. They are core, video, device, inference, behavior, model and the Qt layer, with four applications on top: acquisition with a GUI, headless acquisition, a tunnel test and a pellet delivery test.",
           "Session flow is a finite state machine deliberately split from a separate behaviour algorithm, so that the decisions about training can be changed by somebody who understands the science without learning the state machine.",
         ],
-        source: "auto-trainer/auto-trainer-behavior/README.md",
       },
       {
         heading: "Twenty guards, because nobody is in the room",
@@ -458,7 +457,6 @@ export const projects = [
           "Unattended operation is what the detectors are for: roughly twenty named monitors including animal evasion, animal thrash, autoclamp evasion, headbar pressure, load-cell tare drift, presence in cage, external doors, board hardware reset, free disk space, a watchdog and a system fault.",
           "Cameras are addressed by URL rather than by index, with a scheme, a camera id and query parameters, so a serial number selects a FLIR camera and the primary and secondary parameters configure hardware triggering between the two. Pose inference runs as its own process behind an engine-agnostic interface, so the tracker can be replaced.",
         ],
-        source: "auto-trainer/auto-trainer-core/src/autotrainer/core/analysis, auto-trainer-video/README.md",
       },
       {
         heading: "The boards, and whose they are",
@@ -466,7 +464,6 @@ export const projects = [
           "Both custom boards are STM32G474 with a shared CAN transceiver. The pellet board carries three TMC2209 stepper drivers, an audio amplifier and speaker, a flash part and six BNC coaxial connectors; the head-fix board carries a 24-bit load-cell ADC and a MEMS microphone. The board design is LeafLabs work, integrated here rather than drawn here.",
           "Firmware is a Zephyr workspace with two in-tree board definitions and nine custom drivers, each with its own devicetree binding and shell commands. The CAN protocol is a named library with fourteen message modules and build-time size assertions on every message struct, exposed to Python through pybind11 so the same definitions cross the language boundary once.",
         ],
-        source: "auto-trainer-hardware/firmware, hardware/manufacturing BOMs",
       },
       {
         heading: "Updated over the bus, and found by mDNS",
@@ -474,7 +471,6 @@ export const projects = [
           "Firmware is updated in place over CAN by module address rather than reflashed on the bench, and there is a terminal application for bring-up that reads and manipulates live module state over the same bus.",
           "Each rig is one Jetson AGX prepared by a script that takes the unit name and uses it as hostname, remote-view identifier and notification identifier. Devices then advertise themselves over mDNS rather than being configured into a list, and a registry keys them by name and can aggregate remote registries into one view.",
         ],
-        source: "auto-trainer-hardware/README.md, auto-trainer-device-deployment",
       },
       {
         heading: "Protocols are documents, not code",
@@ -482,7 +478,6 @@ export const projects = [
           "A training protocol is a JSON document of phases with actions, predicates, value providers and hardware settings, tracked per animal. Its schema is exposed to language-model tooling through an MCP server, so a protocol can be generated and validated against the schema rather than hand-edited.",
           "Event logs are read back through a browser tool that parses the CSV client-side, rebuilds the nested lifecycle of sessions, trials, clamp cycles and analysis passes, and virtual-scrolls tens of thousands of events.",
         ],
-        source: "auto-trainer-training/README.md, auto-trainer-event-viewer",
       },
     ],
   },
@@ -548,8 +543,10 @@ export const projects = [
       "Vendored the camera SDK wheels behind a per-platform manifest, and released pellet firmware as a SHA-256 verified bundle so a rig flashes without a build toolchain.",
       "Documented the build so a second rig can be reproduced without the original builder present.",
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "A fork, deliberately",
@@ -557,7 +554,6 @@ export const projects = [
           "The repository is a GitHub fork of the trainer, and the hardware repository carries a provenance file that states the reason: the maintained repository is a fork, not a source-only copy, so upstream history and authorship stay attached. The re-platform target is written into the code guidelines themselves, moving from Jetson and Ubuntu 20.04 to Ubuntu 22.04 on x86_64.",
           "The port is a subtraction as well as an addition, which the summary above does not say: the whole head-fix and tunnel subsystem is gone on this branch, along with its application, its pressure monitor and its evasion detectors. Operator-run acquisition does not head-fix.",
         ],
-        source: "reachAQ-hardware/PROVENANCE.md, tree diff against auto-trainer",
       },
       {
         heading: "CAN recovery that refuses to overreach",
@@ -565,7 +561,6 @@ export const projects = [
           "Moving off Jetson-native CAN meant PEAK SocketCAN with its own boot service, and a reset helper that is root-owned and narrowly permitted. It serializes and debounces restarts, refuses to reset a channel owned by another process, and its documentation says outright that it is not a physical emergency stop or a board power cycle.",
           "NI instrumentation is new code rather than configuration: signal-stream and laser drivers in the device module, port and stream configuration in core, and six acquisition-layer models covering channel plan, discovery, preflight, a sample ring, a signal monitor and timing.",
         ],
-        source: "reachAQ@devel/auto-trainer-device/src/autotrainer/device/can_ownership.py",
       },
       {
         heading: "An installer that reports instead of stopping",
@@ -573,7 +568,6 @@ export const projects = [
           "The workstation installer is one option-less script that deliberately does not stop at the first failure, so a single failing category does not block the rest. Every step reports pass, fail, skip or plan, a summary always prints, re-running is the supported repair path, and the exit code only turns nonzero after every eligible step has run.",
           "It also draws an explicit boundary: it installs no vendor kernel drivers, selects no camera serial or DAQ channel or CAN bitrate, and installs the CAN tools without enabling the service, because that is intentionally a separate reviewed hardware step.",
         ],
-        source: "reachAQ@devel/tools/install/reachaq-linux-install.sh",
       },
       {
         heading: "Tone timing, down to the signal",
@@ -581,7 +575,6 @@ export const projects = [
           "The first firmware change made on this side is narrow and documented at the signal level: one stimulus line asserts for the whole 5 kHz tone interval and another for the whole 6 kHz interval, both clear on any other frequency or on a completion, abort or tone-start failure, and two further lines stay unassigned. That is what lets tone timing be correlated against the DAQ afterwards.",
           "Firmware and application are version-gated against each other through a tracked compatibility table and a runtime check, and the release records its own reference binary with a checksum.",
         ],
-        source: "reachAQ-hardware/docs/releases/v2.0.0.md",
       },
     ],
   },
@@ -631,8 +624,10 @@ export const projects = [
       "Covered training progression, outcome composition, reach timing, and kinematics.",
       "Ran calculations as cancelable background tasks and saved reusable analysis workspaces.",
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "The boundary is written in the module",
@@ -640,7 +635,6 @@ export const projects = [
           "The analysis module states its own constraint in its docstring: it intentionally contains no Qt widget classes, and defines stable request and result structures with cancelable background tasks. That sentence is what makes the compute path runnable headless, and it is the reason the same engine serves the interface and a script.",
           "The metric surface is enumerated rather than ad hoc: fifty-seven declared metrics spanning success rate, outcome composition, reach counts, timing, inter-reach interval, per-reach distributions and hand kinematics including peak velocity, peak acceleration, path length, straightness and maximum extension.",
         ],
-        source: "ReachX/reachx/data/intersession.py",
       },
       {
         heading: "Comparison as orthogonal choices",
@@ -648,7 +642,6 @@ export const projects = [
           "Rather than a pile of boolean switches, comparison behaviour is modelled as separate enumerations for scope, aggregation, grouping, series, x-axis, statistical overlay, error bars and outcome value, plus three more for trajectories, over frozen request, filter and option contracts.",
           "Long calculations run as cancelable background tasks with a per-session summary cache keyed on a trajectory fingerprint, so rerunning does not redo work whose inputs have not changed. Analysis definitions save as reusable workspaces with their own migration path, held separately from the session workspace.",
         ],
-        source: "ReachX/reachx/data/intersession.py, reachx/config/intersessionworkspaces.py",
       },
       {
         heading: "Tested without recorded data",
@@ -656,7 +649,6 @@ export const projects = [
           "The validation suite runs on the standard-library test runner under an offscreen Qt platform and generates its own synthetic trajectories, which means it covers plot construction, workspace migration, window and dock restoration and image export without requiring real experiment data to be present.",
           "The application does not depend on DeepLabCut: modelling and inference are TensorFlow with a ResNet backbone adapted from DeepLabCut source, pinned by one real constraint, since the last release with native Windows GPU support fixes both the framework and the Python version. That divergence is the reason a model converter has to exist at all.",
         ],
-        source: "ReachX/tests/test_intersession_analysis.py, reachx/modeling/resnet.py",
       },
     ],
   },
@@ -705,8 +697,10 @@ export const projects = [
       "Model conversion: GUI and command-line conversion of pose-estimation models between the analysis app and DeepLabCut formats.",
       "Git monitor: a hook-based command logger that keeps a shared record of repository activity across machines.",
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "One parent repository, five submodules",
@@ -714,7 +708,6 @@ export const projects = [
           "The toolkit is a parent repository whose submodules are the installer, the camera alignment tool, the model converter, the git logger and the training tools, all sharing a single conda environment. A sixth tool, a GPU health suite, sits alongside them.",
           "The installer is script-based by choice rather than omission, and the README says so: it does not build standalone executables. It installs a launcher and an updater with generated icons and shortcuts, and the updater has no Python environment of its own. It drives the application's environment from outside, fetches the newest release wheel, and on a same-version reinstall runs two explicit forced steps.",
         ],
-        source: "reachx-tools/.gitmodules, reachx-installer/README.md",
       },
       {
         heading: "Alignment that previews, backs up, and refuses",
@@ -722,7 +715,6 @@ export const projects = [
           "The camera tool shows master, raw secondary and compensated secondary frames side by side before it writes anything, then applies the fix under a dry run, a backup and an undo, and verifies the paired output afterwards with both a container probe and real frame reads.",
           "It also refuses past a threshold: a frame-count mismatch beyond one hundred frames is treated as a significant acquisition error and stops the tool rather than being corrected, and mid-recording hardware drops produce a warning instead of a silent fix. Compensation keeps one authoritative clock, so the master timeline is fixed and offsets apply only to selected secondary cameras.",
         ],
-        source: "cam-align/src/cam_align_tool/core/engine.py, postcheck.py, inspect.py",
       },
       {
         heading: "A logger that sanitises before it writes",
@@ -730,7 +722,6 @@ export const projects = [
           "The git monitor is a Rust binary that logs a timestamp, repository and command per line, sanitises sensitive values before writing, and rotates by size and retention. It captures through shell hooks rather than by polling processes, because hooks give the most accurate repository context on Windows, and it ships as a prebuilt bundle for three platforms so operators never compile it.",
           "Its predecessor is still in the tree as the shell-and-Python version of the same idea, with a timeline visualiser and separate user and developer guides written for researchers who need to check out an old tag to reanalyse data.",
         ],
-        source: "git-log-access/src/service/logger.rs, hooks.rs",
       },
     ],
   },
@@ -861,8 +852,10 @@ export const projects = [
       "Guarded sessions with separate idle timeouts for the main and reward spouts.",
       "Framed the serial link so the interface and the board both recover from a partial message.",
     ],
-    /* Repo-derived. Each part cites the files behind it so a claim can
-       be checked rather than taken on trust. */
+    /* Repo-derived: written from the source of the project it describes. The
+       file paths that used to sit under each part are gone - a reader does
+       not need them, and on a private repository they point at nothing they
+       can open. */
     deepDive: [
       {
         heading: "The board owns the trial, the interface owns the protocol",
@@ -870,7 +863,6 @@ export const projects = [
           "The carousel is defined in firmware as eight equal positions computed at boot, so one index step is 45 degrees, mapped to a servo pulse width. The board holds the trial state machine, idle then main-spout listen then reward listen, entered on a vial change, and the state transition itself is what emits the markers the interface logs.",
           "Three lick channels are read as separate TTL inputs, one main and two reward, and each detection is confirmed by a second read half a millisecond later before it counts.",
         ],
-        source: "kinnamon-lick/Arduino_LickRevolver/LickRevolver/LickRevolver_v4.ino",
       },
       {
         heading: "Priming is hardware, so it cannot fire mid-trial",
@@ -878,7 +870,6 @@ export const projects = [
           "Two momentary purge buttons open their solenoid directly rather than through a software mode, and only while the trial state is idle. A purge therefore cannot interrupt a trial, which is a property of the wiring rather than of the firmware's good behaviour.",
           "Idle timeouts are genuinely separate per spout: two values set by distinct serial commands, swapped in on state entry, each expiry emitting its own marker before the shutters close and the board returns to idle.",
         ],
-        source: "kinnamon-lick firmware, LickRevolver_v4.ino",
       },
       {
         heading: "A framed protocol that survives a partial read",
@@ -886,7 +877,6 @@ export const projects = [
           "The serial protocol is a single letter plus an optional integer, nine commands wide. Framing is explicit in both directions: the board echoes the command character, then a marker, then a closing marker to complete a handshake, and every event is terminated. The host splits on those delimiters and re-buffers the remainder, so a message cut in half survives to the next read.",
           "Events decode through a fifteen-entry table, each carrying a session-relative millisecond timestamp, and the acquisition loop runs in a separate process communicating through shared values, so a stalled interface cannot stall the trial.",
         ],
-        source: "kinnamon-lick/arduinoCtrl_LickRevolver_v2.py, LickRevolver_GUI_v2.py",
       },
     ],
   },
@@ -1037,11 +1027,11 @@ export const skills = [
     image: "01-software",
     lede: "Most of what I build is software that has to run unattended on somebody else's bench. That means firmware on a microcontroller, a desktop interface a researcher opens every morning, and the pipeline underneath both, written so each part installs and fails on its own rather than as one block. Python and C++ carry most of it, with Rust and MATLAB where they fit better.",
     readout: [
-      { label: "Languages", value: "Python 3.10 / C++ / Rust 1.70 / MATLAB" },
-      { label: "Interfaces", value: "PySide6 / wxPython / React and TypeScript" },
-      { label: "Embedded", value: "Zephyr RTOS / Arduino / nine custom drivers" },
-      { label: "Services", value: "ZeroMQ / Socket.IO / ASP.NET Core / nginx" },
-      { label: "Patterns", value: "FSM split from policy / namespace packages / cancelable tasks" },
+      { label: "Languages", value: "Python, C++, C, Rust, MATLAB, SQL, JavaScript, TypeScript, PowerShell, Bash" },
+      { label: "Desktop UI", value: "PySide6, Qt, Qt Designer, wxPython, Qt threading and signals" },
+      { label: "Web and services", value: "React, Node, ASP.NET Core, nginx, REST, Socket.IO" },
+      { label: "Concurrency and IPC", value: "ZeroMQ, multiprocessing, background task queues, pybind11" },
+      { label: "Build and test", value: "CMake, Cargo, West, pytest, unittest, offscreen Qt, CI workflows" },
     ],
   },
   {
@@ -1052,11 +1042,11 @@ export const skills = [
     image: "02-automation",
     lede: "A system that only records is easier to build than one that decides. Closed-loop work means reading a sensor or a tracked position, deciding inside a deadline, and driving hardware back, with a defined path for the case where the decision arrives late. The control is rarely the hard part; the guards around it are.",
     readout: [
-      { label: "Bus", value: "CAN 2.0, fourteen message modules, size asserts at build" },
-      { label: "Actuation", value: "three stepper axes at 8 microsteps / four servos, 900 to 2100 us" },
-      { label: "Sensing", value: "NAU7802 24-bit load cell / headbar pressure / cage presence" },
-      { label: "Guards", value: "about twenty named detectors, watchdog, tare drift, disk space" },
-      { label: "Update", value: "firmware in place over the bus, addressed by module" },
+      { label: "Buses and I/O", value: "CAN, SocketCAN, UART, RS-232, RS-485, I2C, SPI, TTL, GPIO, PWM" },
+      { label: "Real time", value: "RTOS scheduling, finite state machines, watchdogs, debouncing, deadline handling" },
+      { label: "Actuation", value: "stepper drive, microstepping, servo control, solenoid drive, gear trains" },
+      { label: "Feedback", value: "load cells, encoders, limit and presence sensing, tare and drift compensation" },
+      { label: "Firmware", value: "Zephyr, Arduino, STM32 HAL, devicetree, in-place update over bus" },
     ],
   },
   {
@@ -1067,11 +1057,11 @@ export const skills = [
     image: "03-cad",
     lede: "Enclosures, mechanisms and mounts, designed toward the constraints that actually decide the part: how it is cut, how it seals, whether a cable reaches its connector, and whether a person can service it afterwards. Printed parts for iteration, machined and waterjet panels for anything that has to hold.",
     readout: [
-      { label: "CAD", value: "Fusion 360 / Inventor / SolidWorks" },
-      { label: "Scale", value: "a 215-part enclosure carrying every cable route and connector" },
-      { label: "Sealing", value: "O-ring groove / magnetic latch / captive panel screws" },
-      { label: "Fabrication", value: "3D print for iteration / machined and PVC panels" },
-      { label: "Release", value: "laser and waterjet files, cut to order" },
+      { label: "CAD", value: "Fusion 360, Inventor, SolidWorks" },
+      { label: "Modeling", value: "parametric solids, assemblies and mates, sheet metal, weldments, motion studies" },
+      { label: "Design for manufacture", value: "tolerancing, press and clearance fits, O-ring seals, fastener stacks, cable routing" },
+      { label: "Fabrication", value: "FDM, SLA, CNC machining, laser cutting, waterjet, extruded aluminium framing" },
+      { label: "Release", value: "2D drawings, STEP, DXF, STL, BOM, cut files" },
     ],
   },
   {
@@ -1082,11 +1072,11 @@ export const skills = [
     image: "04-electronics",
     lede: "Schematic capture, board layout, and the bench testing that tells you whether the board does what the schematic claimed. I treat the manufacturing release as part of the design: a board that cannot be reordered without its original designer present is not finished.",
     readout: [
-      { label: "Layout", value: "KiCad, schematic through pick-and-place" },
-      { label: "MCU", value: "STM32G474RET with an ATA6561 CAN transceiver" },
-      { label: "Drive", value: "three TMC2209 stepper drivers / TPA2005D1 amplifier / W25Q16JV flash" },
-      { label: "Instrument", value: "NAU7802 24-bit ADC / IMP23ABSU MEMS microphone" },
-      { label: "Interface", value: "six BNC coaxial lines for stimulus in and out" },
+      { label: "EDA", value: "KiCad, schematic capture, multi-layer layout, DRC and ERC" },
+      { label: "Microcontrollers", value: "STM32, ARM Cortex-M, AVR" },
+      { label: "Analog and drive", value: "op-amps, instrumentation amplifiers, comparators, 24-bit ADCs, motor drivers, MOSFET drive" },
+      { label: "Interfaces", value: "CAN transceivers, RS-232, RS-485, USB, BNC and coax, JTAG and SWD" },
+      { label: "Manufacture", value: "BOM, gerbers, pick-and-place, DFM review, reflow and rework, bring-up" },
     ],
   },
   {
@@ -1097,11 +1087,11 @@ export const skills = [
     image: "05-acquisition",
     lede: "Getting a number off an instrument is easy; being able to defend it later is the discipline. The recurring problem is not sampling but alignment: which frame corresponds to which trigger, and how you demonstrate that after the session is over. Most of the effort goes into synchronisation and into the record that makes it checkable.",
     readout: [
-      { label: "DAQ", value: "NI-DAQmx / PXIe-1073 chassis over MXI / channel plan and preflight" },
-      { label: "Cameras", value: "FLIR Spinnaker 3.2, hardware primary and secondary triggering" },
-      { label: "CAN", value: "PEAK SocketCAN with a scoped reset that checks channel ownership" },
-      { label: "Timing", value: "frame and TTL sync / a stimulus line asserted per tone interval" },
-      { label: "Rule", value: "a device counts only once NI-DAQmx sees it, not once lspci does" },
+      { label: "DAQ", value: "NI-DAQmx, PXI, PXIe, MXI, analog and digital I/O, counters and timers" },
+      { label: "Machine vision", value: "FLIR Spinnaker, GenICam, hardware triggering, high-speed capture, multi-camera rigs" },
+      { label: "Synchronisation", value: "TTL, frame sync, clock alignment, timestamping, jitter budgeting" },
+      { label: "Sensors", value: "load cells, strain gauges, oxygen sensors, encoders, microphones" },
+      { label: "Calibration", value: "gain and offset, linearity, drift monitoring, traceable references" },
     ],
   },
   {
@@ -1112,11 +1102,12 @@ export const skills = [
     image: "06-ml-vision",
     lede: "Applied rather than research: tracking and pose estimation used as an input to a system that has to act on it. That means training and converting models, confirming inference holds its rate on the machine it will actually run on, and knowing what the model does when the subject leaves the frame.",
     readout: [
-      { label: "Tracking", value: "DeepLabCut across ten tracked body parts" },
-      { label: "Inference", value: "TensorFlow 2.10.1, ResNet backbone, tf-slim" },
-      { label: "Stereo", value: "an 8 by 6 checkerboard, DLC-3D calibration, usable alpha near 0.47" },
-      { label: "Process", value: "inference in its own process behind an engine-agnostic interface" },
-      { label: "Conversion", value: "bidirectional model and result formats, retrainability preserved" },
+      { label: "Frameworks", value: "TensorFlow, PyTorch, scikit-learn, JAX" },
+      { label: "Vision", value: "OpenCV, DeepLabCut, anipose" },
+      { label: "Calibration", value: "3D calibration, stereo and multi-camera, checkerboard, undistortion" },
+      { label: "Models", value: "ResNet, RTMPose, tf-slim, transfer learning, augmentation" },
+      { label: "Acceleration", value: "CUDA, cuDNN, Jetson, ONNX Runtime, GPU benchmarking" },
+      { label: "Pipelines", value: "model training and inference, model conversion, batch and real-time" },
     ],
   },
   {
@@ -1127,11 +1118,11 @@ export const skills = [
     image: "07-statistics",
     lede: "Turning sessions into results somebody else can check. I build analysis as a headless backend with stable inputs and outputs, so a figure is regenerated rather than rebuilt by hand, and I have run mixed-methods studies end to end, from design through quantitative and qualitative analysis to the written report.",
     readout: [
-      { label: "Numerics", value: "NumPy / SciPy / pandas" },
-      { label: "Figures", value: "pyqtgraph, with PNG and SVG export" },
-      { label: "Surface", value: "fifty-seven declared metrics: outcome, timing, kinematics" },
-      { label: "Contracts", value: "frozen request and result structures, no Qt in the compute path" },
-      { label: "Studies", value: "mixed methods, design through quantitative analysis to report" },
+      { label: "Numerics", value: "NumPy, SciPy, pandas, statsmodels" },
+      { label: "Methods", value: "regression, ANOVA, mixed models, nonparametric tests, bootstrapping, effect sizes" },
+      { label: "Signals", value: "filtering, segmentation, event detection, kinematics, peak and interval analysis" },
+      { label: "Visualisation", value: "pyqtgraph, Matplotlib, seaborn" },
+      { label: "Reproducibility", value: "parameterised pipelines, cached intermediates, versioned figure export" },
     ],
   },
   {
@@ -1142,11 +1133,12 @@ export const skills = [
     image: "08-deployment",
     lede: "The part that decides whether any of the above is still working once I am not in the room. Packaged installers and pinned environments so a non-developer can update a rig, written SOPs and versioned documentation so a procedure outlives whoever wrote it, and a validation gate before an update reaches a machine somebody is collecting on.",
     readout: [
-      { label: "Packaging", value: "Conda / pip wheels from releases / PowerShell launchers" },
-      { label: "Verification", value: "SHA-256 bundles / a pip report, and a fallback when pip writes none" },
-      { label: "Services", value: "systemd units / Avahi service files / one nginx gateway" },
-      { label: "Recovery", value: "dry run, backup and undo, and a refusal past a 100-frame mismatch" },
-      { label: "Practice", value: "SOPs, versioned documentation, a validation gate before rollout" },
+      { label: "Packaging", value: "conda, pip, wheels, PyInstaller, installers and shortcuts" },
+      { label: "Platforms", value: "Linux, Windows, Docker, systemd, PowerShell, bash" },
+      { label: "GPU and embedded", value: "CUDA toolkit, cuDNN, NVIDIA drivers, JetPack, Jetson provisioning" },
+      { label: "Version control", value: "git, hooks, tags and releases, submodules" },
+      { label: "Operations", value: "service discovery, reverse proxy, TLS, log rotation, health checks" },
+      { label: "Practice", value: "SOPs, runbooks, release notes, validation gates, vendor coordination" },
     ],
   },
 ];

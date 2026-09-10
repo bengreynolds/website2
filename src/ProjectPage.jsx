@@ -15,7 +15,7 @@ import SequencePanel from "./SequencePanel";
      identity     what it is, who did what, and the stack by layer
      mechanism    every figure, each run from a control
      argument     the problem, the approach, what was built
-     detail       repo-derived, each part citing its files
+     detail       the implementation, written from the source
 
    Nothing on the page is driven by scroll position. The assembly sequences
    run from buttons in SequencePanel and the demos run from the switcher in
@@ -103,9 +103,9 @@ export default function ProjectPage({ project }) {
         </section>
       </div>
 
-      {/* Repo-derived depth. Not rendered at all when a project has no source
-          to cite, because an empty heading reads as a broken page rather than
-          as work in progress. */}
+      {/* Repo-derived depth. Not rendered at all when a project has none,
+          because an empty heading reads as a broken page rather than as work
+          in progress. */}
       {project.deepDive && project.deepDive.length ? (
         <section className="container project-detail" aria-labelledby="detail-heading">
           <h2 className="project-kicker" id="detail-heading">
@@ -117,7 +117,6 @@ export default function ProjectPage({ project }) {
               {part.body.map((line) => (
                 <p key={line}>{line}</p>
               ))}
-              {part.source ? <p className="project-source">{part.source}</p> : null}
             </div>
           ))}
         </section>

@@ -1002,6 +1002,10 @@ summary {
   border-top: 1px solid var(--rule);
 }
 
+.stage-track:first-child {
+  border-top: 0;
+}
+
 .stage-frame {
   padding-block: clamp(2.5rem, 6vh, 4.5rem);
 }
@@ -1027,9 +1031,70 @@ summary {
   align-items: start;
 }
 
+/* ---- asymmetry ---------------------------------------------------------
+   Eight stages in one column is eight chances to look like a template, so
+   nothing repeats on consecutive stages: the figure changes side, the column
+   ratio flips with it, the plate's proportion cycles through three shapes,
+   and every other pair drops its figure below the text it sits beside.
+
+   The outer edge of each figure eats the container's own gutter, so a plate
+   runs to the edge of the text column's margin rather than lining up with
+   it. Exactly the gutter and no more: that padding belongs to the container,
+   so consuming it cannot push anything past the viewport, which a bleed
+   measured against 100vw would do the moment a scrollbar appeared. */
+
 @media (min-width: 64rem) {
-  .stage-grid {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  .stage-track:nth-child(odd) .stage-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+
+  .stage-track:nth-child(odd) .stage-figure {
+    margin-inline-end: calc(-1 * var(--gutter));
+  }
+
+  .stage-track:nth-child(even) .stage-grid {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  /* Source order stays text-then-figure, so the reading and tab order are
+     the same on every stage regardless of which side the picture is on. */
+  .stage-track:nth-child(even) .stage-body {
+    order: 2;
+  }
+
+  .stage-track:nth-child(even) .stage-figure {
+    order: 1;
+    margin-inline-start: calc(-1 * var(--gutter));
+  }
+
+  .stage-track:nth-child(4n + 2) .stage-figure,
+  .stage-track:nth-child(4n + 3) .stage-figure {
+    margin-top: clamp(1.5rem, 4vh, 3.5rem);
+  }
+
+  .stage-track:nth-child(3n) .skill-shot,
+  .stage-track:nth-child(3n) .skill-plate--empty {
+    aspect-ratio: 5 / 4;
+  }
+
+  .stage-track:nth-child(3n + 1) .skill-shot,
+  .stage-track:nth-child(3n + 1) .skill-plate--empty {
+    aspect-ratio: 16 / 10;
+  }
+
+  .stage-track:nth-child(3n + 2) .skill-shot,
+  .stage-track:nth-child(3n + 2) .skill-plate--empty {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* The number sits half out of the text column, which is the one place on
+     the page where a label is allowed to break the measure. */
+  .stage-num {
+    margin-inline-start: calc(-1 * var(--gutter) * 0.5);
+  }
+
+  .stage-track:nth-child(even) .stage-num {
+    margin-inline-start: 0;
   }
 }
 
@@ -2170,14 +2235,6 @@ summary {
   letter-spacing: -0.02em;
 }
 
-/* Where a claim came from, so a reader can check it and a reviewer can find
-   it. Mono because it is a path, not a sentence. */
-.project-source {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-subtle);
-  word-break: break-word;
-}
 
 /* ---- previous / index / next -------------------------------------------
    Three controls, not two. The index between them is the reason the bottom

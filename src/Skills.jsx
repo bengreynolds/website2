@@ -21,6 +21,16 @@ import { skillCredits } from "./skillCredits";
 
 const creditBySlug = new Map(skillCredits.map((entry) => [entry.slug, entry]));
 
+/* Whether the image's own title already credits its author. Compared on the
+   first word of the author, because the manifest may carry a library credit
+   after the person's name ("Max Gruber / Better Images of AI") while the
+   title carries only the name. */
+function namesAuthor(credit) {
+  const first = String(credit.author || "").trim().split(/[\s/]+/)[0];
+  if (first.length < 3) return false;
+  return String(credit.title || "").toLowerCase().includes(first.toLowerCase());
+}
+
 /* A slug with no file renders a labelled placeholder rather than a gap. The
    section is meant to ship before every image is sourced, and an empty plate
    that says what belongs in it is more useful to whoever fills it than a
@@ -51,8 +61,12 @@ const SkillFigure = memo(function SkillFigure({ skill }) {
       <figcaption className="skill-credit">
         <a href={credit.source} target="_blank" rel="noreferrer noopener">
           {credit.title}
-        </a>{" "}
-        by {credit.author},{" "}
+        </a>
+        {/* Some Commons titles already carry the author, so appending it
+            printed "Banana Plant Flask by Max Gruber by Max Gruber". The
+            licence still needs the attribution, so it is only skipped when the
+            title has already given it. */}
+        {namesAuthor(credit) ? null : <> by {credit.author}</>},{" "}
         <a href={credit.licenceUrl} target="_blank" rel="noreferrer noopener">
           {credit.licence}
         </a>
