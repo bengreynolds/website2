@@ -81,8 +81,11 @@ project. Proposed set, for the owner to edit before build:
 | 07 | Statistical analysis |
 | 08 | Deployment, documentation and support |
 
-Eight is likely two too many for a scroll narrative. Recommended fold to six:
-04 into 05, and 08 into 01.
+All eight ship. The owner kept the full set, so the section carries eight
+stages rather than the six a scroll narrative would prefer. Consequence to
+design around: eight pinned stages is a long spine, so the rail matters more
+here than anywhere else on the page, and the skim path must stay usable for a
+reader who does not scroll the whole thing.
 
 Each skill carries a number, title, two or three sentences, and one image.
 Content is written fresh for this section and is about competence, not about a
@@ -183,18 +186,49 @@ assembly posters by cropping the existing sheets with Pillow.
 
 ## 8. Repo extraction
 
-| Project | Repo | Visibility |
+`gh repo list` shows only the personal account. The work actually lives in two
+organisations, `Mouse-GYM` and `Cerebellum-Lab`, which together hold about
+forty repositories. Seven of the nine projects have a source behind them.
+
+| n | Project | Repositories |
 | --- | --- | --- |
-| Neuroscience Data Standardization Platform | `nwbforge` | public |
-| Reach-to-Grasp Motion Analysis Suite | `ReachX` | private |
-| Autonomous Training Rig, reachAQ | `reach-training` | private |
-| Neonatal Hypoxia Chamber | `Neonatal_rodent_hypoxia` | public |
-| Multi-Solution Lickometer | `kinnamon-lick` | public |
-| Deployment Toolkit | `sm-manager`, `gitControl` | public, private |
+| 01 | Data Standardization Platform | `bengreynolds/nwbforge`, `Cerebellum-Lab/nwbconv` |
+| 02 | Autonomous Behavioral Training Rig | `Mouse-GYM/auto-trainer`, `auto-trainer-hardware`, `autotrainer-modules`, the `auto-trainer-device-*` set, `multicam-dlc`, `camera-calibration` |
+| 03 | reachAQ Acquisition Platform | `Cerebellum-Lab/reachAQ`, `reachAQ-hardware` |
+| 04 | Reach-to-Grasp Motion Analysis Suite | `Cerebellum-Lab/ReachX`, `reachx-tools`, `reachx-installer`, `reachx-cnn-conversion`, `reachx-ml-segmentation`, `reachx-training-tools` |
+| 05 | Deployment and Support Toolkit | `Cerebellum-Lab/cam-align`, `git-log-access`, `gitControl`, `GPU-testing`, `bengreynolds/sm-manager` |
+| 06 | Prosthetic Sensation Test Bench | none found |
+| 07 | Multi-Solution Lickometer | `bengreynolds/kinnamon-lick` |
+| 08 | Lick Port and Reward Hardware | none found |
+| 09 | Neonatal Hypoxia Chamber | `bengreynolds/Neonatal_rodent_hypoxia` |
+
+Scope: only repositories that back one of the nine projects. The orgs also
+hold other people's research (`Cerebellum-Enhancers`, `Calcium-Imaging-
+Analysis`, `HarmalineCNN`, `VOR-Python`, `reach_sound_analysis`) which is not
+this portfolio and is not read for it.
 
 Read README, module layout, entry points, configuration and dependencies.
-Prefer facts a reader could verify against a file over narrative. Three
-projects have no repo and keep the copy they have.
+Prefer facts a reader could verify against a file over narrative. Repository
+descriptions are unreliable here: several are copied between repos, so
+`reachAQ` and `auto-trainer` carry the same one-liner. Read the README.
+
+Three findings already worth recording, because they change copy rather than
+just deepening it:
+
+- `Cerebellum-Lab/reachAQ` is titled "Autotrainer" and documents
+  `autotrainer.core`, `.video`, `.device`, `.inference`, `.behavior`,
+  `.model`, `.pyside`. That confirms the site's existing claim that reachAQ
+  carried the trainer's core, video, device, inference and behavior modules.
+  It also names three applications the site does not mention: Acquisition,
+  Tunnel Test, and Pellet Delivery Test.
+- `reachAQ-hardware` states it is the Cerebellum Lab-maintained **fork** of
+  `Mouse-GYM/auto-trainer-hardware`, with a `PROVENANCE.md`. The site says
+  reachAQ took the module set "rather than forking a copy". Both can be true,
+  software re-adapted while hardware is a maintained fork, but the sentence
+  reads as a contradiction and needs the owner's call rather than a silent
+  rewrite.
+- `git-log-access` is a Rust tool, which independently confirms the `Rust`
+  entry on the toolkit's stack.
 
 ## 9. Constraints carried
 
@@ -231,7 +265,11 @@ stalled timeline, stray transforms, `h1` count, skip link and stray dashes.
 
 ## 11. Open items
 
-- Skill list needs the owner's edit before phase 6, including whether to fold
-  to six.
 - Section order puts skills before work; one-line change if wrong.
-- Three projects have no repo, so their pages stay at current depth.
+- The Prosthetic Sensation Test Bench and the Lick Port hardware have no
+  repository, so their pages stay at current depth. Both are hardware, so
+  their depth would have to come from CAD or a fabrication release rather
+  than from code.
+- The fork-versus-base wording on reachAQ needs the owner to adjudicate.
+- Eight skill stages is a long spine; if it reads as one, folding 04 into 05
+  and 08 into 01 is the cut to make.
