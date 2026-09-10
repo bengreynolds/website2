@@ -529,10 +529,10 @@ export const projects = [
    Written by scripts/seed_tile_placements.py --seed 20260910.
    Do not hand-edit: rerun the script to change the grid. */
 export const tilePlacements = {
-  "scientific-data-standardization-platform": "plate-top",
-  "automated-multicamera-training-control-system": "plate-left",
-  "haptic-device-validation-test-bench": "plate-top",
-  "multi-solution-lickometer": "plate-bottom",
+  "scientific-data-standardization-platform": "plate-bottom",
+  "automated-multicamera-training-control-system": "plate-top",
+  "haptic-device-validation-test-bench": "plate-bottom",
+  "multi-solution-lickometer": "plate-top",
 };
 /* END GENERATED tilePlacements */
 
@@ -733,16 +733,34 @@ export function resolveShot(ref) {
    render as typographic tiles instead, which is what makes the grid
    asymmetric rather than nine equal cards. */
 function indexShot(project) {
+  /* A demo sprite first, deliberately. A project's scroll figure and its
+     demos are two different mechanisms: a demo is time-based and plays once
+     from .is-playing, while a scroll figure is scrubbed by a view() timeline
+     and does nothing on hover. The tile wants the one that moves when it is
+     pointed at, so a project with demos uses a demo even when it also has a
+     figure, and the figure keeps the project page where scrolling drives it. */
+  const demo = project.demos && project.demos.find((entry) => entry.kind !== "walkthrough");
+  if (demo) {
+    const id = (demo.ids && demo.ids[0]) || demo.id;
+    return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
+  }
+
   if (project.figure) {
-    return { src: `/rig/${project.figure}-poster.webp`, fit: "contain", plate: true };
+    return {
+      kind: "figure",
+      id: project.figure,
+      src: `/rig/${project.figure}-poster.webp`,
+    };
   }
-  const demo = project.demos && project.demos[0];
-  if (!demo) return null;
-  if (demo.steps) {
-    return { src: demo.steps[0].shot, fit: "cover", plate: false };
+
+  /* A walkthrough has no sprite at all, only captured frames of the real
+     application, so the tile shows one of those. */
+  const walkthrough = project.demos && project.demos.find((entry) => entry.steps);
+  if (walkthrough) {
+    return { kind: "shot", src: walkthrough.steps[0].shot };
   }
-  const id = (demo.ids && demo.ids[0]) || demo.id;
-  return { src: `/rig/${id}-poster.webp`, fit: "contain", plate: true };
+
+  return null;
 }
 
 /* `n` is the project's permanent figure number and is used as its label

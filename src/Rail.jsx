@@ -55,6 +55,7 @@ export default function Rail({
           type="button"
           className="rail-pin"
           aria-pressed={pinned}
+          aria-label={pinned ? "Unpin the index" : "Pin the index open"}
           onClick={onTogglePin}
         >
           <span className="rail-pin-label">Index</span>

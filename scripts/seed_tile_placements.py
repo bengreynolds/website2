@@ -2,9 +2,8 @@
 """Assign a frozen, pseudo-random plate placement to each plated work tile.
 
 The work grid is deliberately asymmetric: a plated tile puts its text block
-above, below, left or right of its square plate, and the mix of that with the
-five tiles that have no plate at all is what stops nine cards reading as a
-table. The arrangement is randomised ONCE, here, and written
+above or below its square plate, and the mix of that with the five tiles that
+have no plate at all is what stops nine cards reading as a table. The arrangement is randomised ONCE, here, and written
 into src/siteData.js as a literal, rather than chosen at render time.
 
 Frozen in the data because:
@@ -43,7 +42,13 @@ SITE_DATA = os.path.join(ROOT, "src", "siteData.js")
 # wide cell that packs in source order. Source order is not negotiable, since
 # the tiles are numbered 01 to 09 and grid-auto-flow: dense would print them
 # out of sequence.
-PLACEMENTS = ["plate-top", "plate-bottom", "plate-left", "plate-right"]
+# Above or below, not beside. A plate beside its text was built and measured
+# and does not survive a 1/3-width cell: at 1440 the read column comes out
+# near 200px, which breaks "Autonomous" across two lines mid-word, and the
+# only ways out are shrinking the plate to a thumbnail or dropping the title
+# a size below the other eight. Above/below is a randomised position too, and
+# it holds at every width.
+PLACEMENTS = ["plate-top", "plate-bottom"]
 
 BEGIN = "/* BEGIN GENERATED tilePlacements"
 END = "/* END GENERATED tilePlacements */"
@@ -77,8 +82,9 @@ def assign(projects, seed):
 
     One constraint beyond "random": no two consecutive plated tiles share a
     placement, because the plate landing on the same side twice running is
-    the symmetry this exists to break. Retried rather than constructed, since
-    with four options and four plated tiles the retry terminates at once.
+    the symmetry this exists to break. With two options that makes the
+    sequence alternate, which is still the point: the plate is not always
+    above the title.
     """
     rng = random.Random(seed)
     plated = [pid for pid, is_plated in projects if is_plated]

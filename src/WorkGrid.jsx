@@ -28,8 +28,11 @@ import { AppLink } from "./router";
 const Tile = memo(function Tile({ entry }) {
   const { project, n, shot } = entry;
   const placement = tilePlacements[project.id];
-  const spriteId = shot && shot.plate ? shot.src.match(/\/rig\/(.+)-poster\.webp$/) : null;
-  const id = spriteId ? spriteId[1] : null;
+  /* Only a demo sprite can play in a tile. A figure sprite is scrubbed by a
+     scroll timeline and would sit on its poster however long you hovered it,
+     so its tile shows the poster as an image and its animation lives on the
+     project page. */
+  const playable = shot && shot.kind === "demo" ? shot.id : null;
 
   /* Bumping runs remounts the plate, which is the reliable way to restart a
      CSS animation. Hover and focus are intent, so the sheet is fetched there
@@ -37,29 +40,30 @@ const Tile = memo(function Tile({ entry }) {
   const [runs, setRuns] = useState(0);
 
   const play = () => {
-    if (!id || prefersReducedMotion()) return;
-    const wait = loadSprite(id);
+    if (!playable || prefersReducedMotion()) return;
+    const wait = loadSprite(playable);
     if (!wait) {
-      setRuns((r) => r + 1);
+      setRuns((value) => value + 1);
       return;
     }
-    wait.then(() => setRuns((r) => r + 1));
+    wait.then(() => setRuns((value) => value + 1));
   };
 
   return (
     <article
       id={`project-${project.id}`}
       className="tile"
-      data-art={shot ? (shot.plate ? "sprite" : "shot") : "none"}
+      data-art={shot ? shot.kind : "none"}
       data-placement={placement || undefined}
+      onPointerEnter={play}
     >
       {shot ? (
         <div className="tile-plate">
-          {shot.plate ? (
+          {playable ? (
             <div
               key={runs}
               className={`tile-figure demo-figure ${runs > 0 ? "is-playing" : ""}`}
-              data-demo={id}
+              data-demo={playable}
               role="img"
               aria-label={project.figureLabel || project.title}
             />
@@ -67,7 +71,7 @@ const Tile = memo(function Tile({ entry }) {
             <img
               className="tile-shot"
               src={shot.src}
-              alt={project.title}
+              alt={project.figureLabel || project.title}
               loading="lazy"
               decoding="async"
             />
@@ -83,9 +87,7 @@ const Tile = memo(function Tile({ entry }) {
           <AppLink
             className="tile-link"
             href={`/work/${project.id}`}
-            onPointerEnter={() => id && warmSprites([id])}
-            onFocus={() => id && warmSprites([id])}
-            onMouseEnter={play}
+            onFocus={() => playable && warmSprites([playable])}
           >
             {project.title}
           </AppLink>
