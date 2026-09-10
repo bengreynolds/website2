@@ -1,7 +1,7 @@
 import { memo, useCallback, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
-import { AppLink } from "./router";
+import { AppLink, isPlainClick } from "./router";
 
 /* --------------------------------------------------------------------------
    Work grid
@@ -96,7 +96,12 @@ const Tile = memo(function Tile({ entry }) {
             className="tile-link"
             href={`/work/${project.id}`}
             onFocus={() => playable && warmSprites([playable])}
-            onClick={() => setLeaving(true)}
+            onClick={(event) => {
+              /* A modifier-click opens a new tab without unmounting this
+                 grid, so naming the plate on one would strand the name and
+                 abort every later transition. */
+              if (isPlainClick(event)) setLeaving(true);
+            }}
           >
             {project.title}
           </AppLink>

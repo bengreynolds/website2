@@ -129,12 +129,15 @@ export function NavigateProvider({ navigate, children }) {
   return <NavigateContext.Provider value={navigate}>{children}</NavigateContext.Provider>;
 }
 
-/* An <a> that happens to be intercepted. Props spread first so href and
-   onClick cannot be replaced by a caller and quietly lose the interception.
-   A caller's own onClick (e.g. WorkGrid naming its tile before it leaves) is
-   destructured out and run first, then the interception logic always runs
-   after it unconditionally - so a caller can observe the click but never
-   suppress the navigation or the modifier-key fallthrough. */
+/* An <a> that happens to be intercepted. href is spread-proof: it is applied
+   after {...rest}, so a caller cannot override it. onClick is not part of
+   rest at all - it is destructured out and composed instead, so a caller's
+   handler (e.g. WorkGrid naming its tile before it leaves) runs first and
+   the interception below always runs after it, unconditionally. That gives a
+   caller every click, but not a veto: it can still interfere by calling
+   event.preventDefault() (killing the browser's own new-tab default on a
+   modifier-click) or by throwing (aborting before navigate() runs, which
+   degrades to a full page load). No current caller does either. */
 export function AppLink({ href, children, onClick, ...rest }) {
   const navigate = useNavigate();
   return (
