@@ -1,95 +1,100 @@
 /* ==========================================================================
    Benjamin Reynolds - portfolio
-   Technical editorial system. Native CSS, no framework, no icon library.
+   Direction D, "Signal path". Native CSS, no framework, no icon library.
+
+   The page is one chain: an animal reaches, and that reach becomes validated
+   data. Seven pinned stages tell it in order, and a fixed index lets any
+   reader leave the story at any point and land on a project instead.
 
    Conventions
-   - One neutral ramp (cool grey). One accent (burnt orange). No second family.
-   - One radius rule: interactive controls get --radius-control. Layout
-     surfaces are square. Nothing else is rounded.
-   - Structure is expressed with hairline rules and space, not card borders.
-   - Motion is pure CSS and needs no JS gating class. See section 4.
-   - Fonts are linked from index.html, not @import-ed, to avoid blocking CSSOM.
+   - One warm-neutral ramp. One accent (amber). No second family.
+   - The accent means "interactive". It never lands on static text, which is
+     why the large stage numbers are --text-subtle and not amber.
+   - Structure is hairlines and space, not card borders.
+   - Motion: see section 4. Sticky stages, transform-only reveals, and the
+     existing sprite scrub are the entire budget.
+   - Fonts are self-hosted through @fontsource in src/main.jsx. The family
+     names below are the ones those packages actually declare ("Syne
+     Variable", not "Syne"); the previous stylesheet named the unsuffixed
+     families and silently rendered every heading in system-ui.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. Tokens
+   Light is a bright studio ground; dark is the near-black stage the direction
+   is built around. Both are complete, and the CAD plate stays light in both.
    -------------------------------------------------------------------------- */
 
 :root {
   color-scheme: light;
 
-  /* Neutral ramp - single cool-grey family */
-  --n-0: #ffffff;
-  --n-50: #f7f8f9;
-  --n-100: #eef0f2;
-  --n-200: #e0e4e7;
-  --n-300: #c8ced3;
-  --n-400: #98a2aa;
-  /* n-500 is tuned to clear 4.5:1 on the tinted ground, which is darker than
-     --page and so is the binding constraint. Not picked for evenness. */
-  --n-500: #5b656d;
-  --n-600: #4d565d;
-  --n-700: #343c42;
-  --n-800: #21272b;
-  --n-900: #141a1d;
+  /* Neutral ramp - single warm-grey family, so the amber sits in it rather
+     than on it. */
+  --n-0: #fffefc;
+  --n-50: #f6f4f1;
+  --n-100: #ebe7e1;
+  --n-200: #ddd8d1;
+  --n-300: #c4beb5;
+  --n-400: #a09a90;
+  /* n-500 and n-600 are tuned against --surface-sunken (#ebe7e1), the darkest
+     ground either carries text on, not for evenness of the ramp. */
+  --n-500: #666359;
+  --n-600: #55534d;
+  --n-700: #3b3934;
+  --n-800: #24231f;
+  --n-900: #16181c;
 
   /* Semantic surfaces */
   --page: var(--n-50);
   --surface: var(--n-0);
   --surface-sunken: var(--n-100);
+  /* The narrative spine gets its own ground so the story reads as a stage
+     rather than as more page. */
+  --stage-bg: #efece7;
+  --stage-glow: rgba(152, 74, 0, 0.05);
   --text: var(--n-900);
-  /* Both carry real content, so both clear WCAG AA against --page.
-     n-400 is reserved for non-text decoration only. */
+  /* Both carry real content, so both clear WCAG AA against every ground they
+     appear on. n-400 is reserved for non-text decoration only. */
   --text-muted: var(--n-600);
   --text-subtle: var(--n-500);
   --decor: var(--n-400);
   --rule: var(--n-200);
   --rule-strong: var(--n-300);
 
-  /* Accent - burnt orange, preserved from the existing brand. Tuned to clear
-     4.5:1 as text on the tinted ground, which is darker than --page and so
-     is the binding constraint. Darkening also helps the white-on-accent CTA. */
-  --accent: #b83a0a;
-  --accent-hover: #9a3008;
-  --accent-wash: rgba(197, 63, 11, 0.08);
+  /* Accent - amber, darkened for the light ground. 5.14:1 as text on
+     --surface-sunken, which is the darkest ground it has to clear, and
+     6.33:1 behind white on the primary button. */
+  --accent: #984a00;
+  --accent-hover: #7a3b00;
+  --accent-wash: rgba(152, 74, 0, 0.08);
   --accent-contrast: #ffffff;
 
-  /* Drafting grid. Deliberately near-threshold: it should register as paper
-     texture, not as a visible graph. */
-  --grid-line: rgba(20, 26, 29, 0.045);
+  /* Drafting grid. Deliberately near-threshold: paper texture, not a graph. */
+  --grid-line: rgba(22, 24, 28, 0.05);
 
   /* Plate behind CAD figures. The renders are colour-accurate, which means
      mostly near-black printed plastic; on a dark ground they vanish. Both
-     themes therefore put them on a light sheet, dimmed in dark mode so it
-     reads as a drawing plate rather than a glare panel. */
-  --plate: var(--n-100);
+     themes therefore put them on a light sheet. In dark mode the plates are
+     the only bright objects on the page, which is the point. */
+  --plate: #e6e3dd;
 
   --focus-ring: var(--accent);
 
-  /* Type */
-  /* The @fontsource-variable packages declare the family with a "Variable"
-     suffix ("Space Grotesk Variable", "IBM Plex Sans Variable"), so asking
-     for the bare name matched no @font-face and no Windows system font: both
-     tokens silently resolved to system-ui and neither face has ever
-     rendered. Measured: this stack and system-ui were both 885px on the same
-     string where the real face is 961px. The bare names stay as a second
-     stop for anyone who has the static family installed locally.
-     @fontsource/ibm-plex-mono is the non-variable package and declares
-     "IBM Plex Mono" unsuffixed, which is why the mono was unaffected. */
-  --font-display: "Space Grotesk Variable", "Space Grotesk", system-ui, sans-serif;
-  --font-body: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  /* Type. Syne carries the name and the stage titles at poster scale, Geist
+     carries body copy, IBM Plex Mono carries every number and label. */
+  --font-display: "Syne Variable", "Syne", "Geist Variable", system-ui, sans-serif;
+  --font-body: "Geist Variable", "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --step--1: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem);
   --step-0: clamp(0.9375rem, 0.91rem + 0.14vw, 1.0625rem);
   --step-1: clamp(1.125rem, 1.07rem + 0.28vw, 1.3125rem);
   --step-2: clamp(1.375rem, 1.26rem + 0.55vw, 1.75rem);
-  --step-3: clamp(1.75rem, 1.53rem + 1.1vw, 2.5rem);
-  --step-4: clamp(2.25rem, 1.79rem + 2.3vw, 4rem);
+  --step-3: clamp(1.75rem, 1.5rem + 1.2vw, 2.625rem);
+  --step-4: clamp(2.5rem, 1.9rem + 2.9vw, 4.75rem);
 
-  --lh-tight: 1.08;
-  --lh-snug: 1.28;
+  --lh-tight: 1.02;
+  --lh-snug: 1.16;
   --lh-body: 1.62;
 
   --tracking-label: 0.09em;
@@ -115,27 +120,45 @@
   --reveal-shift: 14px;
 
   --header-h: 64px;
+  /* The index rail. Fixed column at desktop, sticky bar below that - and the
+     bar's height has to come out of every anchor offset and every pin, so it
+     is a token rather than a number repeated in six places. */
+  --rail-w: 15rem;
+  --rail-h: 2.75rem;
+}
+
+@media (min-width: 78rem) {
+  :root {
+    /* The rail is a fixed column here, so it steals no vertical space. */
+    --rail-h: 0px;
+  }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page: #10161a;
-  --surface: #171e23;
-  --surface-sunken: #131a1e;
-  --text: #eef2f4;
-  --text-muted: #aab5bd;
-  --text-subtle: #8b959d;
-  --decor: #6f7a82;
-  --rule: #2a3338;
-  --rule-strong: #3a444a;
-  --plate: #c9d0d4;
+  --page: #0e1013;
+  --surface: #14161b;
+  --surface-sunken: #101216;
+  /* Deeper than --page: the spine is the cinema, the rest is the lobby. */
+  --stage-bg: #08090b;
+  --stage-glow: rgba(255, 176, 46, 0.055);
+  --text: #f2f0ec;
+  --text-muted: #a8a49c;
+  --text-subtle: #8a867e;
+  --decor: #5c5850;
+  --rule: #24262b;
+  --rule-strong: #383b42;
+  /* Still light. See the note on --plate above. */
+  --plate: #c9c6bf;
 
-  --accent: #ff7a45;
-  --accent-hover: #ff9469;
-  --accent-wash: rgba(255, 122, 69, 0.14);
-  --accent-contrast: #10161a;
-  --grid-line: rgba(238, 242, 244, 0.05);
+  /* 10.7:1 as text on --page and 9.9:1 on --surface, and the same figure
+     behind --accent-contrast on the primary button. */
+  --accent: #ffb02e;
+  --accent-hover: #ffc45c;
+  --accent-wash: rgba(255, 176, 46, 0.14);
+  --accent-contrast: #0b0c0f;
+  --grid-line: rgba(242, 240, 236, 0.045);
 
   --focus-ring: var(--accent);
 }
@@ -181,10 +204,20 @@ h3,
 h4 {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.018em;
   line-height: var(--lh-snug);
   text-wrap: balance;
+}
+
+/* Syne is a display face and gets busy under about 1.2rem, so the small
+   headings stay in the body face and separate themselves by weight. */
+.cap-note h3,
+.cap-group-title,
+.edu-entry h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 p {
@@ -296,20 +329,23 @@ summary {
   padding-inline: var(--gutter);
 }
 
-/* Sections alternate between two grounds of the same theme family, so the
-   page has a beat. Every adjacent pair differs in tone, which means the
-   tone change is the separator and no dividing rule is needed. */
+/* Every anchor on the page has to clear both sticky bars, so the offset is
+   one expression rather than a number guessed per element. */
+.section,
+.work-entry,
+.stage-track {
+  scroll-margin-top: calc(var(--header-h) + var(--rail-h) + 1rem);
+}
+
 .section {
   position: relative;
   padding-block: var(--section-y);
-  scroll-margin-top: calc(var(--header-h) + 1rem);
 }
 
 .section--tinted {
   background: var(--surface-sunken);
 }
 
-/* Section headers stack vertically. No split-header, no eyebrow. */
 .section-head {
   max-width: var(--measure);
   margin-bottom: clamp(2rem, 4vw, 3.25rem);
@@ -327,15 +363,30 @@ summary {
 
 /* --------------------------------------------------------------------------
    4. Motion
-   Two devices, both pure CSS. No scroll listeners, no observers, no JS
-   dependency: if either feature is missing the content is simply visible.
+   The whole budget, and one sentence of justification each.
 
-   .rise   - one staggered entrance for above-the-fold hero content.
-   .reveal - scroll-driven fade for everything below, tied to the element's
-             own entry into the viewport via animation-timeline: view().
+   .rise        hierarchy - a staggered entrance orders the hero at first paint.
+   .reveal      sequence  - a 14px settle says a new block has arrived.
+   .stage-body  sequence  - the same settle, driven by the stage's own track so
+                            it still runs while the frame is pinned.
+   sticky stage sequence  - one stage holds the frame at a time, in order.
+   sprite scrub content   - scroll position IS the frame index of the assembly.
+   wheel step   feedback  - one wheel notch is exactly one frame (rig-scrub.css).
+   demo buttons state     - a mechanism runs because someone asked it to.
+   hover/focus  feedback  - 140ms colour and border changes, no lifts.
+
+   Nothing else. No parallax, no infinite loops, no blur.
+
+   Two hard rules, both learned the expensive way:
+   - Never animate opacity on a scroll-driven timeline. The timeline holds an
+     element at its start state whenever it cannot advance, so a faded
+     keyframe can leave text permanently invisible. Transform only.
+   - Declare animation-delay only inside prefers-reduced-motion:
+     no-preference. Section 17 crushes every duration but leaves delay alone.
    -------------------------------------------------------------------------- */
 
-/* Hero entrance: fades, because it is above the fold and always runs. */
+/* Hero entrance: fades, because it is above the fold, time-based, and always
+   completes. This is the only place opacity is animated. */
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -347,11 +398,8 @@ summary {
   }
 }
 
-/* Scroll reveal: moves but never fades. A scroll-driven timeline holds an
-   element at its start state whenever the timeline cannot advance (headless
-   capture, unusual viewport, find-in-page jump). Keeping opacity out of the
-   keyframe means the worst case is a 14px offset instead of text that is
-   invisible to a reader. */
+/* Scroll reveal: moves but never fades. Worst case is a 14px offset instead
+   of text that is invisible to a reader. */
 @keyframes settle-in {
   from {
     transform: translate3d(0, var(--reveal-shift), 0);
@@ -475,7 +523,7 @@ summary {
 .wordmark {
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
   margin-right: auto;
   white-space: nowrap;
@@ -488,7 +536,7 @@ summary {
 .primary-nav {
   display: flex;
   align-items: center;
-  gap: clamp(0.75rem, 2vw, 1.75rem);
+  gap: clamp(0.6rem, 1.6vw, 1.5rem);
 }
 
 .nav-link {
@@ -614,16 +662,203 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   7. Hero - asymmetric split, type led
+   7. Index rail
+   The escape hatch, and the thing that makes a narrative page usable at all.
+   Seven stages and nine projects, one click away for the whole scroll.
+
+   One DOM, two presentations. Above 78rem it is a fixed column and the toggle
+   is removed, so the lists are simply always there and aria-expanded never
+   describes anything. Below that it collapses to a sticky bar with a real
+   disclosure button.
+   -------------------------------------------------------------------------- */
+
+.rail {
+  position: relative;
+  z-index: 45;
+}
+
+.rail-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  height: var(--rail-h);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.rail-toggle:hover {
+  color: var(--accent);
+}
+
+.rail-toggle-label {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.rail-toggle-label::after {
+  content: " +";
+  display: inline-block;
+  transition: transform var(--dur-med) var(--ease);
+}
+
+.rail.is-open .rail-toggle-label::after {
+  transform: rotate(45deg);
+}
+
+.rail-toggle-hint {
+  color: var(--text-subtle);
+}
+
+.rail-lists {
+  display: none;
+}
+
+.rail.is-open .rail-lists {
+  display: grid;
+}
+
+.rail-label {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rail-list {
+  display: grid;
+  gap: 0.1rem;
+}
+
+/* Current state is carried by border weight, font weight AND colour, so it
+   survives being read by someone who cannot tell the hues apart. */
+.rail-link {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: baseline;
+  padding: 0.3rem 0.4rem;
+  border-left: 2px solid transparent;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.rail-link:hover {
+  color: var(--text);
+  border-left-color: var(--rule-strong);
+}
+
+.rail-link.is-current {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+.rail-num {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-subtle);
+}
+
+.rail-link.is-current .rail-num {
+  color: var(--accent);
+}
+
+.rail-text {
+  text-wrap: pretty;
+}
+
+@media (max-width: 77.99rem) {
+  .rail {
+    position: sticky;
+    top: var(--header-h);
+    background: var(--page);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .rail-inner {
+    width: 100%;
+    max-width: var(--content-max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Overlays the page rather than pushing it: the bar is a jump menu, and
+     reflowing the article every time it opens would move the thing the reader
+     was looking at. */
+  .rail-lists {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    padding: 1rem var(--gutter) 1.25rem;
+    background: var(--page);
+    border-bottom: 1px solid var(--rule);
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1.5rem clamp(1.5rem, 4vw, 3rem);
+    max-height: min(70dvh, 34rem);
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 78rem) {
+  /* Room for the fixed column. Everything inside .page, masthead included,
+     starts to the right of it. */
+  .page {
+    padding-left: var(--rail-w);
+  }
+
+  .rail {
+    position: fixed;
+    left: 0;
+    top: var(--header-h);
+    width: var(--rail-w);
+    height: calc(100dvh - var(--header-h));
+    border-right: 1px solid var(--rule);
+    background: var(--page);
+  }
+
+  .rail-inner {
+    height: 100%;
+    overflow-y: auto;
+    padding: clamp(1.25rem, 2vw, 1.75rem) 0.9rem;
+  }
+
+  .rail-toggle {
+    display: none;
+  }
+
+  .rail-lists {
+    display: grid;
+    gap: 1.75rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Hero - type led, asymmetric split
    -------------------------------------------------------------------------- */
 
 .hero {
-  padding-top: clamp(3rem, 7vh, 5.5rem);
-  padding-bottom: clamp(3.5rem, 8vh, 6rem);
+  padding-top: clamp(3rem, 8vh, 6rem);
+  padding-bottom: clamp(3.5rem, 9vh, 6.5rem);
 }
 
-/* Drafting grid, faded out downward so it reads as the top of a sheet
-   rather than a tiled background. Decorative only. */
+/* Drafting grid, faded out downward so it reads as the top of a sheet rather
+   than a tiled background. Decorative only, and static. */
 .hero::before {
   content: "";
   position: absolute;
@@ -661,13 +896,13 @@ summary {
 .hero-name {
   font-size: var(--step-4);
   line-height: var(--lh-tight);
-  letter-spacing: -0.032em;
-  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-weight: 800;
 }
 
 .hero-statement {
-  margin-top: 1.25rem;
-  max-width: 38ch;
+  margin-top: 1.35rem;
+  max-width: 40ch;
   font-size: var(--step-1);
   line-height: 1.45;
   color: var(--text-muted);
@@ -681,22 +916,381 @@ summary {
   margin-top: clamp(1.75rem, 4vw, 2.5rem);
 }
 
-/* --- rig build-up -------------------------------------------------------
-   45-frame full assembly (legs, bars, rails, submodules, floor, panels,
-   doors, connectors) as a 9x5 sprite grid, scrubbed by scroll.
+/* Right column carries real facts, not a decorative diagram. */
+.hero-facts {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
 
-   Keyframes are GENERATED into src/rig-buildup.css, one stop per frame with
-   step-end. Two chained steps() animations would be more compact but need
-   iteration-count phase alignment across both axes to stay in sync; explicit
-   stops cannot drift.
+.fact {
+  display: grid;
+  gap: 0.3rem;
+  padding-block: 0.95rem;
+  border-bottom: 1px solid var(--rule);
+}
 
-   The 1.1MB grid is gated behind .is-live, which React adds when the case
-   study is opened. A closed <details> does NOT prevent a background fetch,
-   so this gating is what makes it opt-in. Until then only the poster loads.
+.fact-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
 
-   view(), not scroll(root): the figure sits far below the fold, so the
-   timeline has to be relative to the figure.
-   -------------------------------------------------------------------- */
+.fact-value {
+  font-size: var(--step--1);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+/* --------------------------------------------------------------------------
+   9. Signal path - the pinned spine
+   --------------------------------------------------------------------------
+   One stage is one .stage-track, taller than the viewport, holding one
+   .stage-frame that sticks under the two bars while the track scrolls past.
+   The tracks abut rather than overlap, so no z-index ordering is needed: a
+   stage slides off the top as the next arrives from the bottom, which is the
+   sequence cue.
+
+   The pin is gated on width, height AND motion preference. Under
+   prefers-reduced-motion: reduce, or on anything narrow or short, the tracks
+   collapse to their content and the frames go static - seven plain stacked
+   sections in document order, which is the fallback the direction is required
+   to have.
+   -------------------------------------------------------------------------- */
+
+.section--stage {
+  background: var(--stage-bg);
+  overflow: visible; /* a clipping ancestor would kill every pin below */
+}
+
+.stage-track {
+  /* Default travel. 175vh of track against a ~100vh frame gives the stage
+     about three quarters of a screen of hold, which is enough to read three
+     sentences and click a demo without the page feeling captured. */
+  --stage-span: 175vh;
+  position: relative;
+
+  /* Named so the figure and the copy inside the pinned frame can animate off
+     the TRACK's travel. A view() timeline on anything inside the frame would
+     freeze the moment the frame pins, because a pinned element's position in
+     the scrollport stops changing. This is the whole reason the name exists. */
+  view-timeline-name: --stage;
+  view-timeline-axis: block;
+}
+
+/* The 100-frame assembly is the one thing on the page that genuinely needs
+   more scroll than its content: at 175vh it would get about 8px per frame.
+   300vh gives roughly 20px, so one wheel notch is one assembly step. */
+.stage-track[data-stage-kind="scrub"] {
+  --stage-span: 300vh;
+}
+
+.stage-frame {
+  position: relative;
+  padding-block: clamp(2rem, 5vh, 3.5rem);
+}
+
+/* Warm wash behind the pinned stage. Static gradient, no animation: it exists
+   so the light CAD plates read as the lit objects in a dark room. */
+.stage-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 85% at 50% 0%,
+    var(--stage-glow),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.stage-grid {
+  position: relative;
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .stage-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+}
+
+/* Stacked by default, pinned only where the query below applies. A stacked
+   stage is an ordinary section and needs a rule between it and the next one;
+   a pinned stage is separated by the handoff itself, so the rule comes off
+   inside the same query that turns the pin on. That way every non-pinned case
+   - narrow, short, or reduced-motion - is covered by one declaration instead
+   of three media queries that have to agree with each other. */
+.stage-track + .stage-track {
+  border-top: 1px solid var(--rule);
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (min-height: 40rem) {
+  .stage-track {
+    min-height: var(--stage-span);
+  }
+
+  .stage-track + .stage-track {
+    border-top: 0;
+  }
+
+  .stage-frame {
+    position: sticky;
+    top: calc(var(--header-h) + var(--rail-h));
+    min-height: calc(100dvh - var(--header-h) - var(--rail-h));
+    display: grid;
+    align-content: center;
+  }
+}
+
+/* Stage copy settles in as the stage arrives. Bound to the track, not to
+   view(), for the reason in the .stage-track comment. Transform only. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .stage-body {
+      animation: settle-in linear both;
+      animation-timeline: --stage;
+      animation-range: cover 10% cover 28%;
+    }
+  }
+}
+
+.stage-body {
+  align-self: center;
+}
+
+/* Not accent. AGENTS.md reserves accent for interactive things, and a stage
+   number is a label. --text-subtle clears 5.4:1 on the dark stage, so it is
+   also readable rather than merely decorative. */
+.stage-num {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--text-subtle);
+}
+
+.stage-title {
+  margin-top: 0.5rem;
+  font-size: var(--step-3);
+  letter-spacing: -0.022em;
+  max-width: 20ch;
+}
+
+.stage-lede {
+  margin-top: 1.1rem;
+  max-width: 48ch;
+  font-size: var(--step-0);
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* Spec strip under the copy: mono rows, tabulated, so the numbers read as
+   measured values rather than as more sentences. */
+.stage-readout {
+  margin-top: 1.5rem;
+  max-width: 34rem;
+  border-top: 1px solid var(--rule);
+}
+
+.stage-readout-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr);
+  gap: 0.2rem 0.75rem;
+  padding-block: 0.45rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.stage-readout dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.stage-readout dd {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--text);
+}
+
+.stage-owners {
+  margin-top: 1.6rem;
+}
+
+.stage-owners-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 0.65rem;
+}
+
+.stage-owners ul {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.stage-owners li {
+  display: grid;
+  gap: 0.1rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--rule-strong);
+}
+
+.stage-owner {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--accent);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.stage-owner:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.stage-owner-note {
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* ---- figure column ---------------------------------------------------- */
+
+/* Sized off viewport height as well as width, so a square figure inside a
+   frame the height of the viewport cannot outgrow the frame it is pinned in. */
+.stage-figure {
+  min-width: 0;
+}
+
+.stage-figure .rig-figure-wrap,
+.stage-figure .demo-stage {
+  width: min(100%, 34rem, 62vh);
+  margin-inline: auto;
+  max-width: none;
+}
+
+.stage-figure .demo-stage--pair {
+  width: min(100%, 46rem, 124vh);
+}
+
+.stage-figure .demo-caption {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.stage-demos {
+  margin-top: 0;
+}
+
+.stage-scrub {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+}
+
+.stage-scrub .rig-figure-caption {
+  text-align: center;
+}
+
+.stage-scrub-load {
+  margin-top: 0.85rem;
+}
+
+.stage-scrub-link {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  margin-top: 0.6rem;
+}
+
+/* Figure-less stages: the readout takes the column. --surface, not --plate:
+   this panel carries text, and --plate is light in both themes so text on it
+   fails contrast in dark mode. */
+.stage-plate {
+  border: 1px solid var(--rule-strong);
+  background: var(--surface);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  display: grid;
+  align-content: center;
+  gap: 0;
+  min-height: min(26rem, 52vh);
+  width: min(100%, 34rem);
+  margin-inline: auto;
+}
+
+.stage-plate-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr);
+  gap: 0.2rem 0.75rem;
+  padding-block: 0.8rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.stage-plate-row:last-child {
+  border-bottom: 0;
+}
+
+.stage-plate dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.stage-plate dd {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  color: var(--text);
+}
+
+/* One real captured frame, not a mock. Screenshots are of a light desktop
+   application, so they sit on --surface rather than the CAD plate. */
+.stage-shot {
+  margin: 0;
+  width: min(100%, 42rem);
+  margin-inline: auto;
+}
+
+.stage-shot img {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.stage-shot figcaption {
+  margin-top: 0.7rem;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------------------
+   10. Figures - shared by the stages and the case studies
+   --------------------------------------------------------------------------
+   The generated src/rig-*.css and src/demo-*.css files own each sprite's
+   poster, grid and keyframes, and every sprite rule in them sits inside
+   prefers-reduced-motion: no-preference. The rules here carry layout only,
+   and must not touch padding or background-origin: the generated
+   background-size percentages resolve against the padding box, so either
+   would silently rescale every grid.
+   -------------------------------------------------------------------------- */
 
 .rig-figure-wrap {
   margin: 0;
@@ -715,7 +1309,7 @@ summary {
 
 /* Per-figure sprite, poster, grid and keyframes are GENERATED into
    src/rig-<id>.css and scoped to [data-figure="<id>"], so more than one
-   scroll figure can coexist. The rules above carry layout only. */
+   scroll figure can coexist. */
 .rig-figure[data-figure="buildup"] {
   background-image: url("/rig/buildup-poster.webp");
 }
@@ -729,21 +1323,53 @@ summary {
   color: var(--text-subtle);
 }
 
-/* --- pellet demo -------------------------------------------------------
-   Button-triggered, time-based (not scroll-driven), so it runs on demand.
+/* The buildup sheet is attached here rather than in src/rig-buildup.css
+   because that file predates the generator that now writes the whole block
+   (compare src/rig-prosthetic-build.css, which carries its own). Do not move
+   it into the generated file; do not change the animation name or the
+   background-size, which lives there so a re-capture cannot desync it.
 
-   Sprite is a background so it scales responsively, which means it cannot
-   be declaratively lazy-loaded. The 1.5MB grid URL is therefore attached
-   only by .is-playing, i.e. on the first click. Until then the ~23KB
-   poster is the whole image.
+   The 3MB grid is gated behind .is-live, which React adds when the case study
+   is opened or when the reader loads the sequence on stage 01. A closed
+   <details> does NOT prevent a background fetch, so this gating is what makes
+   it opt-in. Until then only the 46KB poster loads.
 
-   background-size and the keyframes both live in the GENERATED
-   src/pellet-demo.css so a grid change cannot desync them.
-   -------------------------------------------------------------------- */
+   Both ranges below are overridden by src/rig-scrub.css, which widens the
+   travel and, for a figure inside a pinned stage, re-binds the timeline to
+   the stage track. They stay so this block matches what the generator writes
+   and so the figure still works outside a stage. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .rig-figure[data-figure="buildup"].is-live {
+      background-image: url("/rig/buildup.webp");
+      background-position: 0% 0%;
+      animation: rig-buildup step-end both;
+      animation-timeline: view();
+      /* Not "entry 100%": that completes the instant the figure is fully in
+         view, which for a figure revealed by opening a disclosure is
+         immediately, leaving nothing to scrub. Not plain "cover" either:
+         cover spans the figure's whole travel, so the opening frames advance
+         while it is still below the fold. contain is the window where the
+         figure is wholly on screen, inset at both ends so the first and last
+         frames get a beat of stillness. */
+      animation-range: contain 8% contain 92%;
+    }
 
-/* Both figures share one grid column; the prose keeps the other. Without
-   this wrapper the grid auto-places three children and the text drops to a
-   second row underneath. */
+    /* Where the square figure cannot fit inside the viewport, contain has no
+       range and the scrub would hold on frame 0. Fall back to the middle of
+       cover, which is the part of the travel with the most of the figure on
+       screen. */
+    @media (max-height: 45rem) {
+      .rig-figure[data-figure="buildup"].is-live {
+        animation-range: cover 32% cover 68%;
+      }
+    }
+  }
+}
+
+/* Both figures share one grid column; the prose keeps the other. Without this
+   wrapper the grid auto-places three children and the text drops to a second
+   row underneath. */
 .case-figures {
   display: grid;
   gap: clamp(1.75rem, 3.5vw, 2.75rem);
@@ -754,9 +1380,6 @@ summary {
   margin: 0;
 }
 
-/* One or two square figures. background-size percentages resolve against the
-   padding box of each figure, so the stage only ever changes how wide a
-   figure is - never its padding or background-origin. */
 .demo-stage {
   display: grid;
   gap: clamp(0.75rem, 1.5vw, 1.25rem);
@@ -769,12 +1392,9 @@ summary {
 }
 
 /* Three frame-locked figures: the rig in context, the mechanism close up, and
-   the operator interface stepping through the same trial.
-
-   Not three across. The case body only affords this stage about 480px, so a
-   third column would leave each figure near 145px and the interface panel
-   carries text. The two rig views pair on the top row and the interface takes
-   the row beneath, capped so it stays square rather than stretching. */
+   the operator interface stepping through the same trial. Not three across:
+   the case body only affords this stage about 480px, so a third column would
+   leave each figure near 145px and the interface panel carries text. */
 .demo-stage--trio {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   max-width: 62rem;
@@ -786,11 +1406,6 @@ summary {
   width: min(100%, 26rem);
 }
 
-/* One base rule for every demo. The per-demo poster, grid and keyframes come
-   from the generated src/demo-<id>.css files. */
-/* No padding and no background-origin change here: the generated
-   background-size percentages resolve against the padding box, so touching
-   either would silently rescale every sprite grid. */
 .demo-figure {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -828,8 +1443,6 @@ summary {
   text-wrap: pretty;
 }
 
-/* All three demos share one figure, so the buttons are a row of triggers.
-   The pressed one also says which caption and poster you are looking at. */
 .demo-switch {
   display: flex;
   flex-wrap: wrap;
@@ -856,7 +1469,6 @@ summary {
   color: var(--text-subtle);
 }
 
-/* Figure beside the prose rather than stacked on top of it. */
 /* Demos sit in their own row under the two-column block. */
 .case-demos {
   margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
@@ -881,78 +1493,24 @@ summary {
     align-items: start;
     gap: clamp(1.5rem, 3vw, 2.75rem);
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .rig-figure[data-figure="buildup"].is-live {
-      background-image: url("/rig/buildup.webp");
-      /* background-size is set in the GENERATED src/rig-buildup.css so it can
-         never disagree with the keyframe grid. */
-      background-position: 0% 0%;
-      animation: rig-buildup step-end both;
-      animation-timeline: view();
-      /* Not "entry 100%": that completes the instant the figure is fully in
-         view, which for a figure revealed by opening a disclosure is
-         immediately, leaving nothing to scrub.
+  /* With no figure, .case-text is the only child of a two-column grid and
+     used to sit in column one with column two empty. Problem and Approach
+     pair up instead, and Implementation takes the full width because its
+     bullets are long. */
+  .case-body:not(.case-body--figure) > .case-text {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.25rem, 2.5vw, 1.75rem) clamp(1.5rem, 3vw, 2.75rem);
+  }
 
-         Not plain "cover" either. cover spans the figure's whole travel
-         through the viewport, which means the opening frames advance while
-         the figure is still below the fold and the closing frames advance
-         while it is already scrolling off the top: the two ends of the
-         sequence play out of frame.
-
-         contain is exactly the window where the figure is wholly on screen,
-         so every frame is scrubbed while you can see it. It degenerates when
-         the figure is taller than the viewport, hence the short-viewport
-         fallback below. Inset at both ends so the first and last frames get
-         a beat of stillness while the figure is squarely on screen. */
-      animation-range: contain 8% contain 92%;
-    }
-
-    /* Where the square figure cannot fit inside the viewport, contain has no
-       range and the scrub would hold on frame 0. Fall back to the middle of
-       cover, which is the part of the travel with the most of the figure on
-       screen. */
-    @media (max-height: 45rem) {
-      .rig-figure[data-figure="buildup"].is-live {
-        animation-range: cover 32% cover 68%;
-      }
-    }
+  .case-body:not(.case-body--figure) > .case-text > .case-block:last-child {
+    grid-column: 1 / -1;
   }
 }
 
-/* Right column carries real facts, not a decorative diagram. */
-.hero-facts {
-  display: grid;
-  gap: 0;
-  border-top: 1px solid var(--rule);
-}
-
-.fact {
-  display: grid;
-  gap: 0.3rem;
-  padding-block: 0.95rem;
-  border-bottom: 1px solid var(--rule);
-}
-
-.fact-label {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-subtle);
-}
-
-.fact-value {
-  font-size: var(--step--1);
-  line-height: 1.45;
-  color: var(--text);
-}
-
 /* --------------------------------------------------------------------------
-   8. Selected work - editorial index, full-width rows
+   11. Work index - the complete portfolio, no narrative required
    -------------------------------------------------------------------------- */
 
 .work-filters {
@@ -1004,49 +1562,112 @@ summary {
 }
 
 .work-entry {
-  padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
+  padding-block: clamp(1.5rem, 3vw, 2.25rem);
   border-bottom: 1px solid var(--rule);
-  /* Each entry is a permalink target, so it needs the same sticky-header
-     offset the sections get. */
-  scroll-margin-top: calc(var(--header-h) + 1rem);
 }
 
+/* Number, thumbnail, body. At mobile the number keeps column one and the
+   thumbnail sits beside it as a banner with the prose underneath; from 52rem
+   the three sit in one row and the entry becomes a dense index line. */
 .work-entry-head {
   display: grid;
-  gap: 0.75rem clamp(1rem, 2.5vw, 2.5rem);
+  gap: 0.9rem clamp(1rem, 2.5vw, 2rem);
+  grid-template-columns: 2.75rem minmax(0, 1fr);
   align-items: start;
-  grid-template-columns: 2.25rem minmax(0, 1fr);
 }
 
-@media (min-width: 56rem) {
-  .work-entry-head {
-    grid-template-columns: 3rem minmax(0, 4.6fr) minmax(0, 6fr);
-  }
-}
-
-/* Figure number. This is an index of work, so the entries are numbered the
-   way items in a technical document are. */
 .work-num {
+  grid-column: 1;
+  grid-row: 1;
   font-family: var(--font-mono);
   font-size: var(--step--1);
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  /* Not accent: accent means interactive in this system, and a figure number
+     is not. Border weight and mono treatment do the work instead. */
+  color: var(--text-subtle);
   padding-top: 0.35em;
   letter-spacing: 0.02em;
+}
+
+.work-shot {
+  grid-column: 2;
+  grid-row: 1;
+  width: min(100%, 16rem);
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* CAD posters need a light sheet in BOTH themes or the near-black renders
+   vanish; app screenshots are already light and do not. */
+.work-shot--plate {
+  background: var(--plate);
+}
+
+.work-body {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+
+@media (min-width: 52rem) {
+  .work-entry-head {
+    grid-template-columns: 3rem 10.5rem minmax(0, 1fr);
+  }
+
+  .work-shot {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .work-body {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+.work-shot-img {
+  width: 100%;
+  height: 100%;
+}
+
+.work-shot-img[data-fit="contain"] {
+  object-fit: contain;
+}
+
+.work-shot-img[data-fit="cover"] {
+  object-fit: cover;
+  object-position: left top;
+}
+
+/* Five projects have no render at all. Rather than a grey box, the slot shows
+   the stage numbers that project owns - which is real information and also a
+   route back into the narrative. */
+.work-shot-stages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+
+.work-shot-stages li {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-subtle);
+  border: 1px solid var(--rule);
+  padding: 0.1rem 0.4rem;
 }
 
 .work-title {
   font-size: var(--step-2);
   letter-spacing: -0.022em;
-  max-width: 24ch;
-}
-
-/* At mobile the number holds column one and everything else stacks under
-   the title in column two. */
-@media (max-width: 55.99rem) {
-  .work-body {
-    grid-column: 2;
-  }
+  max-width: 26ch;
 }
 
 .work-anchor {
@@ -1059,8 +1680,11 @@ summary {
 }
 
 .work-outcome {
-  font-size: var(--step-1);
-  line-height: 1.5;
+  margin-top: 0.6rem;
+  font-size: var(--step-0);
+  line-height: 1.55;
+  color: var(--text);
+  max-width: var(--measure);
   text-wrap: pretty;
 }
 
@@ -1070,14 +1694,14 @@ summary {
   max-width: var(--measure);
 }
 
-/* Spec plate: ruled off from the prose above so the stack and skills read
-   as tabulated data rather than more sentences. */
+/* Spec plate: ruled off from the prose above so the stack and stages read as
+   tabulated data rather than more sentences. */
 .work-meta {
-  margin-top: 1.35rem;
-  padding-top: 1rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
   border-top: 1px solid var(--rule);
   display: grid;
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .work-meta-row {
@@ -1123,9 +1747,33 @@ summary {
   color: var(--decor);
 }
 
-/* Case study disclosure */
+/* Stage links are links, so they get the accent and no slash separator - the
+   titles beside the numbers already read as separate items. */
+.work-stage-links {
+  gap: 0.25rem 1rem;
+}
+
+.work-stage-links li:not(:last-child)::after {
+  content: none;
+}
+
+.work-stage-links a {
+  color: var(--accent);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.work-stage-links a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+/* Case study disclosure. Deliberately NOT indented to line up with the body
+   column: the case body is a two-column grid above 56rem and the walkthrough
+   inside it claims the full width, so every rem given to an indent comes out
+   of a 1400px screenshot. */
 .case {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .case-summary {
@@ -1149,7 +1797,7 @@ summary {
 }
 
 .case-summary:hover {
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .case-summary::after {
@@ -1215,7 +1863,7 @@ summary {
   top: 0.72em;
   width: 5px;
   height: 1px;
-  background: var(--accent);
+  background: var(--decor);
 }
 
 .work-empty {
@@ -1230,7 +1878,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   9. Experience - dates in a left rail
+   12. Experience - dates in a left rail
    -------------------------------------------------------------------------- */
 
 .roles {
@@ -1332,7 +1980,7 @@ summary {
   top: 0.72em;
   width: 5px;
   height: 1px;
-  background: var(--accent);
+  background: var(--decor);
 }
 
 /* Education folds into the same section, no card treatment */
@@ -1359,7 +2007,6 @@ summary {
 
 .edu-entry h4 {
   font-size: var(--step-0);
-  font-weight: 600;
 }
 
 /* Not accent: accent is reserved for interactive text in this system. */
@@ -1375,7 +2022,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   10. Capabilities - prose, then grouped clusters
+   13. Capabilities - prose, then grouped clusters
    -------------------------------------------------------------------------- */
 
 .cap-intro {
@@ -1386,10 +2033,8 @@ summary {
   text-wrap: pretty;
 }
 
-/* The three focus notes are a single hairline-separated column, not
-   three equal cards. */
 /* Two tracks: how the work is approached on the left, what it is built with
-   on the right. Shortens a section that was one long vertical stack. */
+   on the right. */
 .cap-body {
   margin-top: clamp(2.25rem, 4.5vw, 3.25rem);
   display: grid;
@@ -1416,7 +2061,6 @@ summary {
 
 .cap-note h3 {
   font-size: var(--step-0);
-  font-weight: 600;
 }
 
 .cap-note p {
@@ -1460,7 +2104,6 @@ summary {
 
 .cap-group-title {
   font-size: var(--step-0);
-  font-weight: 600;
 }
 
 .cap-items {
@@ -1487,7 +2130,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   11. Contact - type forward close
+   14. Contact - type forward close
    -------------------------------------------------------------------------- */
 
 .contact-title {
@@ -1548,7 +2191,7 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   12. Footer
+   15. Footer
    -------------------------------------------------------------------------- */
 
 .site-foot {
@@ -1568,12 +2211,14 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   13. Mobile
-   Every multi-column layout above collapses to one column by 768px via the
-   min-width queries. The nav is the only pattern needing an explicit switch.
+   16. Mobile
+   Every multi-column layout above collapses to one column via the min-width
+   queries. The nav is the only pattern needing an explicit switch, and it
+   collapses at 62rem rather than 48rem because the signal path added a sixth
+   item to it.
    -------------------------------------------------------------------------- */
 
-@media (max-width: 47.99rem) {
+@media (max-width: 61.99rem) {
   .menu-button {
     display: grid;
     order: 3;
@@ -1617,7 +2262,10 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   14. Reduced motion
+   17. Reduced motion
+   The pin, the scrub and every reveal come off. What is left is seven stacked
+   sections in document order, nine index entries, and a page that reads as an
+   ordinary document.
    -------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1630,21 +2278,47 @@ summary {
     scroll-behavior: auto !important;
   }
 
-  .reveal {
+  .reveal,
+  .stage-body {
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  /* No sheet is ever attached under reduce, so a control offering to fetch
+     one and a caption telling you to scroll through it are both lies. */
+  .motion-only,
+  .stage-scrub-load {
+    display: none !important;
+  }
+
+  /* Belt and braces: the pin is already gated behind no-preference, but a
+     stray min-height would still leave 175vh of blank track per stage. */
+  .stage-track {
+    min-height: 0;
+  }
+
+  .stage-frame {
+    position: relative;
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+  }
+
+  /* The glow is what says "pinned stage". Stacked sections do not need it. */
+  .stage-frame::before {
+    display: none;
   }
 }
 
 /* --------------------------------------------------------------------------
-   15. Print - the resume case
+   18. Print - the resume case
    -------------------------------------------------------------------------- */
 
 @media print {
   :root {
     --page: #ffffff;
-    /* Tinted sections must not print as grey blocks. */
+    --surface: #ffffff;
     --surface-sunken: #ffffff;
+    --stage-bg: #ffffff;
+    --stage-glow: transparent;
     --grid-line: transparent;
     --text: #000000;
     --text-muted: #333333;
@@ -1652,9 +2326,16 @@ summary {
     --rule: #cccccc;
     --rule-strong: #999999;
     --accent: #000000;
+    --rail-w: 0px;
+    --rail-h: 0px;
+  }
+
+  .page {
+    padding-left: 0 !important;
   }
 
   .masthead,
+  .rail,
   .work-filters,
   .skip-link,
   .site-foot {
@@ -1666,13 +2347,30 @@ summary {
     break-inside: avoid;
   }
 
+  .stage-track {
+    min-height: 0 !important;
+  }
+
+  .stage-frame {
+    position: static !important;
+    min-height: 0 !important;
+    padding-block: 1rem;
+    break-inside: avoid;
+  }
+
+  .stage-frame::before {
+    display: none !important;
+  }
+
   .case[open] .case-body,
   .case-body {
     display: block !important;
+    margin-left: 0 !important;
   }
 
   .case-summary,
-  .role-toggle {
+  .role-toggle,
+  .stage-scrub-load {
     display: none !important;
   }
 
@@ -1687,7 +2385,8 @@ summary {
     color: #555555;
   }
 
-  .reveal {
+  .reveal,
+  .stage-body {
     opacity: 1 !important;
     transform: none !important;
   }

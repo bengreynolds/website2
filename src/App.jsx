@@ -6,11 +6,17 @@ import {
   experience,
   heroFacts,
   heroStatement,
+  findProject,
   navigation,
+  pathIntro,
+  pathStages,
   projectFilters,
-  projects,
+  resolveDemo,
+  resolveShot,
   roleLabel,
+  shortTitles,
   skillGroups,
+  workIndex,
 } from "./siteData";
 import PipelineDemo from "./PipelineDemo";
 
@@ -118,11 +124,40 @@ function useSectionSpy(setActive) {
   }, [setActive]);
 }
 
+/* Which stage the reader is standing in, for the fixed index.
+
+   Not intersectionRatio like useSectionSpy: every stage track is taller than
+   the viewport, so each one's ratio is (viewport / track) and they are all
+   equal. The rootMargin instead collapses the viewport to a thin band across
+   its middle, and whichever track crosses that band is the current stage.
+   Exactly one can, because the tracks are stacked and none is shorter than
+   the band. */
+function useStageSpy(setActive) {
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return undefined;
+
+    const tracks = Array.from(document.querySelectorAll("[data-stage-id]"));
+    if (!tracks.length) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.find((entry) => entry.isIntersecting);
+        if (!hit) return;
+        setActive(hit.target.dataset.stageId);
+      },
+      { rootMargin: "-50% 0px -49% 0px" }
+    );
+
+    tracks.forEach((track) => observer.observe(track));
+    return () => observer.disconnect();
+  }, [setActive]);
+}
+
 /* --------------------------------------------------------------------------
    Sprite warm-up
    -------------------------------------------------------------------------- */
 
-/* .is-playing swaps background-image from the poster to a sprite of 0.9-2.2MB
+/* .is-playing swaps background-image from the poster to a sprite of 0.9-3MB
    that has never been fetched, because the whole point of the poster is that
    it has not. For the length of that download the element has no renderable
    image and falls back to background-color: var(--plate), which AGENTS.md
@@ -382,23 +417,18 @@ function useWheelScrub(ref, frames, enabled) {
 }
 
 /* --------------------------------------------------------------------------
-   Work entry
+   Shared figures
+   The same two components serve the narrative stages and the work index, so
+   a caption is written once in siteData and rendered wherever it is needed.
    -------------------------------------------------------------------------- */
 
-const WorkEntry = memo(function WorkEntry({ project, index }) {
-  /* A closed <details> does NOT stop a CSS background from being fetched, so
-     the sprite has to be attached on open or it costs every visitor 648KB
-     they may never look at. */
-  const [figureLive, setFigureLive] = useState(false);
-  const hasFigure = Boolean(project.figure);
-  const figureRef = useRef(null);
-  useWheelScrub(figureRef, project.figureFrames, figureLive);
-  const demos = project.demos || [];
-  const hasDemo = demos.length > 0;
-  /* The demos share one stage and a row of buttons, so the case study stays
-     two balanced columns instead of a stack of square figures. Bumping runs
-     remounts the stage, which is the reliable way to restart a CSS animation;
-     a demo listing two ids renders both side by side and they play together. */
+/* One sprite stage plus its trigger row. Extracted from the work entry so a
+   narrative stage can borrow a project's demo without duplicating either the
+   payload gating or the switcher. */
+const SpriteStage = memo(function SpriteStage({ demos, className = "" }) {
+  /* Bumping runs remounts the stage, which is the reliable way to restart a
+     CSS animation; a demo listing two ids renders both side by side and they
+     play together. */
   const [play, setPlay] = useState({ id: null, runs: 0 });
   /* Which demo is waiting on its sprite. Keeps the poster up and the button
      honest instead of swapping to an empty --plate panel. */
@@ -428,20 +458,381 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
     });
   }, []);
 
+  const active = demos.find((demo) => demo.id === play.id) || demos[0];
+
+  /* The walkthrough brings its own stepper, so it does not use the shared
+     sprite stage or its button row. A project mixing both kinds would lose the
+     switcher; no project does. */
+  if (active.kind === "walkthrough") {
+    return <PipelineDemo demo={active} />;
+  }
+
+  const ids = active.ids || [active.id];
+  const running = play.id === active.id && play.runs > 0;
+
+  return (
+    <figure className={`demo-wrap ${className}`}>
+      <div
+        className={`demo-stage ${ids.length === 2 ? "demo-stage--pair" : ""} ${
+          ids.length > 2 ? "demo-stage--trio" : ""
+        }`}
+      >
+        {ids.map((id) => (
+          <div
+            key={`${id}-${play.runs}`}
+            data-demo={id}
+            className={`demo-figure ${running ? "is-playing" : ""}`}
+            role="img"
+            aria-label={`${active.label}. ${active.caption}`}
+          />
+        ))}
+      </div>
+      <figcaption className="demo-caption">
+        <div className="demo-switch">
+          {demos.map((demo) => (
+            <button
+              key={demo.id}
+              type="button"
+              className={`btn btn--quiet demo-button ${
+                demo.id === active.id ? "is-active" : ""
+              }`}
+              aria-pressed={demo.id === active.id}
+              aria-busy={warming === demo.id || undefined}
+              data-warming={warming === demo.id ? "1" : undefined}
+              onPointerEnter={() => warmSprites(demo.ids || [demo.id])}
+              onFocus={() => warmSprites(demo.ids || [demo.id])}
+              onClick={() => runDemo(demo.id, demo.ids || [demo.id])}
+            >
+              {demo.label}
+            </button>
+          ))}
+        </div>
+        <span>{active.caption}</span>
+      </figcaption>
+    </figure>
+  );
+});
+
+/* The scroll-scrubbed assembly sequence. `live` is what attaches the sheet;
+   until it flips, the poster is the whole image. */
+function ScrubFigure({ figureId, frames, label, live }) {
+  const ref = useRef(null);
+  useWheelScrub(ref, frames, live);
+  return (
+    <div
+      ref={ref}
+      className={`rig-figure ${live ? "is-live" : ""}`}
+      data-figure={figureId}
+      role="img"
+      aria-label={label}
+    />
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Narrative stage
+   -------------------------------------------------------------------------- */
+
+const StageFigure = memo(function StageFigure({ stage }) {
+  const figure = stage.figure;
+
+  /* Software stages have no render, so the readout takes the figure column
+     rather than a placeholder panel pretending there is something to see. */
+  if (!figure) {
+    return (
+      <dl className="stage-plate">
+        {stage.readout.map((row) => (
+          <div className="stage-plate-row" key={row.label}>
+            <dt>{row.label}</dt>
+            <dd>{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+
+  if (figure.kind === "scrub") {
+    return <ScrubStageFigure stage={stage} figure={figure} />;
+  }
+
+  if (figure.kind === "shot") {
+    const found = resolveShot(figure);
+    if (!found) return null;
+    const { step } = found;
+    return (
+      <figure className="stage-shot">
+        <img
+          src={step.shot}
+          alt={step.alt}
+          loading="lazy"
+          decoding="async"
+          width="1400"
+          height="774"
+        />
+        <figcaption>{step.note}</figcaption>
+      </figure>
+    );
+  }
+
+  const demos = figure.demos.map(resolveDemo).filter(Boolean);
+  if (!demos.length) return null;
+  return <SpriteStage demos={demos} className="stage-demos" />;
+});
+
+/* 3MB of sprite sheet is not something to spend on a visitor who only
+   scrolled past, so the sequence is opt-in the same way every button demo on
+   this site is - and the control says what it costs. Once loaded, the figure
+   scrubs off the stage's own scroll travel (see src/rig-scrub.css) and can
+   also be clicked to step frame by frame. */
+function ScrubStageFigure({ stage, figure }) {
+  const [live, setLive] = useState(false);
+  const [warming, setWarming] = useState(false);
+  /* The description of the sequence lives on the project that owns it, so the
+     stage borrows it rather than restating it. */
+  const owner = findProject(stage.owners[0].project);
+  const label = owner ? owner.figureLabel : figure.id;
+
+  const go = () => {
+    if (prefersReducedMotion()) {
+      /* The generated CSS attaches no sheet under reduce, so this would be
+         megabytes spent to keep showing the poster already on screen. */
+      setLive(true);
+      return;
+    }
+    const wait = loadSprite(figure.id);
+    if (!wait) {
+      setLive(true);
+      return;
+    }
+    setWarming(true);
+    wait.then(() => {
+      setWarming(false);
+      setLive(true);
+    });
+  };
+
+  return (
+    <figure className="rig-figure-wrap stage-scrub">
+      <ScrubFigure
+        figureId={figure.id}
+        frames={figure.frames}
+        label={label}
+        live={live}
+      />
+      {/* .motion-only is hidden under prefers-reduced-motion, where the
+          sheet is never attached and there is nothing to scroll through. */}
+      <figcaption className="rig-figure-caption">
+        Full assembly sequence, {figure.frames} frames.{" "}
+        <span className="motion-only">Scroll to build.</span>
+      </figcaption>
+      {live ? null : (
+        <button
+          type="button"
+          className="btn btn--quiet demo-button stage-scrub-load"
+          aria-busy={warming || undefined}
+          data-warming={warming ? "1" : undefined}
+          onPointerEnter={() => warmSprites([figure.id])}
+          onFocus={() => warmSprites([figure.id])}
+          onClick={go}
+        >
+          Load the sequence ({figure.sheet})
+        </button>
+      )}
+      <a className="link stage-scrub-link" href={`#project-${stage.owners[0].project}`}>
+        Full case study
+      </a>
+    </figure>
+  );
+}
+
+const PathStage = memo(function PathStage({ stage }) {
+  const kind = stage.figure ? stage.figure.kind : "plate";
+  return (
+    /* The anchor is the track, not the pinned frame: jumping to the top of
+       the track is what puts the reader at the start of the stage.
+
+       data-stage-kind is how CSS picks the scroll span: the 100-frame
+       assembly needs far more travel than a stage of prose, and React should
+       not be computing viewport heights. */
+    <div
+      className="stage-track"
+      id={`stage-${stage.id}`}
+      data-stage-kind={kind}
+      data-stage-id={stage.id}
+    >
+      <div className="stage-frame">
+        <div className="container stage-grid">
+          <div className="stage-body">
+            <p className="stage-num">{stage.n}</p>
+            <h3 className="stage-title">{stage.title}</h3>
+            <p className="stage-lede">{stage.lede}</p>
+
+            {stage.figure ? (
+              <dl className="stage-readout">
+                {stage.readout.map((row) => (
+                  <div className="stage-readout-row" key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+
+            <div className="stage-owners">
+              <p className="stage-owners-label">Owned by</p>
+              <ul>
+                {stage.owners.map((owner) => (
+                  <li key={owner.project}>
+                    <a className="stage-owner" href={`#project-${owner.project}`}>
+                      {shortTitles[owner.project]}
+                    </a>
+                    <span className="stage-owner-note">{owner.note}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="stage-figure">
+            <StageFigure stage={stage} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+/* --------------------------------------------------------------------------
+   Fixed index
+   The escape hatch. A narrative is the least skimmable structure there is, so
+   every stage and every project stays one click away for the whole scroll.
+   -------------------------------------------------------------------------- */
+
+/* Labels, not headings: this nav sits above the <h1> in the document, so a
+   real <h2> here would put the page out of heading order. The two <nav>
+   landmarks carry the semantics through aria-label instead. */
+function SignalRail({ activeStage, open, onToggle, onJump }) {
+  return (
+    <div className={`rail ${open ? "is-open" : ""}`}>
+      <div className="rail-inner">
+        <button
+          type="button"
+          className="rail-toggle"
+          aria-expanded={open}
+          aria-controls="rail-lists"
+          onClick={onToggle}
+        >
+          <span className="rail-toggle-label">Index</span>
+          <span className="rail-toggle-hint">
+            {pathStages.length} stages / {workIndex.length} projects
+          </span>
+        </button>
+
+        <div className="rail-lists" id="rail-lists">
+          <nav className="rail-group" aria-label="Signal path stages">
+            <p className="rail-label">Path</p>
+            <ol className="rail-list">
+              {pathStages.map((stage) => (
+                <li key={stage.id}>
+                  <a
+                    className={`rail-link ${
+                      activeStage === stage.id ? "is-current" : ""
+                    }`}
+                    aria-current={activeStage === stage.id ? "true" : undefined}
+                    href={`#stage-${stage.id}`}
+                    onClick={(event) => onJump(event, `stage-${stage.id}`)}
+                  >
+                    <span className="rail-num">{stage.n}</span>
+                    <span className="rail-text">{stage.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+
+          <nav className="rail-group" aria-label="Projects">
+            <p className="rail-label">Work</p>
+            <ol className="rail-list">
+              {workIndex.map((entry) => (
+                <li key={entry.project.id}>
+                  <a
+                    className="rail-link"
+                    href={`#project-${entry.project.id}`}
+                    onClick={(event) =>
+                      onJump(event, `project-${entry.project.id}`)
+                    }
+                  >
+                    <span className="rail-num">{entry.n}</span>
+                    <span className="rail-text">{entry.short}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Work index
+   The complete portfolio, reachable without reading a word of the narrative.
+   -------------------------------------------------------------------------- */
+
+const WorkEntry = memo(function WorkEntry({ entry }) {
+  const { project, n, shot, stages } = entry;
+  /* A closed <details> does NOT stop a CSS background from being fetched, so
+     the sprite has to be attached on open or it costs every visitor 3MB they
+     may never look at. */
+  const [figureLive, setFigureLive] = useState(false);
+  const hasFigure = Boolean(project.figure);
+  const demos = project.demos || [];
+
   return (
     <article id={`project-${project.id}`} className="work-entry reveal">
       <div className="work-entry-head">
         <span className="work-num" aria-hidden="true">
-          {String(index + 1).padStart(2, "0")}
+          {n}
         </span>
 
-        <h3 className="work-title">
-          <a className="work-anchor" href={`#project-${project.id}`}>
-            {project.title}
-          </a>
-        </h3>
+        {/* Poster, not sprite: 4-46KB each, so the whole index costs less
+            than one sheet. Five projects have no render, and those show the
+            stages they own rather than a grey box.
+
+            The --plate class is not cosmetic: CAD posters are near-black
+            plastic and need a light sheet in BOTH themes or they disappear in
+            dark mode. App screenshots are already light and do not. */}
+        <div
+          className={`work-shot ${
+            shot ? (shot.plate ? "work-shot--plate" : "work-shot--shot") : "work-shot--stages"
+          }`}
+        >
+          {shot ? (
+            <img
+              className="work-shot-img"
+              src={shot.src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              data-fit={shot.fit}
+              data-plate={shot.plate ? "1" : undefined}
+            />
+          ) : (
+            <ul className="work-shot-stages" aria-hidden="true">
+              {stages.map((stage) => (
+                <li key={stage.id}>{stage.n}</li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="work-body">
+          <h3 className="work-title">
+            <a className="work-anchor" href={`#project-${project.id}`}>
+              {project.title}
+            </a>
+          </h3>
           <p className="work-outcome">{project.summary}</p>
 
           <div className="work-meta">
@@ -457,10 +848,26 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
                 ))}
               </ul>
             </div>
+            <div className="work-meta-row">
+              <span className="work-meta-label">Stages</span>
+              <ul className="work-meta-items work-stage-links">
+                {stages.map((stage) => (
+                  <li key={stage.id}>
+                    <a href={`#stage-${stage.id}`}>
+                      {stage.n} {stage.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Outside the head grid on purpose: the case body is a two-column
+          layout of its own above 56rem, and the walkthrough inside it claims
+          the full width (see the width note in src/pipeline-demo.css). Nested
+          in a column it would get half of that. */}
       <details
         className="case"
         onToggle={(event) => {
@@ -470,79 +877,26 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
         <summary className="case-summary">Case study</summary>
         <div className={`case-body ${hasFigure ? "case-body--figure" : ""}`}>
           {hasFigure ? (
-          <div className="case-figures">
-            <figure className="rig-figure-wrap">
-              <div
-                ref={figureRef}
-                className={`rig-figure ${figureLive ? "is-live" : ""}`}
-                data-figure={project.figure}
-                role="img"
-                aria-label={project.figureLabel}
-              />
-              <figcaption className="rig-figure-caption">
-                Full assembly sequence. Scroll to build.
-              </figcaption>
-            </figure>
-          </div>
+            <div className="case-figures">
+              <figure className="rig-figure-wrap">
+                <ScrubFigure
+                  figureId={project.figure}
+                  frames={project.figureFrames}
+                  label={project.figureLabel}
+                  live={figureLive}
+                />
+                <figcaption className="rig-figure-caption">
+                  Full assembly sequence.{" "}
+                  <span className="motion-only">Scroll to build.</span>
+                </figcaption>
+              </figure>
+            </div>
           ) : null}
 
           {/* The demo stage spans both columns: a synchronized pair needs the
               full width, and stacking it under the build figure would leave a
               column twice the height of the prose beside it. */}
-          {hasDemo ? (() => {
-            const active = demos.find((d) => d.id === play.id) || demos[0];
-            /* The walkthrough brings its own stepper, so it does not use
-               the shared sprite stage or its button row. A project mixing
-               both kinds would lose the switcher; no project does. */
-            if (active.kind === "walkthrough") {
-              return <PipelineDemo demo={active} />;
-            }
-            const ids = active.ids || [active.id];
-            const running = play.id === active.id && play.runs > 0;
-            return (
-              <figure className="demo-wrap case-demos">
-                <div
-                  className={`demo-stage ${
-                    ids.length === 2 ? "demo-stage--pair" : ""
-                  } ${ids.length > 2 ? "demo-stage--trio" : ""}`}
-                >
-                  {ids.map((id) => (
-                    <div
-                      key={`${id}-${play.runs}`}
-                      data-demo={id}
-                      className={`demo-figure ${running ? "is-playing" : ""}`}
-                      role="img"
-                      aria-label={`${active.label}. ${active.caption}`}
-                    />
-                  ))}
-                </div>
-                <figcaption className="demo-caption">
-                  <div className="demo-switch">
-                    {demos.map((demo) => (
-                      <button
-                        key={demo.id}
-                        type="button"
-                        className={`btn btn--quiet demo-button ${
-                          demo.id === active.id ? "is-active" : ""
-                        }`}
-                        aria-pressed={demo.id === active.id}
-                        aria-busy={warming === demo.id || undefined}
-                        data-warming={warming === demo.id ? "1" : undefined}
-                        onPointerEnter={() =>
-                          warmSprites(demo.ids || [demo.id])
-                        }
-                        onFocus={() => warmSprites(demo.ids || [demo.id])}
-                        onClick={() => runDemo(demo.id, demo.ids || [demo.id])}
-                      >
-                        {demo.label}
-                      </button>
-                    ))}
-                  </div>
-                  <span>{active.caption}</span>
-                </figcaption>
-              </figure>
-            );
-          })() : null}
+          {demos.length ? <SpriteStage demos={demos} className="case-demos" /> : null}
 
           <div className="case-text">
             <div className="case-block">
@@ -574,22 +928,27 @@ const WorkEntry = memo(function WorkEntry({ project, index }) {
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [railOpen, setRailOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  /* null, not stage one: while the reader is still in the hero, no stage is
+     current, and marking one would be a lie the rail tells on first paint. */
+  const [activeStage, setActiveStage] = useState(null);
   const [filter, setFilter] = useState(getInitialFilter);
   const [theme, setTheme] = useState(getInitialTheme);
 
   const reducedMotion = usePrefersReducedMotion();
   const { sentinelRef, stuck } = useStuckHeader();
 
-  const filteredProjects = useMemo(
+  const filteredWork = useMemo(
     () =>
       filter === "all"
-        ? projects
-        : projects.filter((project) => project.tags.includes(filter)),
+        ? workIndex
+        : workIndex.filter((entry) => entry.project.tags.includes(filter)),
     [filter]
   );
 
   useSectionSpy(setActiveSection);
+  useStageSpy(setActiveStage);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -606,11 +965,14 @@ export default function App() {
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  /* Honor a deep link on first paint, including project permalinks. */
+  /* Honor a deep link on first paint, including project and stage
+     permalinks. */
   useEffect(() => {
     const hash = window.location.hash.replace("#", "");
     if (!hash) return;
-    setActiveSection(hash.startsWith("project-") ? "projects" : hash);
+    setActiveSection(
+      hash.startsWith("project-") ? "projects" : hash.startsWith("stage-") ? "path" : hash
+    );
     const target = document.getElementById(hash);
     if (!target) return;
     requestAnimationFrame(() => {
@@ -634,19 +996,52 @@ export default function App() {
     };
   }, [menuOpen]);
 
-  const goToSection = useCallback(
+  useEffect(() => {
+    if (!railOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setRailOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [railOpen]);
+
+  const scrollTo = useCallback(
     (id) => {
       const target = document.getElementById(id);
-      if (!target) return;
-      setMenuOpen(false);
-      setActiveSection(id);
-      window.history.pushState(null, "", `#${id}`);
+      if (!target) return false;
       target.scrollIntoView({
         behavior: reducedMotion ? "auto" : "smooth",
         block: "start",
       });
+      return true;
     },
     [reducedMotion]
+  );
+
+  const goToSection = useCallback(
+    (id) => {
+      setMenuOpen(false);
+      setActiveSection(id);
+      window.history.pushState(null, "", `#${id}`);
+      scrollTo(id);
+    },
+    [scrollTo]
+  );
+
+  /* Rail links are real anchors, so a modified click still opens a tab. This
+     only takes over the plain case, to close the mobile panel and keep the
+     scroll consistent with the reduced-motion preference. */
+  const jumpFromRail = useCallback(
+    (event, id) => {
+      if (!isPlainClick(event)) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      event.preventDefault();
+      setRailOpen(false);
+      window.history.pushState(null, "", `#${id}`);
+      scrollTo(id);
+    },
+    [scrollTo]
   );
 
   /* Keep the active discipline in the URL so a filtered view can be shared
@@ -740,9 +1135,16 @@ export default function App() {
         </div>
       </header>
 
+      <SignalRail
+        activeStage={activeStage}
+        open={railOpen}
+        onToggle={() => setRailOpen((open) => !open)}
+        onJump={jumpFromRail}
+      />
+
       <main id="main">
-        {/* Hero: asymmetric split. Left carries the message, right carries
-            real facts rather than a decorative diagram. */}
+        {/* Hero: the claim, the facts, and the two ways in - the story or the
+            index. */}
         <section id="home" className="section hero">
           <div className="container hero-inner">
             <div>
@@ -756,6 +1158,17 @@ export default function App() {
               <div className="hero-ctas rise" style={{ "--delay": "180ms" }}>
                 <a
                   className="btn btn--primary"
+                  href="#path"
+                  onClick={(event) => {
+                    if (!isPlainClick(event)) return;
+                    event.preventDefault();
+                    goToSection("path");
+                  }}
+                >
+                  Follow the signal path
+                </a>
+                <a
+                  className="btn btn--quiet"
                   href="#projects"
                   onClick={(event) => {
                     if (!isPlainClick(event)) return;
@@ -763,18 +1176,7 @@ export default function App() {
                     goToSection("projects");
                   }}
                 >
-                  Selected work
-                </a>
-                <a
-                  className="btn btn--quiet"
-                  href="#contact"
-                  onClick={(event) => {
-                    if (!isPlainClick(event)) return;
-                    event.preventDefault();
-                    goToSection("contact");
-                  }}
-                >
-                  Get in touch
+                  Skip to all nine projects
                 </a>
               </div>
             </div>
@@ -790,13 +1192,30 @@ export default function App() {
           </div>
         </section>
 
+        {/* The spine. Seven stages, each pinned while it is read, each naming
+            the projects that own it. */}
+        <section id="path" className="section section--stage">
+          <div className="container">
+            <div className="section-head reveal">
+              <h2 className="section-title">Signal path</h2>
+              <p className="section-lead">{pathIntro}</p>
+            </div>
+          </div>
+
+          <div className="stages">
+            {pathStages.map((stage) => (
+              <PathStage key={stage.id} stage={stage} />
+            ))}
+          </div>
+        </section>
+
         <section id="projects" className="section section--tinted">
           <div className="container">
             <div className="section-head reveal">
               <h2 className="section-title">Selected work</h2>
               <p className="section-lead">
-                Systems taken from problem to dependable operation. What each one is and
-                what I did on it, with the engineering detail one click away.
+                All nine, in full, with no narrative to read first. What each one is
+                and what I did on it, with the engineering detail one click away.
               </p>
             </div>
 
@@ -815,9 +1234,9 @@ export default function App() {
             </div>
 
             <div className="work-index">
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((project, index) => (
-                  <WorkEntry key={project.id} project={project} index={index} />
+              {filteredWork.length > 0 ? (
+                filteredWork.map((entry) => (
+                  <WorkEntry key={entry.project.id} entry={entry} />
                 ))
               ) : (
                 <div className="work-empty">
