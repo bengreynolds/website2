@@ -31,7 +31,7 @@ and its plan, which is where most of this came from.
 | 5 | Colour | `--accent` means interactive. `--plate` is for renders. Tell states apart by weight, not hue. |
 | 6 | Motion budget | Two animations visible at once, from the existing tokens, transform only. |
 | 7 | Reduced motion | Duration is crushed globally; **delay is not**. Put every delay inside `no-preference`. |
-| 8 | Ship | Stay out of the `demo-*.css` generated namespace. Import in `main.jsx`. |
+| 8 | Ship | Stay out of the `demo-*.css` generated namespace. Import in `main.jsx`. Check what the change did to the project's home tile. |
 | 9 | Verify | No test framework. Build, then drive the preview, and remember the demo is behind a disclosure. |
 
 ---
@@ -141,9 +141,22 @@ before running it.
 this exercise found was in the final state, and nothing short of finishing the
 run would have shown it.
 
-**Frames: 1400px WebP, quality ~82.** Six came to 223KB. That is ~1.7x the
-largest size they are displayed at, so they stay crisp on a hidpi panel without
-shipping the 1900px original. Lazy-load them.
+**Frames: 1400px WebP, quality ~82.** Six came to 223KB. Lazy-load them.
+
+**[read] Re-measured against the shipped project page: the frame renders at
+755 CSS px, so 1400 is 1.85 source pixels per CSS pixel** — an earlier estimate
+of 1.7 here was close but low. 1.85 is essentially 1:1 on a DPR-2 panel, which
+is the target: crisp on a retina laptop without shipping the 1900px original.
+
+That ratio is the number to carry to any new demo, and it is worth stating
+because **the sprite pipeline next door does not hit it.** Every CAD sheet
+currently shipped lands between 0.54 and 0.89 source pixels per CSS pixel,
+because a sprite has to pay for all its frames at once and the decoded sheet,
+not the download, is what caps it. See "The budget is `frames × cell²`" in
+`docs/fusion-animation-pipeline.md` section 8, which also carries the measured
+widths of every figure slot on the site — `.rig-figure`, `.demo-figure` in its
+single, paired and trio forms, and the home tile. A screenshot has no such
+constraint: it is one image, so buy the resolution.
 
 **Do not sprite a captured UI.** The interface has to survive being scaled, and
 a 520px sprite cell makes it unreadable — the same trap rule 1 guards against,
@@ -406,6 +419,42 @@ Add nothing to `package.json`. Every demo so far is React plus CSS.
 **No local focus or button resets.** `src/spa.css:210` already resets
 `button` (font, colour, background, border, padding, cursor) and `:227` is a
 global `:focus-visible`. Re-declaring either is dead code.
+
+### **[read]** Adding a demo silently changes the project's home tile
+
+This one has no warning attached to it anywhere in the source and is easy to
+ship without noticing, because the tile is on a different page from the thing
+you edited.
+
+`indexShot` in `src/siteData.js` picks a project's tile art in a fixed order:
+**the first non-walkthrough demo, else the figure, else the walkthrough's first
+screenshot.** So a demo added to a project that already has a `figure` takes
+the tile over from it, and the tile stops being a static `<img>` and becomes a
+sprite that replays on hover. Two projects are in that state today:
+
+| project | figure | tile actually shows |
+|---|---|---|
+| automated-multicamera-training-control-system | `buildup` | `pellet` |
+| haptic-device-validation-test-bench | `prosthetic-build` | `prosthetic-function` |
+
+That is deliberate — the comment at `indexShot` explains that the tile wants
+the thing which moves when it is pointed at, and a scroll figure did not. Worth
+knowing anyway, for two reasons: **reordering `demos[]` re-picks the tile**,
+because the rule takes the first entry rather than a named one; and the poster
+that becomes tile art is judged at ~355px, not at the 617–738px the project
+page gives it.
+
+**The stage lays out one, two or three ids and no more.** `Figures.jsx` adds
+`demo-stage--pair` at two and `demo-stage--trio` at three or more, and the trio
+rule only special-cases `:nth-child(3)`. A fourth id gets no layout of its own
+and lands in a ragged third row. If a demo needs four figures, the stage needs
+a rule before the data does.
+
+**A new project also needs `tilePlacements` re-seeded**
+(`scripts/seed_tile_placements.py`, which writes into the
+`BEGIN/END GENERATED tilePlacements` block in `siteData.js`). A missing id is
+not an error — `data-placement` is simply omitted and the tile takes the
+default arrangement — so this fails quietly rather than loudly.
 
 ## 9. Verify
 

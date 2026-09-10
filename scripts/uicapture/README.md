@@ -68,10 +68,12 @@ sequence.
 
 ## Turning frames into web assets
 
-1400px WebP at quality ~82 — roughly 1.7x the largest size they are displayed
-at, so they stay crisp on a hidpi panel without shipping the original. Six
-frames came to 223KB. Lazy-load them, and do not sprite them: a captured
-interface has to survive scaling, and a 520px sprite cell makes it unreadable.
+1400px WebP at quality ~82. Measured against the shipped project page, the
+frame renders at 755 CSS px, so that is **1.85 source pixels per CSS pixel** —
+essentially 1:1 on a DPR-2 panel, crisp on a hidpi laptop without shipping the
+1900px original. Six frames came to 223KB. Lazy-load them, and do not sprite
+them: a captured interface has to survive scaling, and a 520px sprite cell
+makes it unreadable.
 
 ```python
 from PIL import Image
