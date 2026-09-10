@@ -2,9 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 /* Self-hosted fonts. Keeps type off the critical third-party path and
-   avoids the render-blocking @import the stylesheet used to carry. */
-import "@fontsource-variable/space-grotesk";
-import "@fontsource-variable/ibm-plex-sans";
+   avoids the render-blocking @import the stylesheet used to carry.
+
+   Syne carries the name and the stage titles at poster scale, Geist carries
+   body copy, IBM Plex Mono carries every number, label and readout. The
+   family names these packages declare are suffixed ("Syne Variable"), which
+   is what src/spa.css asks for - the previous stylesheet named the
+   unsuffixed families and quietly rendered every heading in system-ui. */
+import "@fontsource-variable/syne";
+import "@fontsource-variable/geist";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 

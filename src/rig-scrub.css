@@ -40,8 +40,39 @@
     animation-range: cover 22% cover 78%;
   }
 
+  /* ---- inside a pinned narrative stage ---------------------------------
+
+     A figure in a position: sticky frame is the one case view() cannot
+     handle. view() maps progress to the element's position in the
+     scrollport, and a pinned element's position stops changing - so the
+     moment the stage frame sticks, the sequence freezes on whatever frame the
+     pin position happens to resolve to, and 100 frames become one still.
+     Measured on the shipped spine: the figure held frame ~50 for the entire
+     three viewports of scroll the stage owns.
+
+     The fix is to animate off the TRACK rather than off the figure. The
+     track (src/spa.css section 9) declares view-timeline-name: --stage and is
+     NOT sticky, so its own travel through the viewport is the real progress
+     of the stage. The figure attaches to that name; the lookup walks
+     ancestors, and the track is one.
+
+     The range is chosen to line up with the pin. A scrub track is 300vh
+     against a ~100vh frame, so cover spans 400vh and the frame is pinned from
+     cover 25% to cover 75%. Scrubbing exactly that window means the whole
+     assembly plays while the stage is held still, and no frame advances while
+     the figure is half off screen. At 200vh of pinned travel that is roughly
+     20px per frame - about six times the resolution plain view() gave, for no
+     extra page height. */
+  .stage-track .rig-figure[data-figure].is-live {
+    animation-timeline: --stage;
+    animation-range: cover 25% cover 75%;
+  }
+
   /* The attribute takes specificity to 0,4,0, above the 0,3,0 of the generated
-     rules, so this wins regardless of import order. */
+     rules, so this wins regardless of import order. It also has to come after
+     the .stage-track rule above, which is 0,4,0 as well: equal specificity, so
+     source order is what keeps a click-engaged scrub in charge of a figure
+     that is standing on a narrative stage. */
   .rig-figure[data-figure].is-live[data-scrub="wheel"] {
     /* Back to the document timeline. animation-range comes with view() and is
        ignored once the timeline is auto, so it does not need unsetting. */
