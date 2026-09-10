@@ -124,10 +124,6 @@ export const projects = [
         group: "Packaging",
         items: ["49 optional dependency groups", "routes registered only when present"],
       },
-      {
-        group: "Predecessor",
-        items: ["nwbconv CLI", "modality auto-detection from the data itself"],
-      },
     ],
     tools: ["PySide6", "PyNWB", "NeuroConv", "NWB Inspector"],
     bullets: [
@@ -246,30 +242,30 @@ export const projects = [
        as a reference rather than as an explanation. */
     deepDive: [
       {
-        heading: "The conversion runs without the window",
+        heading: "A conversion pipeline with an interface on top",
         body: [
-          "The domain models, the adapters, the normalisation and mapping layers, the validation services and the persistence layer all sit below the interface and none of them import it. A conversion is therefore something the application asks for rather than something the application is, which is what lets the same code run from a script, in a test, or on a machine with no display attached.",
-          "The workflow is a ten-state machine over three pathways: supported sources routed through NeuroConv, custom sources assembled directly, and hybrid sessions that mix the two in one file. A session cannot skip a state, so a file that reached disk went through review and validation to get there.",
+          "The application takes the raw files a single recording session produced, reconciles their metadata, writes one Neurodata Without Borders file and validates it. Domain models, source adapters, the normalisation and mapping layers, the validation services and persistence all sit below the interface and none of them import it, so the same conversion runs from a script, in a test, or on a machine with no display attached.",
+          "The workflow is a ten-state machine over three pathways: supported formats routed through NeuroConv, custom formats assembled directly with PyNWB, and hybrid sessions that mix the two into one file. A session cannot skip a state, so a file that reached disk went through review and validation to get there.",
         ],
       },
       {
         heading: "Sixty-one formats without sixty-one installs",
         body: [
           "Sixty-one source adapters cover nine families of acquisition hardware, and a registry matches an incoming source against each adapter's own capability check rather than against a filename pattern. A format nobody has seen before is a new adapter, not a change to the router.",
-          "Every format is an independently installable extra, forty-nine dependency groups in all, and a route only appears once its dependencies are present. A rig that records SpikeGLX and Suite2p installs those two and carries none of the weight of the other fifty-nine, which is the difference between a tool a lab can actually deploy and one that needs a six-gigabyte environment to open.",
+          "Every format is an independently installable extra, forty-nine dependency groups in all, and a route only appears once its dependencies are present. A rig that records SpikeGLX and Suite2p installs those two and carries none of the weight of the other fifty-nine, which is the difference between a tool a lab can deploy and one that needs a six-gigabyte environment to open.",
         ],
       },
       {
         heading: "Disagreement is surfaced, not resolved quietly",
         body: [
-          "Normalisation maps every source's metadata onto one canonical key set through alias rules, and any field where two sources disagree is raised rather than silently won by whichever was read last. The nine conflicts in the walkthrough above are that mechanism working.",
-          "Validation is three services rather than one pass: artifacts are checked for existence, the file is checked against the NWB schema, and NWB Inspector checks it against best practice. Review is kept separate again, so an approve or a reject is recorded as its own artifact and a warning has to be acknowledged by a person instead of defaulting through.",
+          "Normalisation maps each source's metadata onto one canonical key set through alias rules. Any field where two sources disagree is raised for a decision instead of being silently won by whichever file was read last, and every conflict names the canonical key, the value that won and the adapter that produced it.",
+          "Validation is three services rather than one pass: artifacts are checked for existence, the file is checked against the NWB schema through PyNWB, and NWB Inspector checks it against best practice. Review is separate again, so an approval or a rejection is recorded as its own artifact and a warning has to be acknowledged by a person instead of defaulting through.",
         ],
       },
       {
         heading: "Why it matters",
         body: [
-          "Neuroscience data goes stale because the person who recorded it is the only one who knows how. Converting to a standard format is the well-understood part; the hard part is being able to show, later, that the conversion did not quietly lose or invent anything. This writes the file and the evidence for the file in one pass, so a dataset arrives somewhere else with its own audit trail attached and can be trusted without its author in the room.",
+          "A recording is only reusable if somebody other than the person who made it can tell what is inside it. Converting to a standard format is the well understood half; the hard half is being able to show later that the conversion lost nothing and invented nothing. This writes the file and the evidence for the file in one pass, so a dataset arrives somewhere else with its own audit trail attached and can be trusted without its author in the room.",
         ],
       },
     ],
@@ -372,35 +368,35 @@ export const projects = [
       {
         heading: "Seven modules that install apart",
         body: [
-          "The rig's software is one namespace across seven modules - core, video, device, inference, behavior, model and the Qt layer - each installable on its own. Four applications sit on top: acquisition with an interface, headless acquisition, and two test applications for the head-fix and pellet subsystems, so a mechanism can be exercised without running a session around it.",
-          "Session flow is a state machine, and the decisions about training are deliberately not in it. They live in a separate behaviour algorithm, so the science can change without touching the machinery that keeps the rig safe.",
+          "The rig is one Python namespace across seven modules, core, video, device, inference, behavior, model and the Qt layer, each installable on its own. Four applications sit on top: acquisition with an interface, headless acquisition, and two test applications for the head-fix and pellet subsystems, so a mechanism can be exercised without running a session around it.",
+          "Session flow is a state machine, and the decisions about training are deliberately outside it. They live in a separate behaviour algorithm driven by a JSON phase document written per animal, so what an animal is trained to do changes without touching the machinery that keeps the rig safe.",
         ],
       },
       {
         heading: "Twenty guards, because nobody is in the room",
         body: [
-          "Running overnight unattended is not a feature you add, it is a set of things you refuse to let happen. Around twenty named detectors watch for animal evasion and thrashing, clamp evasion, headbar pressure, load-cell tare drift, presence in the cage, external doors, board resets, free disk space, watchdog timeouts and system faults, and each has a defined response rather than a log line.",
-          "Cameras are addressed by URL rather than index, so a FLIR camera is selected by serial number and the trigger relationship between two of them is part of the address. Pose inference runs in its own process behind an interface that does not name its engine, so the tracker can be replaced without touching acquisition.",
+          "Running overnight unattended is not a feature that gets added, it is a set of things the system refuses to let happen. Around twenty named detectors watch for animal evasion and thrashing, clamp evasion, headbar pressure, load-cell tare drift, presence in the cage, external doors, board resets, free disk space, watchdog timeouts and system faults, and each one has a defined response rather than a log line.",
+          "Cameras are addressed by URL rather than by index, so a FLIR camera is selected by serial number and the hardware trigger relationship between two of them is part of the address. Pose inference runs in its own process behind an interface that does not name its engine, so the tracker can be replaced without touching acquisition.",
         ],
       },
       {
         heading: "Two boards, one bus, and whose design",
         body: [
-          "Both custom boards are STM32G474 sharing a CAN transceiver: the pellet board carrying three stepper drivers, an audio amplifier and speaker, flash, and six BNC lines for stimulus in and out, and the head-fix board carrying a 24-bit load-cell converter and a MEMS microphone. The board design is LeafLabs work, integrated here rather than drawn here.",
+          "Both custom boards are STM32G474 parts sharing a CAN transceiver: the pellet board carrying three stepper drivers, an audio amplifier and speaker, flash, and six BNC lines for stimulus in and out, and the head-fix board carrying a 24-bit load-cell converter and a MEMS microphone. The board design is LeafLabs work, integrated here rather than drawn here.",
           "The firmware is a Zephyr workspace with nine custom drivers, each with a devicetree binding and its own shell commands, so any subsystem can be driven by hand from a console during bring-up. The CAN protocol is a library of fourteen message modules with size assertions checked at build time, and the same definitions are exposed to Python through pybind11 so the host and the boards cannot drift apart about what a message means.",
         ],
       },
       {
         heading: "Updated over the bus, found by name",
         body: [
-          "Firmware goes on over CAN by module address, not by carrying a laptop and a programmer to the bench, and a terminal application reads and manipulates live module state over the same bus while the rig is assembled.",
-          "Each rig is a single Jetson prepared by one script that takes the unit name and uses it as hostname, remote-view identifier and alert identifier at once. Rigs then announce themselves over mDNS instead of being configured into a list, so the management plane discovers a new rig rather than being told about it.",
+          "Firmware goes on over CAN by module address rather than by carrying a laptop and a programmer to the bench, and a terminal application reads and manipulates live module state over the same bus while the rig is fully assembled.",
+          "Each rig is a single Jetson AGX prepared by one script that takes the unit name and uses it as hostname, remote-view identifier and alert identifier at once. Rigs then announce themselves over mDNS instead of being configured into a list, so the management plane discovers a new rig rather than being told about it.",
         ],
       },
       {
         heading: "Why it matters",
         body: [
-          "Reach training used to need somebody present for every session, which capped how much data a lab could collect and made the results depend on who was running the rig that day. Moving the operator out changes the unit of throughput from a person-hour to a night, and it removes the largest uncontrolled variable in the experiment at the same time. Protocols being documents rather than code is the part that makes that durable: a researcher can change what an animal is trained to do without asking an engineer.",
+          "Reach training normally needs a person present for every session, which caps how much data a lab can collect and makes the result depend on who was running the rig that day. Moving the operator out changes the unit of throughput from a person-hour to a night, and removes the largest uncontrolled variable in the experiment at the same time. Training protocols being documents rather than code is what makes that durable: a researcher changes what an animal is trained to do without asking an engineer.",
         ],
       },
     ],
@@ -412,9 +408,9 @@ export const projects = [
     tags: ["software", "data", "automation"],
     featured: true,
     summary:
-      "The autonomous trainer's codebase re-adapted back into an operator-run acquisition system, moved off embedded hardware onto workstations with laboratory DAQ instrumentation.",
+      "An operator-run acquisition system for reach-training sessions, sharing its module set with the Autonomous Behavioral Training Rig and moved off embedded hardware onto workstations with laboratory DAQ instrumentation.",
     challenge:
-      "The operator-run reach-training system I helped build first was superseded by the autonomous trainer, which handled sessions, recovery, and data far more rigorously. Those improvements were locked to Jetson hardware and to running unattended, so operator-driven work could not benefit from them.",
+      "The most rigorous handling of sessions, recovery, and data in the lab's reach-training work belonged to the Autonomous Behavioral Training Rig, and was locked to Jetson hardware and to running unattended. Operator-driven acquisition on ordinary workstations could not use any of it.",
     /* "rather than forking a copy" was contradicted by the repositories: the
        hardware repo opens by declaring itself a fork of the upstream
        Mouse-GYM one and carries a PROVENANCE.md recording it. Scoped rather
@@ -422,7 +418,7 @@ export const projects = [
        software module set was re-adapted, the hardware repository is a
        maintained fork. */
     approach:
-      "Took the trainer's module set as the base rather than duplicating it, and maintains the hardware repository as a fork of upstream. Re-adapted for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
+      "Took that rig's module set as the base rather than duplicating it, and maintains the hardware repository as a fork of upstream. Re-adapted for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
     role: "Led the re-platforming, the instrumentation swap, and the reproducible offline install path.",
     /* The project page's stack, grouped by layer. `tools` above stays
        the four-chip version a tile can hold; this is where the parts,
@@ -455,7 +451,7 @@ export const projects = [
     ],
     tools: ["Ubuntu x86_64", "NI-DAQ / PXI", "PEAK CAN", "FLIR Spinnaker"],
     bullets: [
-      "Carried the trainer's core, video, device, inference, and behavior modules onto a new platform.",
+      "Carried the core, video, device, inference, and behavior modules onto a new platform.",
       "Replaced Jetson-native CAN with PEAK CAN and added NI-DAQ and PXI acquisition.",
       /* Was "a staged, checksum-verified offline install". Reading the repo,
          that fused three different mechanisms: the workstation installer is
@@ -473,37 +469,37 @@ export const projects = [
        as a reference rather than as an explanation. */
     deepDive: [
       {
-        heading: "Forked on purpose",
+        heading: "An operator-run rig on ordinary workstations",
         body: [
-          "The platform is a fork of the trainer rather than a copy of it, which keeps the upstream history and authorship attached to every line that came across. Work continues on both sides without either becoming a snapshot of the other, and it stays possible to see which changes are original to the operator-run system.",
-          "The target moved from an embedded board to a standard workstation, and the port removed as much as it added: the head-fix and tunnel subsystem is gone entirely, along with its application, its pressure monitoring and its evasion detectors, because an operator-run session does not head-fix. What remained is the part that was worth carrying.",
+          "reachAQ runs reach-training sessions with a person at the machine. It drives the rig's motion hardware over CAN, records hardware-triggered video, and captures laboratory instrumentation beside it on x86_64 Ubuntu workstations rather than on an embedded board. The module set is shared with the Autonomous Behavioral Training Rig and the hardware repository is maintained as a fork of it, so a fix stays traceable across both instead of two copies drifting apart.",
+          "The port removed as much as it added. The head-fix and tunnel subsystem is gone entirely, along with its application, its pressure monitoring and its evasion detectors, because an operator-run session does not head-fix. What carried across is session handling, recovery and data integrity.",
         ],
       },
       {
         heading: "Recovery that refuses to overreach",
         body: [
-          "Moving off board-native CAN meant a PEAK interface with its own boot service, and a reset helper that is deliberately narrow: root-owned, permitted for exactly one action, serialised and debounced so two requests cannot fight, and refusing outright to reset a channel another process owns. It is not an emergency stop and does not pretend to be one, which matters because the failure it recovers from looks identical to the failure it must not touch.",
-          "The instrumentation layer is new code rather than configuration: drivers for signal streaming and laser control, port and stream configuration, and six models covering channel planning, device discovery, preflight checks, a sample ring, signal monitoring and timing.",
+          "CAN arrives through a PEAK interface with a boot service of its own, and a reset helper that is deliberately narrow: root-owned, permitted for exactly one action, serialised and debounced so two requests cannot fight, and refusing outright to reset a channel another process owns. It is not an emergency stop and does not pretend to be one, which matters because the failure it recovers from looks identical to the failure it must not touch.",
+          "Instrumentation is new code rather than configuration: drivers for signal streaming and laser control, port and stream configuration, and six models covering channel planning, device discovery, preflight checks, a sample ring, signal monitoring and timing, over NI-DAQmx and a PXIe-1073 chassis on MXI.",
         ],
       },
       {
         heading: "An installer that reports instead of stopping",
         body: [
-          "Installation is one script with no options that deliberately continues past a failure, so a machine missing one driver category still gets everything else. Every step reports pass, fail, skip or plan, a summary always prints, and re-running is the documented repair path rather than a thing to be avoided.",
-          "It also refuses to guess: it installs no vendor kernel drivers, selects no camera serial or channel or bitrate, and installs the CAN tools without enabling the service, because bringing a bus up on a rig somebody is collecting on is a reviewed step and not an install detail.",
+          "Installation is one script with no options that deliberately continues past a failure, so a machine missing one driver category still gets everything else. Every step reports pass, fail, skip or plan, a summary always prints, and re-running is the documented repair path rather than something to avoid.",
+          "It also refuses to guess. It installs no vendor kernel drivers, selects no camera serial or channel or bitrate, and installs the CAN tools without enabling the service, because bringing a bus up on a rig somebody is collecting on is a reviewed step and not an install detail.",
         ],
       },
       {
         heading: "Tone timing, down to the signal",
         body: [
           "A stimulus line asserts for the whole duration of one tone and a second line for the other, and both clear on any other frequency or on a completion, abort or tone-start failure. That gives the acquisition side a hardware-timed edge to correlate against instead of a software timestamp taken near the event.",
-          "Firmware and application are version-gated against each other through a tracked compatibility table and a check at runtime, so a rig cannot quietly run a build the software was not written for.",
+          "Firmware and application are version-gated against each other through a tracked compatibility table and a check at runtime, and firmware ships as a SHA-256 verified bundle, so a rig cannot quietly run a build the software was not written for and cannot be flashed from a file that arrived damaged.",
         ],
       },
       {
         heading: "Why it matters",
         body: [
-          "The autonomous trainer solved session handling, recovery and data integrity far more rigorously than the operator-run system it replaced, and all of that was locked to embedded hardware and to running unattended. This puts those same improvements in front of an operator on ordinary workstations with laboratory instrumentation attached, so the careful work does not stay stranded on one class of machine.",
+          "Careful session handling is usually the first thing lost when a rig has to run on whatever workstation a lab already owns. This keeps it. An operator gets a machine that installs reproducibly and reports what it did, recovers a wedged bus without touching anything it does not own, refuses firmware it was not written for, and marks its stimulus on a hardware line rather than a software timestamp. A second rig is built from the documentation without the original builder present.",
         ],
       },
     ],
@@ -514,12 +510,34 @@ export const projects = [
     category: "software",
     tags: ["data", "software"],
     featured: true,
+    /* Not renders. Both sprites are frames of this pipeline's own trajectory
+       output, drawn over the session video the tracking ran on - the same
+       overlay the analysis reads its kinematics off. Two demos because the
+       suite has two modes and they are the difference between them: one reach
+       is the unit an intrasession distribution is built from, a session's
+       accumulated trail is what an intersession comparison summarises.
+       Sampled evenly from the source clips (53 frames to 49, 147 to 81) to
+       land on the square grids the sprite builder needs. */
+    demos: [
+      {
+        id: "reach-single",
+        label: "One reach",
+        caption:
+          "One reach drawn over the video the tracking ran on: the hand leaves the perch, arcs over the pellet, closes on it - the pellet is gone from the shelf afterwards - and withdraws. Every per-reach metric the suite reports is measured off this curve, so the outcome, the timing and the kinematics all describe the same object you are watching.",
+      },
+      {
+        id: "reach-session",
+        label: "A session of reaches",
+        caption:
+          "The same drawing, left running across repeated attempts in one session. The trail accumulates into the scalloped multi-peak path that a session summary is computed over, and the spread between attempts is the variation the intersession comparison is looking for.",
+      },
+    ],
     summary:
-      "A headless analysis engine folded into ReachX, so intersession and intrasession results come out of the same app that curates the reaches.",
+      "A headless analysis engine inside ReachX, the desktop application researchers curate reach-to-grasp sessions in, so intersession and intrasession results come out of the program that already holds the data.",
     challenge:
-      "Analysis lived in its own toolkit, apart from the app researchers curated in. Comparing sessions meant exporting from one program and reloading into another, and each figure was rebuilt by hand rather than rerun.",
+      "Curation and analysis lived in separate programs. Comparing sessions meant exporting from one and reloading into the other, and each figure was rebuilt by hand rather than rerun.",
     approach:
-      "Rebuilt analysis as a Qt-free backend inside ReachX on the development branch: stable request and result contracts, cancelable background tasks, and a thin interface layer over them. Nothing in the compute path imports a widget.",
+      "Built analysis as a Qt-free backend inside ReachX on the development branch: stable request and result contracts, cancelable background tasks, and a thin interface layer over them. Nothing in the compute path imports a widget.",
     role: "Designed the analysis backend, the session-selection and metric model, and the intersession workflow.",
     /* The project page's stack, grouped by layer. `tools` above stays
        the four-chip version a tile can hold; this is where the parts,
@@ -562,28 +580,28 @@ export const projects = [
       {
         heading: "No widgets in the compute path",
         body: [
-          "The analysis engine contains no interface classes at all. It exposes stable request and result structures and cancelable background tasks, which means the same code answers a question asked by a window, a test, or a script, and a long calculation can be abandoned without leaving the application in a half-finished state.",
-          "The metric surface is enumerated rather than assembled ad hoc: fifty-seven declared metrics spanning success rate, outcome composition, reach counts, timing, inter-reach interval, per-reach distributions, and hand kinematics including peak and mean velocity, peak acceleration, path length, straightness and maximum extension.",
+          "The suite reads pose trajectories from tracked reach-to-grasp video and turns them into session-level and reach-level results, inside the same desktop application that curates the reaches. The engine that does the work contains no interface classes at all: it exposes stable request and result structures and cancelable background tasks, so the same code answers a question asked by a window, by a test or by a script, and a long calculation is abandoned without leaving the application half finished.",
+          "The metric surface is enumerated rather than assembled as it goes: fifty-seven declared metrics spanning success rate, outcome composition, reach counts, timing, inter-reach interval, per-reach distributions, and hand kinematics including peak and mean velocity, peak acceleration, path length, straightness and maximum extension.",
         ],
       },
       {
         heading: "Comparison as choices, not switches",
         body: [
-          "How sessions are compared is modelled as separate, orthogonal choices - scope, aggregation, grouping, series, axis, statistical overlay, error bars, outcome value, and three more for trajectories - over frozen request and filter contracts. Adding a way to slice the data is a new value in one enumeration rather than another boolean threaded through the call path.",
+          "How sessions are compared is modelled as separate orthogonal choices, scope, aggregation, grouping, series, axis, statistical overlay, error bars, outcome value and three more for trajectories, over frozen request and filter contracts. Adding a way to slice the data is a new value in one enumeration rather than another boolean threaded through the call path.",
           "Results are cached against a fingerprint of the trajectories they came from, so rerunning an analysis whose inputs have not changed costs nothing, and an analysis definition saves as a reusable workspace with its own migration path so last year's comparison still opens.",
         ],
       },
       {
         heading: "Tested without recorded data",
         body: [
-          "The test suite generates its own synthetic trajectories and runs the interface headless, which means plot construction, workspace migration, window and dock restoration and image export are all covered without a copy of real experiment data being present. A contributor can verify the application on a laptop.",
-          "Inference is a ResNet-backed stack adapted from DeepLabCut source rather than a dependency on DeepLabCut itself, which is what makes the format converter in the toolkit necessary and also what keeps this application's training and inference independent of another project's release schedule.",
+          "The test suite generates its own synthetic trajectories and drives the interface on an offscreen Qt platform, so plot construction, workspace migration, window and dock restoration and image export are all covered with no copy of real experiment data present. A contributor verifies the application on a laptop.",
+          "Inference is a ResNet-backed stack adapted from DeepLabCut source rather than a dependency on DeepLabCut itself, pinned to TensorFlow 2.10.1 on Python 3.10, which keeps training and inference independent of another project's release schedule. Models move between the two formats through a converter in the Research Application Deployment and Support Toolkit.",
         ],
       },
       {
         heading: "Why it matters",
         body: [
-          "Analysis used to live in a separate toolkit from the application researchers curated in, so comparing sessions meant exporting from one program and reloading into another, and every figure was rebuilt by hand. Folding the engine into the same application makes a result something you rerun rather than something you remake, which is the difference between a figure you trust and a figure you hope you reproduced.",
+          "Every figure in a training study is a claim somebody may have to reproduce a year later. Holding the analysis in the same application as the curated data makes a result something to rerun rather than something to remake: the inputs are fingerprinted, the definition saves as a workspace that migrates forward, and the comparison behind last year's figure still opens and still answers.",
         ],
       },
     ],
@@ -641,28 +659,28 @@ export const projects = [
       {
         heading: "One repository, five tools, one environment",
         body: [
-          "The toolkit is a parent repository whose submodules are the installer, the camera alignment tool, the model converter, the git logger and the training tools, sharing a single environment so a support task does not begin with an environment problem. A sixth tool, a GPU health suite, answers the narrow question of whether a machine's chosen environment actually sees its GPU.",
-          "There are no standalone executables and that is deliberate. A launcher and an updater are installed with shortcuts, and the updater keeps no environment of its own: it drives the application's environment from outside, fetches the newest release, and on a same-version reinstall forces the wheel and its dependencies explicitly, so a repair is a real repair.",
+          "The toolkit is a parent repository whose submodules are the installer, the camera alignment tool, the model converter, the git logger and the training tools, sharing a single environment so a support task does not begin with an environment problem. A sixth tool, a thirteen-stage GPU health suite reporting to JSON and HTML, answers the narrow question of whether a machine's chosen environment actually sees its GPU.",
+          "There are no standalone executables, and that is deliberate. A launcher and an updater are installed with shortcuts, and the updater keeps no environment of its own: it drives the application's environment from outside, fetches the newest release, and on a same-version reinstall forces the wheel and its dependencies explicitly, so a repair is a real repair.",
         ],
       },
       {
         heading: "Previews, backs up, and refuses",
         body: [
           "The camera tool shows the master frame, the raw secondary and the compensated secondary side by side before it writes anything, then applies the correction under a dry run, a backup and an undo, and verifies the result afterwards with both a container probe and real frame reads.",
-          "It also stops rather than guessing. A frame-count mismatch beyond a hundred frames is treated as a real acquisition failure and refused, and mid-recording hardware drops produce a warning instead of a silent correction, because a session quietly patched into looking correct is worse than one flagged as broken. Compensation keeps one authoritative clock, so the master timeline never moves.",
+          "It also stops rather than guessing. A frame-count mismatch beyond a hundred frames is treated as a real acquisition failure and refused, and hardware drops mid-recording produce a warning instead of a silent correction, because a session quietly patched into looking correct is worse than one flagged as broken. Compensation keeps one authoritative clock, so the master timeline never moves.",
         ],
       },
       {
         heading: "A logger that sanitises before it writes",
         body: [
-          "The git monitor is a small Rust binary that records a timestamp, repository and command per line, strips sensitive values before writing, and rotates by size and retention. It captures through shell hooks rather than by watching processes, which is what gives it accurate repository context, and it ships prebuilt for three platforms so nobody has to compile it to use it.",
-          "Its predecessor is still in the tree as the shell and Python version of the same idea, with a timeline viewer and separate guides written for researchers who need to check out an old tag to reanalyse data.",
+          "The git monitor is a small Rust binary that records a timestamp, a repository and a command per line, strips sensitive values before writing, and rotates by size and retention. It captures through shell hooks rather than by watching processes, which is what gives it accurate repository context, and it ships prebuilt for three platforms so nobody has to compile it to use it.",
+          "A shell and Python implementation of the same idea ships beside it, with a timeline viewer and separate guides written for researchers who need to check out an old tag to reanalyse data.",
         ],
       },
       {
         heading: "Why it matters",
         body: [
-          "A growing portfolio of internal software fails in a specific way: it becomes unusable the moment its author is unavailable. Everything here exists to remove that dependency. An update is a shortcut a non-developer clicks, a broken recording has a tool that can inspect and refuse it, a model can move between formats, and a year later there is a record of what was run against which version of the code.",
+          "Internal research software fails in a specific way: it becomes unusable the moment its author is unavailable. Everything here exists to remove that dependency. An update is a shortcut a non-developer clicks, a broken recording has a tool that can inspect and refuse it, a model moves between formats without its author present, and a year later there is a record of what was run against which version of the code.",
         ],
       },
     ],
@@ -802,14 +820,14 @@ export const projects = [
       {
         heading: "The board owns the trial",
         body: [
-          "Eight carousel positions are computed at boot, so one index step is exactly 45 degrees and the geometry lives in one constant rather than in a table someone has to keep correct. The trial state machine is on the board, not on the host: it enters a state on a vial change, and the state transition itself is what emits the markers the interface records, so the timing of an event is the timing of the hardware rather than of a serial read.",
-          "Three lick channels are separate inputs and each detection is confirmed by a second read half a millisecond later, which is what separates a lick from electrical noise on a line running beside a solenoid.",
+          "The instrument presents one of eight solutions per trial from a carousel, gates delivery through shutter servos and solenoid valves, and records licks on three channels. Eight carousel positions are computed at boot, so one index step is exactly 45 degrees and the geometry lives in one constant rather than in a table somebody has to keep correct.",
+          "The trial state machine runs on the board rather than on the host: it enters a state on a vial change, and the state transition itself is what emits the markers the interface records, so the timing of an event is the timing of the hardware and not the timing of a serial read. Each of the three lick channels is a separate input, and every detection is confirmed by a second read half a millisecond later, which is what separates a lick from electrical noise on a line running beside a solenoid.",
         ],
       },
       {
         heading: "Priming is wiring, not a mode",
         body: [
-          "Two momentary buttons open their solenoid directly, and only while the trial state is idle. A purge therefore cannot interrupt a trial as a matter of how the circuit is built rather than as a matter of the firmware behaving. That distinction is what makes it safe to prime the lines with an animal already in the rig.",
+          "Two momentary buttons open their solenoid directly, and only while the trial state is idle. A purge therefore cannot interrupt a trial as a matter of how the circuit is built rather than as a matter of the firmware behaving, and that distinction is what makes it safe to prime the lines with an animal already in the rig.",
           "Idle timeouts are genuinely separate per spout, set by their own commands and swapped in on state entry, each expiry emitting its own marker before the shutters close and the board returns to idle, so an abandoned trial is distinguishable in the record from a completed one.",
         ],
       },
@@ -823,7 +841,7 @@ export const projects = [
       {
         heading: "Why it matters",
         body: [
-          "Taste-preference work needs many solutions offered to one animal in a session, and the usual way to do that is an operator swapping bottles between trials. That makes the swap itself a variable: it takes time, it varies between people, and it puts a hand in the rig. A carousel that indexes to the next solution in one step removes the operator from the inside of the experiment, and putting the trial state machine on the board means the timing in the record is the timing that happened.",
+          "Taste-preference work needs many solutions offered to one animal in a session, and the usual way to do that is an operator swapping bottles between trials. That makes the swap itself a variable: it takes time, it varies between people, and it puts a hand in the rig. A carousel that indexes to the next solution in one step takes the operator out of the inside of the experiment, and putting the trial state machine on the board means the timing in the record is the timing that happened.",
         ],
       },
     ],
@@ -1079,7 +1097,7 @@ export const skills = [
     title: "Deployment, documentation and support",
     terms: ["Packaging", "Environments", "SOPs", "Validation"],
     image: "08-deployment",
-    lede: "The part that decides whether any of the above is still working once I am not in the room. Packaged installers and pinned environments so a non-developer can update a rig, written SOPs and versioned documentation so a procedure outlives whoever wrote it, and a validation gate before an update reaches a machine somebody is collecting on.",
+    lede: "The part that decides whether the rest of this work is still running once I am not in the room. Packaged installers and pinned environments so a non-developer can update a rig, written SOPs and versioned documentation so a procedure outlives whoever wrote it, and a validation gate before an update reaches a machine somebody is collecting on.",
     readout: [
       { label: "Packaging", value: "conda, pip, wheels, PyInstaller, installers and shortcuts" },
       { label: "Platforms", value: "Linux, Windows, Docker, systemd, PowerShell, bash" },
