@@ -1168,24 +1168,29 @@ export function resolveShot(ref) {
    render as typographic tiles instead, which is what makes the grid
    asymmetric rather than nine equal cards. */
 function indexShot(project) {
-  /* A demo sprite first, deliberately. A project's scroll figure and its
-     demos are two different mechanisms: a demo is time-based and plays once
-     from .is-playing, while a scroll figure is scrubbed by a view() timeline
-     and does nothing on hover. The tile wants the one that moves when it is
-     pointed at, so a project with demos uses a demo even when it also has a
-     figure, and the figure keeps the project page where scrolling drives it. */
-  const demo = project.demos && project.demos.find((entry) => entry.kind !== "walkthrough");
-  if (demo) {
-    const id = (demo.ids && demo.ids[0]) || demo.id;
-    return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
-  }
+  /* The assembly sequence first. This used to prefer a demo, because a figure
+     was scrubbed by a view() timeline and so sat on its poster however long you
+     hovered it - the tile wanted whichever sprite actually moved. That reason
+     is gone: figures run from SequencePanel on the document timeline now, and
+     WorkGrid drives one on hover with the same data-scrub="play" the project
+     page uses. With both able to play, the build is the better tile: it says
+     what the thing IS, where a mechanism demo shows one detail of it out of
+     context. Project 02 was showing the pellet scoop rather than the rig.
 
+     A project with a figure therefore uses it even when it also has demos; the
+     demos keep the project page. */
   if (project.figure) {
     return {
       kind: "figure",
       id: project.figure,
       src: `/rig/${project.figure}-poster.webp`,
     };
+  }
+
+  const demo = project.demos && project.demos.find((entry) => entry.kind !== "walkthrough");
+  if (demo) {
+    const id = (demo.ids && demo.ids[0]) || demo.id;
+    return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
   }
 
   /* A walkthrough has no sprite at all, only captured frames of the real
