@@ -194,38 +194,20 @@ ever need another: attach per element rather than to the page, gate on
 `(hover: hover) and (pointer: fine)` plus no-reduced-motion, write the number
 to a custom property instead of React state, and always leave a release.
 
-**[read]** The second is the walkthrough timeout in `PipelineDemo.jsx`. A demo
-of software that does not advance itself is a stepper, and CSS cannot swap
-which stage is mounted, so playback is one `setTimeout` cleared on every
-change. Four things make it safe and all four are load-bearing: it never
-auto-starts, Pause exists (WCAG 2.2.2 applies the moment content moves on its
-own), any manual step or rail click cancels it, and it does not run under
-reduced motion at all. The fifth is less obvious — **flip `aria-live` to `off`
-while it plays**. The status line and the counter were already polite live
-regions for manual stepping, and autoplay turned them into seven
-announcements in twenty seconds over whatever the screen reader was saying.
+**[read] The walkthrough that motivated the rules below no longer has any of
+it, and that is the lesson.** It once auto-advanced on a `setTimeout` and drove
+a scripted cursor around a rebuilt interface. Both are gone: it is six real
+screenshots the visitor pages through with a back and a forward arrow. What
+went with them is instructive — the reduced-motion branch, the pause control
+WCAG 2.2.2 obliges once content moves on its own, the `aria-live` juggling that
+stopped six announcements in half a minute, the timer cleanup, and a
+concurrency budget to keep track of. All of it was machinery to make
+self-advancing content safe.
 
-**A demo of software needs a cursor.** Without one the interface changes by
-itself, which reads as a slideshow however good the panels are. The pointer in
-`PipelineDemo.jsx` travels to the control that causes each transition, pulses,
-and only then advances the stage. Three things make it work:
-
-- **Choreograph the argument, not the steps.** Walking the rail seven times is
-  filler. The beats that matter are the ones where the software refuses: at
-  validate the cursor presses Write, the control shakes and nothing happens; at
-  review it presses the same control and the file is written. A stage can
-  return more than one beat, and only the last one advances.
-- **Measure the target when the beat fires**, never up front. The work area
-  resizes between stages, so a position cached at the start of the run lands in
-  the wrong place.
-- **Seed the cursor on the current control before the first move**, or it
-  mounts straight onto its first target with no previous position to
-  transition from and the opening beat teleports.
-
-Concurrency still fits the two-at-once budget, but only because the phases are
-sequential: the playhead runs throughout, the row stagger fires on arrival and
-is done long before the dwell ends, and the pointer starts travelling after
-that. Check that ordering if you lengthen the stagger or shorten the dwell.
+**So: make the reader drive it unless there is a reason not to.** Playback buys
+one thing — the demo runs without being touched — and costs every item on that
+list. If you do add it back, everything below applies; if you do not, none of
+it does.
 
 **Reuse the progress bar you already have rather than adding a timer bar.**
 The rail's fill is aimed at where the *next* stage begins and given the dwell

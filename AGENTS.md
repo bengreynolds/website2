@@ -29,14 +29,11 @@
   while frames remain. It stays scoped: one `wheel` listener per figure, fine
   pointers only, released at both ends. Coarse pointers and reduced motion keep
   `view()` untouched. Do not generalize it to other motion.
-- The second exception is the pipeline walkthrough's playback timeout
-  (`PipelineDemo.jsx`). A demo of software has to advance itself to read as a
-  walkthrough, and no CSS timeline can swap which stage's rows are mounted.
-  One `setTimeout`, cleared on every change, stopping at the last stage rather
-  than looping. It never auto-starts, it is pausable (WCAG 2.2.2), any manual
-  step cancels it, and under reduced motion it does not run at all — the
-  stepper is then the whole control set. Live regions go `off` while it plays,
-  or a screen reader gets seven announcements in twenty seconds.
+- It is also the only one. The NWB Forge walkthrough briefly held a second —
+  a `setTimeout` that advanced it — and that is gone: the visitor pages it with
+  arrows, so there is no timer, no reduced-motion branch to gate, and no live
+  region to silence. Prefer that shape. A demo the reader drives needs none of
+  the machinery a self-advancing one does.
 - Never animate opacity on a scroll-driven timeline. The timeline holds an
   element at its start state whenever it cannot advance, so a faded keyframe
   can leave text permanently invisible. Animate transform only.

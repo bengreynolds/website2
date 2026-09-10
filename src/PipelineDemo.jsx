@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 /* A walkthrough of the real desktop application, not a diagram of it.
 
@@ -8,54 +8,27 @@ import { useEffect, useRef, useState } from "react";
    browser from invented data; it was a decent diagram and a poor piece of
    evidence, and it could not show the software actually refusing to write.
 
-   React owns one number - the step index. Everything else reads off it. */
+   The visitor drives it. There is no playback, so there is no timer, no
+   reduced-motion branch to gate and no live region to silence - the step only
+   ever changes because someone asked for it.
 
-const FALLBACK_DWELL = 4600;
+   React owns one number - the step index. Everything else reads off it. */
 
 export default function PipelineDemo({ demo }) {
   const steps = demo.steps;
   const last = steps.length - 1;
   const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(false);
   const current = steps[step];
+
+  const atStart = step === 0;
   const atEnd = step === last;
-  const dwell = demo.dwell || FALLBACK_DWELL;
-
-  /* A self-advancing walkthrough is motion, so under reduce it does not run
-     and the stepper is the whole control set. Read once on mount. */
-  const canPlay = useRef(false);
-  useEffect(() => {
-    canPlay.current = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  /* AGENTS.md rules out timers; this is the documented exception. One
-     timeout, cleared on every change, stopping at the last frame rather than
-     looping. */
-  useEffect(() => {
-    if (!playing) return undefined;
-    if (atEnd) {
-      setPlaying(false);
-      return undefined;
-    }
-    const id = setTimeout(() => setStep((s) => Math.min(last, s + 1)), dwell);
-    return () => clearTimeout(id);
-  }, [playing, step, atEnd, last, dwell]);
-
-  const go = (next) => {
-    setPlaying(false);
-    setStep(next);
-  };
-
-  /* While playing, the rail sweeps to where the next step begins over the
-     dwell, so it reads as a playhead rather than a bar that jumps. */
-  const target = last === 0 ? 1 : (playing && !atEnd ? step + 1 : step) / last;
+  const go = (next) => setStep(Math.min(last, Math.max(0, next)));
 
   return (
     <figure className="pipeline case-demos" data-step={step}>
       <ol
         className="pipeline-rail"
-        data-playing={playing ? "1" : undefined}
-        style={{ "--progress": String(target), "--playhead-dur": `${dwell}ms` }}
+        style={{ "--progress": String(last === 0 ? 1 : step / last) }}
         aria-label="Conversion walkthrough steps"
       >
         {steps.map((s, i) => (
@@ -83,9 +56,8 @@ export default function PipelineDemo({ demo }) {
             <span className="shot-session">{demo.session}</span>
           </div>
           {/* Keyed on the step so the browser treats each frame as a new
-              element and the entrance runs again. Sized in the stylesheet
-              rather than by attribute, and lazy: six frames is 223KB nobody
-              should pay for before opening the case study. */}
+              element and the entrance runs again. Lazy: six frames is 223KB
+              nobody should pay for before opening the case study. */}
           <img
             key={current.id}
             className="shot-img"
@@ -114,35 +86,32 @@ export default function PipelineDemo({ demo }) {
 
       <figcaption className="demo-caption">
         <div className="demo-switch">
+          {/* Arrows carry no text, so the accessible name is on the button and
+              the glyph is hidden - a screen reader should hear "Previous step",
+              not "left arrow". Disabled at the ends rather than wrapping: the
+              rail above already gives random access, and silently jumping from
+              the last frame back to the first is a worse surprise than a
+              control that plainly cannot go further. */}
           <button
             type="button"
-            className="btn btn--quiet demo-button"
-            data-playing={playing ? "1" : undefined}
-            onClick={() => {
-              if (playing) {
-                setPlaying(false);
-                return;
-              }
-              if (!canPlay.current) {
-                setStep(atEnd ? 0 : step + 1);
-                return;
-              }
-              if (atEnd) setStep(0);
-              setPlaying(true);
-            }}
+            className="btn btn--quiet demo-button demo-button--nav"
+            aria-label="Previous step"
+            disabled={atStart}
+            onClick={() => go(step - 1)}
           >
-            {playing ? "Pause" : atEnd ? "Replay" : "Play"}
+            <span aria-hidden="true">&larr;</span>
           </button>
           <button
             type="button"
-            className="btn btn--quiet demo-button"
-            onClick={() => go(atEnd ? 0 : step + 1)}
+            className="btn btn--quiet demo-button demo-button--nav"
+            aria-label="Next step"
+            disabled={atEnd}
+            onClick={() => go(step + 1)}
           >
-            {atEnd ? "Restart" : "Next step"}
+            <span aria-hidden="true">&rarr;</span>
           </button>
-          {/* Silent while the walkthrough drives itself; six announcements in
-              half a minute is a metronome, not feedback. */}
-          <span className="pipeline-count" aria-live={playing ? "off" : "polite"}>
+          {/* Polite now that nothing changes the step but the visitor. */}
+          <span className="pipeline-count" aria-live="polite">
             {step + 1} / {steps.length}
           </span>
         </div>
