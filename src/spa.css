@@ -1007,7 +1007,7 @@ summary {
 }
 
 .stage-frame {
-  padding-block: clamp(2.5rem, 6vh, 4.5rem);
+  padding-block: clamp(3.5rem, 9vh, 7rem);
 }
 
 /* Warm wash behind each stage. Static gradient, no animation: it exists so
@@ -1262,14 +1262,17 @@ summary {
   align-self: start;
 }
 
+/* No plate and no frame. --plate was a light sheet in both themes so that
+   colour-accurate near-black renders would not vanish on a dark ground; the
+   cost was a bright panel sitting in the middle of a dark page, and the
+   renders it was protecting turned out to read fine against the page itself.
+   The sequence now floats on whatever ground the section has. */
 .rig-figure {
   width: 100%;
   aspect-ratio: 1 / 1;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-color: var(--plate);
-  border: 1px solid var(--rule);
 }
 
 /* Per-figure sprite, poster, grid and keyframes are GENERATED into
@@ -1348,12 +1351,14 @@ summary {
 .demo-stage {
   display: grid;
   gap: clamp(0.75rem, 1.5vw, 1.25rem);
-  max-width: 30rem;
+  max-width: 40rem;
 }
 
+/* The whole column. A pair used to cap at 62rem, which left each figure
+   under 500px on a page whose only job is showing them properly. */
 .demo-stage--pair {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 62rem;
+  max-width: 100%;
 }
 
 /* Three frame-locked figures: the rig in context, the mechanism close up, and
@@ -1362,13 +1367,13 @@ summary {
    leave each figure near 145px and the interface panel carries text. */
 .demo-stage--trio {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 62rem;
+  max-width: 100%;
 }
 
 .demo-stage--trio > :nth-child(3) {
   grid-column: 1 / -1;
   justify-self: center;
-  width: min(100%, 26rem);
+  width: min(100%, 34rem);
 }
 
 .demo-figure {
@@ -1377,8 +1382,6 @@ summary {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-color: var(--plate);
-  border: 1px solid var(--rule);
 }
 
 .demo-figure.is-playing {
@@ -1404,7 +1407,7 @@ summary {
   font-size: var(--step--1);
   line-height: 1.6;
   color: var(--text-muted);
-  max-width: var(--measure);
+  max-width: min(100%, 88ch);
   text-wrap: pretty;
 }
 
@@ -1547,7 +1550,6 @@ summary {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--plate);
 }
 
 /* The generated demo-<id>.css owns the poster, the grid and the keyframes.
@@ -2106,17 +2108,18 @@ summary {
   margin: 0 0 clamp(2rem, 4vw, 3rem);
 }
 
-/* Capped rather than full-bleed. The scroll figure is square, so at 1440 an
-   uncapped one would be taller than the viewport and could never be seen
-   whole - which for an assembly sequence is the only useful way to see it. */
+/* Capped by viewport height rather than by a fixed width. The sequence is
+   square, so a width cap is really a height cap, and an assembly sequence is
+   only useful if it can be seen whole. 82vh grows it on a tall screen and
+   still fits on a short one, where a fixed 40rem did neither. */
 .project-figure .rig-figure {
-  max-width: min(100%, 40rem);
+  max-width: min(100%, 82vh);
   margin-inline: auto;
 }
 
 .project-figure-caption {
   margin-top: 0.75rem;
-  max-width: var(--measure);
+  max-width: min(100%, 88ch);
   font-size: var(--step--1);
   line-height: 1.55;
   color: var(--text-muted);
@@ -2179,6 +2182,34 @@ summary {
   max-width: var(--measure);
 }
 
+/* Problem and Approach side by side, "What was built" across both. One
+   column of prose left 460px of a 1185px page empty; two asymmetric columns
+   use the width and still land each paragraph inside a readable measure. */
+@media (min-width: 64rem) {
+  .project-body {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    column-gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .project-block {
+    max-width: none;
+  }
+
+  .project-block:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .project-block:nth-child(3) .project-list {
+    columns: 2;
+    column-gap: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .project-list li {
+    break-inside: avoid;
+  }
+}
+
 .project-block p {
   font-size: var(--step-0);
   line-height: var(--lh-body);
@@ -2214,6 +2245,29 @@ summary {
   margin-top: clamp(2.25rem, 5vw, 3.5rem);
   padding-top: clamp(1.5rem, 3vw, 2.25rem);
   border-top: 1px solid var(--rule-strong);
+}
+
+/* Two columns of parts, the even ones dropped, so the detail reads as a
+   spread rather than as a long single file. The heading spans both. */
+@media (min-width: 64rem) {
+  .project-detail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .project-detail > .project-kicker {
+    grid-column: 1 / -1;
+  }
+
+  .project-deep {
+    max-width: none;
+  }
+
+  .project-deep:nth-child(even) {
+    margin-top: clamp(1rem, 3vh, 2.25rem);
+  }
 }
 
 .project-deep {
