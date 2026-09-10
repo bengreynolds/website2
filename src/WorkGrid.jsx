@@ -39,6 +39,11 @@ const Tile = memo(function Tile({ entry }) {
      and the poster stays up until it resolves. */
   const [runs, setRuns] = useState(0);
 
+  /* Only the tile being entered is named, and only while it is being entered.
+     Two elements sharing a view-transition-name aborts the transition, so
+     naming all nine up front would break every navigation. */
+  const [leaving, setLeaving] = useState(false);
+
   const play = () => {
     if (!playable || prefersReducedMotion()) return;
     const wait = loadSprite(playable);
@@ -58,7 +63,10 @@ const Tile = memo(function Tile({ entry }) {
       onPointerEnter={play}
     >
       {shot ? (
-        <div className="tile-plate">
+        <div
+          className="tile-plate"
+          style={leaving ? { viewTransitionName: "project-plate" } : undefined}
+        >
           {playable ? (
             <div
               key={runs}
@@ -88,6 +96,7 @@ const Tile = memo(function Tile({ entry }) {
             className="tile-link"
             href={`/work/${project.id}`}
             onFocus={() => playable && warmSprites([playable])}
+            onClick={() => setLeaving(true)}
           >
             {project.title}
           </AppLink>

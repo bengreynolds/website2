@@ -1,0 +1,23 @@
+/* Shared-element route transition.
+
+   The named pair is the work tile's plate and the project page's figure, so
+   entering a project reads as moving into the tile you clicked rather than as
+   a page replacing a page.
+
+   The root fade is shortened well below the default 250ms because the morph
+   is the content of the transition; a slow crossfade over the top of it just
+   looks like lag. Everything here is inside no-preference - router.jsx also
+   skips the transition entirely under reduce, so this is belt and braces. */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-med);
+    animation-timing-function: var(--ease);
+  }
+
+  ::view-transition-group(project-plate) {
+    animation-duration: var(--dur-reveal);
+    animation-timing-function: var(--ease);
+  }
+}

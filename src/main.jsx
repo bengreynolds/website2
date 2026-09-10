@@ -34,6 +34,7 @@ import "./rail-depth.css";
 import "./nav-swap.css";
 import "./grid-depth.css";
 import "./pipeline-demo.css";
+import "./view-transition.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { findProject } from "./siteData";
 
 /* --------------------------------------------------------------------------
@@ -55,6 +56,27 @@ export function routeTitle(route) {
   return "Benjamin Reynolds | R&D Engineer";
 }
 
+/* Runs a route change inside a view transition when the browser has one.
+
+   flushSync is not optional. startViewTransition snapshots the old DOM, calls
+   this callback, then snapshots the new one - and React 18 batches state
+   updates, so without flushSync the callback returns before React has
+   committed and both snapshots are identical. The transition then plays
+   correctly and shows nothing.
+
+   Reduced motion skips the whole thing rather than shortening it: a
+   cross-document morph has no honest short version. */
+function withViewTransition(apply) {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced || typeof document.startViewTransition !== "function") {
+    apply();
+    return;
+  }
+  document.startViewTransition(() => {
+    flushSync(apply);
+  });
+}
+
 const NavigateContext = createContext(null);
 
 export function useNavigate() {
@@ -92,8 +114,10 @@ export function useRouter() {
     if (nextPath === window.location.pathname && !hash) return;
 
     window.history.pushState(null, "", href);
-    setPath(nextPath);
-    setPendingHash(hash);
+    withViewTransition(() => {
+      setPath(nextPath);
+      setPendingHash(hash);
+    });
   }, []);
 
   const clearHash = useCallback(() => setPendingHash(null), []);
@@ -106,14 +130,19 @@ export function NavigateProvider({ navigate, children }) {
 }
 
 /* An <a> that happens to be intercepted. Props spread first so href and
-   onClick cannot be replaced by a caller and quietly lose the interception. */
-export function AppLink({ href, children, ...rest }) {
+   onClick cannot be replaced by a caller and quietly lose the interception.
+   A caller's own onClick (e.g. WorkGrid naming its tile before it leaves) is
+   destructured out and run first, then the interception logic always runs
+   after it unconditionally - so a caller can observe the click but never
+   suppress the navigation or the modifier-key fallthrough. */
+export function AppLink({ href, children, onClick, ...rest }) {
   const navigate = useNavigate();
   return (
     <a
       {...rest}
       href={href}
       onClick={(event) => {
+        onClick?.(event);
         if (!isPlainClick(event)) return;
         event.preventDefault();
         navigate(href);
