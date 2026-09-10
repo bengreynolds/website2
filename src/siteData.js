@@ -411,7 +411,7 @@ export const projects = [
     tags: ["hardware", "automation"],
     figure: "prosthetic-build",
     /* Must match the grid in src/rig-prosthetic-build.css. */
-    figureFrames: 196,
+    figureFrames: 144,
     figureLabel:
       "Assembly sequence of the prosthetic sensation test bench. The base sheet stays fixed while every other phase descends onto it: extruded corner posts and cross members, the seesaw shaft supports and bearings, the rotary shaft, the plank, the transducer and its plunger, the shim flexure carrying the load cell and dowel, the amplifier, the control electronics, then the top sheet and standing mat.",
     demos: [
