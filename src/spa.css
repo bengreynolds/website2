@@ -67,8 +67,18 @@
   --focus-ring: var(--accent);
 
   /* Type */
-  --font-display: "Space Grotesk", "IBM Plex Sans", system-ui, sans-serif;
-  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* The @fontsource-variable packages declare the family with a "Variable"
+     suffix ("Space Grotesk Variable", "IBM Plex Sans Variable"), so asking
+     for the bare name matched no @font-face and no Windows system font: both
+     tokens silently resolved to system-ui and neither face has ever
+     rendered. Measured: this stack and system-ui were both 885px on the same
+     string where the real face is 961px. The bare names stay as a second
+     stop for anyone who has the static family installed locally.
+     @fontsource/ibm-plex-mono is the non-variable package and declares
+     "IBM Plex Mono" unsuffixed, which is why the mono was unaffected. */
+  --font-display: "Space Grotesk Variable", "Space Grotesk", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system,
+    "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --step--1: clamp(0.8125rem, 0.79rem + 0.11vw, 0.875rem);
