@@ -851,6 +851,16 @@ export const projects = [
     title: "Lick Port and Reward Delivery Hardware",
     category: "hardware",
     tags: ["hardware"],
+    figure: "lickdetect-build",
+    /* Must match the grid in src/rig-lickdetect-build.css. SequencePanel
+       divides by it for --scrub and --scrub-steps, so a stale value seeks the
+       wrong cell while the counter still reads correctly. */
+    figureFrames: 49,
+    /* Describes what the sequence shows and nothing more. The dual-comparator
+       detection board is not in this assembly and is not his design; the box,
+       the reward port and the mounts are. */
+    figureLabel:
+      "Assembly sequence of the two-port lick box, built up from the aluminium floor and its four feet through the polycarbonate side walls and end walls, then the reward-port hardware carried on the end plate: the electronics mount and spout clamp, the MKR Zero, breadboard, real-time clock and pin headers, the two syringe holders and their 10 mL syringes, and last the two solenoid valves with the dropper tubes that take each channel through the plate into the chamber.",
     summary:
       "The reward port and detection hardware behind lick-based behavior rigs: an operant box designed to a colleague's protocol, and a build package that made an existing detection board deployable.",
     challenge:

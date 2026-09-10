@@ -18,6 +18,11 @@ import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
 import "./rig-prosthetic-build.css";
+import "./rig-lickdetect-build.css";
+/* rig-scrub.css must stay LAST of the rig sheets. Its animation-range override
+   is .rig-figure[data-figure].is-live, the same 0,3,0 specificity as the range
+   each generated file declares, so source order is the only thing that decides
+   between them. */
 import "./rig-scrub.css";
 import "./demo-pellet.css";
 import "./demo-pellet-close.css";
