@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink } from "./router";
@@ -103,6 +103,35 @@ const Tile = memo(function Tile({ entry }) {
 });
 
 export default function WorkGrid() {
+  /* One listener for nine tiles. Each tile gets the pointer's position within
+     its own box as two unitless numbers; the transform that reads them lives
+     in grid-depth.css. Writing the properties straight to the node rather
+     than through state is deliberate - this fires at pointer rate, and a
+     re-render per frame would be nine reconciliations for two numbers that
+     only CSS consumes. */
+  const track = useCallback((event) => {
+    const tile = event.target.closest(".tile");
+    if (!tile) return;
+    const box = tile.getBoundingClientRect();
+    tile.style.setProperty("--px", ((event.clientX - box.left) / box.width - 0.5).toFixed(3));
+    tile.style.setProperty("--py", ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
+  }, []);
+
+  /* Clearing on leave lets tiles fall back to their resting transform rather
+     than freezing at whatever angle the pointer left them at.
+
+     This clears every tile, not event.target.closest(".tile"). pointerleave
+     fires on the grid when the pointer exits the grid, and at that moment
+     event.target is the grid itself - closest(".tile") returns null from
+     there, so the closest() version would clear nothing and leave the last
+     hovered tile stuck tilted. */
+  const release = useCallback((event) => {
+    event.currentTarget.querySelectorAll(".tile").forEach((tile) => {
+      tile.style.removeProperty("--px");
+      tile.style.removeProperty("--py");
+    });
+  }, []);
+
   return (
     <section id="projects" className="section section--tinted">
       <div className="container">
@@ -114,7 +143,7 @@ export default function WorkGrid() {
           </p>
         </div>
 
-        <div className="work-grid reveal">
+        <div className="work-grid reveal" onPointerMove={track} onPointerLeave={release}>
           {workIndex.map((entry) => (
             <Tile entry={entry} key={entry.project.id} />
           ))}
