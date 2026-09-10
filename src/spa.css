@@ -889,12 +889,18 @@ summary {
 
   /* With its label hidden the pin still has to be hittable and has to say
      what it is, so it keeps a glyph and its accessible name. */
+  /* Drawn, not typed. U+2261 is not in Syne and was rendering as tofu, and a
+     glyph that depends on which face is loaded is the wrong thing to hang a
+     control's only visible affordance on. Three rules: two borders and a
+     gradient for the middle one, so it is one element. */
   .rail-pin::before {
-    content: "1 ";
-    font-family: var(--font-mono);
-    font-size: 1rem;
-    line-height: 1;
-    color: var(--text-subtle);
+    content: "";
+    width: 0.9rem;
+    height: 0.5rem;
+    border-top: 1px solid var(--text-subtle);
+    border-bottom: 1px solid var(--text-subtle);
+    background: linear-gradient(var(--text-subtle), var(--text-subtle)) center /
+      100% 1px no-repeat;
   }
 
   .rail.is-open .rail-pin::before,
@@ -917,6 +923,7 @@ summary {
 
   .rail-pin {
     height: auto;
+    min-height: 1.75rem;
     padding: 0 0.4rem 0.75rem;
   }
 }
