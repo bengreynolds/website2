@@ -290,6 +290,41 @@ export const projects = [
         ],
       },
     ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "Layered so the domain does not know about Qt",
+        body: [
+          "The package splits into domain, adapters, normalization, mapping, validation, persistence, an app service layer, and only then the Qt widgets. The architecture notes state the constraint directly: the domain models stay independent of the interface, the adapters and PyNWB. That is what lets the conversion run without a window open.",
+          "The workflow itself is a ten-state machine, from draft through sources added, inspecting, normalizing, mapping, review, validating and ready to write to completed or failed, over three declared pathways: supported, custom and hybrid. The walkthrough on this page is the hybrid one.",
+        ],
+        source: "nwbforge/src/nwbforge/domain/enums, docs/architecture",
+      },
+      {
+        heading: "Sixty-one adapters, and only the ones you need",
+        body: [
+          "Supported formats go through NeuroConv first; only custom or hybrid assembly falls back to writing PyNWB directly. Sixty-one NeuroConv-backed source adapters are exported lazily across nine families, and a registry matches each source against every adapter's own capability check rather than a filename convention.",
+          "Each acquisition format is an independently installable extra: the project declares forty-nine optional dependency groups, so a machine installs SpikeGLX or Suite2p or ScanImage and nothing else, and a route is only registered when its dependencies are actually present.",
+        ],
+        source: "nwbforge/pyproject.toml, src/nwbforge/adapters/registry",
+      },
+      {
+        heading: "Validation and review are separate services on purpose",
+        body: [
+          "Artifact existence, PyNWB schema validation and NWB Inspector best-practice checks are three services rather than one pass, and each writes its report as an artifact. Review state is kept apart from validation output: approve, reject and acknowledge decisions are recorded as their own machine-readable artifact, and warnings or blocks require an explicit decision rather than defaulting through.",
+          "Normalization is alias-rule driven, and a value it cannot resolve is surfaced instead of guessed. That is the mechanism behind the nine conflicts the walkthrough finds.",
+        ],
+        source: "nwbforge/docs/architecture/validation-services.md, review-workflow.md",
+      },
+      {
+        heading: "Where it actually is",
+        body: [
+          "Worth stating plainly, because the walkthrough looks finished: the README says the platform is not yet packaged for release, and there is no console-script entry point. It launches through a script whose own docstring calls it a temporary desktop launcher. What the frames show is real and reproducible; what it is not yet is installable by somebody else.",
+        ],
+        source: "nwbforge/README.md, scripts/run_app.py",
+      },
+    ],
   },
   {
     id: "automated-multicamera-training-control-system",
@@ -323,8 +358,14 @@ export const projects = [
       {
         id: "pcb",
         label: "Control board",
+        /* Two corrections from reading the board's own repository. The design
+           is LeafLabs work - five of their contributors against four commits
+           of mine, and an "ll" devicetree vendor prefix - so the caption says
+           so, the way the lick-port card already names a board it did not
+           design. And the six identical connectors are BNC coax for stimulus
+           in and out, not motor and CAN. */
         caption:
-          "The board that drives the pellet module, called out group by group across its layout. Six motor and CAN connectors, then the drive and sensing hardware.",
+          "The board that drives the pellet module, designed by LeafLabs and integrated here, called out group by group across its layout. Six BNC connectors for stimulus in and out, then the drive and sensing hardware.",
       },
     ],
     summary:
@@ -342,6 +383,50 @@ export const projects = [
       "Closed the loop on detected movement, with load-cell and presence sensing as guards.",
       "Designed repeatable startup, validation, and recovery so sessions survive being left alone.",
     ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "One namespace, seven modules, installed separately",
+        body: [
+          "The codebase is a monorepo by convenience rather than by architecture, and says so: the modules install on devices independently and the loose coupling is meant to be assumed. They are core, video, device, inference, behavior, model and the Qt layer, with four applications on top: acquisition with a GUI, headless acquisition, a tunnel test and a pellet delivery test.",
+          "Session flow is a finite state machine deliberately split from a separate behaviour algorithm, so that the decisions about training can be changed by somebody who understands the science without learning the state machine.",
+        ],
+        source: "auto-trainer/auto-trainer-behavior/README.md",
+      },
+      {
+        heading: "Twenty guards, because nobody is in the room",
+        body: [
+          "Unattended operation is what the detectors are for: roughly twenty named monitors including animal evasion, animal thrash, autoclamp evasion, headbar pressure, load-cell tare drift, presence in cage, external doors, board hardware reset, free disk space, a watchdog and a system fault.",
+          "Cameras are addressed by URL rather than by index, with a scheme, a camera id and query parameters, so a serial number selects a FLIR camera and the primary and secondary parameters configure hardware triggering between the two. Pose inference runs as its own process behind an engine-agnostic interface, so the tracker can be replaced.",
+        ],
+        source: "auto-trainer/auto-trainer-core/src/autotrainer/core/analysis, auto-trainer-video/README.md",
+      },
+      {
+        heading: "The boards, and whose they are",
+        body: [
+          "Both custom boards are STM32G474 with a shared CAN transceiver. The pellet board carries three TMC2209 stepper drivers, an audio amplifier and speaker, a flash part and six BNC coaxial connectors; the head-fix board carries a 24-bit load-cell ADC and a MEMS microphone. The board design is LeafLabs work, integrated here rather than drawn here.",
+          "Firmware is a Zephyr workspace with two in-tree board definitions and nine custom drivers, each with its own devicetree binding and shell commands. The CAN protocol is a named library with fourteen message modules and build-time size assertions on every message struct, exposed to Python through pybind11 so the same definitions cross the language boundary once.",
+        ],
+        source: "auto-trainer-hardware/firmware, hardware/manufacturing BOMs",
+      },
+      {
+        heading: "Updated over the bus, and found by mDNS",
+        body: [
+          "Firmware is updated in place over CAN by module address rather than reflashed on the bench, and there is a terminal application for bring-up that reads and manipulates live module state over the same bus.",
+          "Each rig is one Jetson AGX prepared by a script that takes the unit name and uses it as hostname, remote-view identifier and notification identifier. Devices then advertise themselves over mDNS rather than being configured into a list, and a registry keys them by name and can aggregate remote registries into one view.",
+        ],
+        source: "auto-trainer-hardware/README.md, auto-trainer-device-deployment",
+      },
+      {
+        heading: "Protocols are documents, not code",
+        body: [
+          "A training protocol is a JSON document of phases with actions, predicates, value providers and hardware settings, tracked per animal. Its schema is exposed to language-model tooling through an MCP server, so a protocol can be generated and validated against the schema rather than hand-edited.",
+          "Event logs are read back through a browser tool that parses the CSV client-side, rebuilds the nested lifecycle of sessions, trials, clamp cycles and analysis passes, and virtual-scrolls tens of thousands of events.",
+        ],
+        source: "auto-trainer-training/README.md, auto-trainer-event-viewer",
+      },
+    ],
   },
   {
     id: "reachaq-acquisition-platform",
@@ -353,15 +438,64 @@ export const projects = [
       "The autonomous trainer's codebase re-adapted back into an operator-run acquisition system, moved off embedded hardware onto workstations with laboratory DAQ instrumentation.",
     challenge:
       "The operator-run reach-training system I helped build first was superseded by the autonomous trainer, which handled sessions, recovery, and data far more rigorously. Those improvements were locked to Jetson hardware and to running unattended, so operator-driven work could not benefit from them.",
+    /* "rather than forking a copy" was contradicted by the repositories: the
+       hardware repo opens by declaring itself a fork of the upstream
+       Mouse-GYM one and carries a PROVENANCE.md recording it. Scoped rather
+       than dropped, because both halves are true of different things - the
+       software module set was re-adapted, the hardware repository is a
+       maintained fork. */
     approach:
-      "Took the trainer's module set as the base rather than forking a copy, and re-adapted it for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
+      "Took the trainer's module set as the base rather than duplicating it, and maintains the hardware repository as a fork of upstream. Re-adapted for operator-modulated acquisition on x86_64 Ubuntu workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI instrumentation added, and module boundaries kept loose enough that each installs independently.",
     role: "Led the re-platforming, the instrumentation swap, and the reproducible offline install path.",
     tools: ["Ubuntu x86_64", "NI-DAQ / PXI", "PEAK CAN", "FLIR Spinnaker"],
     bullets: [
       "Carried the trainer's core, video, device, inference, and behavior modules onto a new platform.",
       "Replaced Jetson-native CAN with PEAK CAN and added NI-DAQ and PXI acquisition.",
-      "Packaged a staged, checksum-verified offline install for workstations with restricted networking.",
+      /* Was "a staged, checksum-verified offline install". Reading the repo,
+         that fused three different mechanisms: the workstation installer is
+         staged but online (apt, Miniconda, pip, a CUDA user-space pull); what
+         is checksum-verified is the pellet firmware bundle; what is vendored
+         for offline use is three Spinnaker wheels behind a manifest. Split
+         into what each one actually is. */
+      "Staged the workstation install as one re-runnable script that reports PASS, FAIL, SKIP or PLAN per step rather than stopping at the first failure.",
+      "Vendored the camera SDK wheels behind a per-platform manifest, and released pellet firmware as a SHA-256 verified bundle so a rig flashes without a build toolchain.",
       "Documented the build so a second rig can be reproduced without the original builder present.",
+    ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "A fork, deliberately",
+        body: [
+          "The repository is a GitHub fork of the trainer, and the hardware repository carries a provenance file that states the reason: the maintained repository is a fork, not a source-only copy, so upstream history and authorship stay attached. The re-platform target is written into the code guidelines themselves, moving from Jetson and Ubuntu 20.04 to Ubuntu 22.04 on x86_64.",
+          "The port is a subtraction as well as an addition, which the summary above does not say: the whole head-fix and tunnel subsystem is gone on this branch, along with its application, its pressure monitor and its evasion detectors. Operator-run acquisition does not head-fix.",
+        ],
+        source: "reachAQ-hardware/PROVENANCE.md, tree diff against auto-trainer",
+      },
+      {
+        heading: "CAN recovery that refuses to overreach",
+        body: [
+          "Moving off Jetson-native CAN meant PEAK SocketCAN with its own boot service, and a reset helper that is root-owned and narrowly permitted. It serializes and debounces restarts, refuses to reset a channel owned by another process, and its documentation says outright that it is not a physical emergency stop or a board power cycle.",
+          "NI instrumentation is new code rather than configuration: signal-stream and laser drivers in the device module, port and stream configuration in core, and six acquisition-layer models covering channel plan, discovery, preflight, a sample ring, a signal monitor and timing.",
+        ],
+        source: "reachAQ@devel/auto-trainer-device/src/autotrainer/device/can_ownership.py",
+      },
+      {
+        heading: "An installer that reports instead of stopping",
+        body: [
+          "The workstation installer is one option-less script that deliberately does not stop at the first failure, so a single failing category does not block the rest. Every step reports pass, fail, skip or plan, a summary always prints, re-running is the supported repair path, and the exit code only turns nonzero after every eligible step has run.",
+          "It also draws an explicit boundary: it installs no vendor kernel drivers, selects no camera serial or DAQ channel or CAN bitrate, and installs the CAN tools without enabling the service, because that is intentionally a separate reviewed hardware step.",
+        ],
+        source: "reachAQ@devel/tools/install/reachaq-linux-install.sh",
+      },
+      {
+        heading: "Tone timing, down to the signal",
+        body: [
+          "The first firmware change made on this side is narrow and documented at the signal level: one stimulus line asserts for the whole 5 kHz tone interval and another for the whole 6 kHz interval, both clear on any other frequency or on a completion, abort or tone-start failure, and two further lines stay unassigned. That is what lets tone timing be correlated against the DAQ afterwards.",
+          "Firmware and application are version-gated against each other through a tracked compatibility table and a runtime check, and the release records its own reference binary with a checksum.",
+        ],
+        source: "reachAQ-hardware/docs/releases/v2.0.0.md",
+      },
     ],
   },
   {
@@ -385,6 +519,34 @@ export const projects = [
       "Covered training progression, outcome composition, reach timing, and kinematics.",
       "Ran calculations as cancelable background tasks and saved reusable analysis workspaces.",
     ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "The boundary is written in the module",
+        body: [
+          "The analysis module states its own constraint in its docstring: it intentionally contains no Qt widget classes, and defines stable request and result structures with cancelable background tasks. That sentence is what makes the compute path runnable headless, and it is the reason the same engine serves the interface and a script.",
+          "The metric surface is enumerated rather than ad hoc: fifty-seven declared metrics spanning success rate, outcome composition, reach counts, timing, inter-reach interval, per-reach distributions and hand kinematics including peak velocity, peak acceleration, path length, straightness and maximum extension.",
+        ],
+        source: "ReachX/reachx/data/intersession.py",
+      },
+      {
+        heading: "Comparison as orthogonal choices",
+        body: [
+          "Rather than a pile of boolean switches, comparison behaviour is modelled as separate enumerations for scope, aggregation, grouping, series, x-axis, statistical overlay, error bars and outcome value, plus three more for trajectories, over frozen request, filter and option contracts.",
+          "Long calculations run as cancelable background tasks with a per-session summary cache keyed on a trajectory fingerprint, so rerunning does not redo work whose inputs have not changed. Analysis definitions save as reusable workspaces with their own migration path, held separately from the session workspace.",
+        ],
+        source: "ReachX/reachx/data/intersession.py, reachx/config/intersessionworkspaces.py",
+      },
+      {
+        heading: "Tested without recorded data",
+        body: [
+          "The validation suite runs on the standard-library test runner under an offscreen Qt platform and generates its own synthetic trajectories, which means it covers plot construction, workspace migration, window and dock restoration and image export without requiring real experiment data to be present.",
+          "The application does not depend on DeepLabCut: modelling and inference are TensorFlow with a ResNet backbone adapted from DeepLabCut source, pinned by one real constraint, since the last release with native Windows GPU support fixes both the framework and the Python version. That divergence is the reason a model converter has to exist at all.",
+        ],
+        source: "ReachX/tests/test_intersession_analysis.py, reachx/modeling/resnet.py",
+      },
+    ],
   },
   {
     id: "application-deployment-support-toolkit",
@@ -405,6 +567,34 @@ export const projects = [
       "Recording recovery: detects frame-count mismatches, stops unsafe corrections, verifies paired output, and regenerates tracking artifacts from legacy folders.",
       "Model conversion: GUI and command-line conversion of pose-estimation models between the analysis app and DeepLabCut formats.",
       "Git monitor: a hook-based command logger that keeps a shared record of repository activity across machines.",
+    ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "One parent repository, five submodules",
+        body: [
+          "The toolkit is a parent repository whose submodules are the installer, the camera alignment tool, the model converter, the git logger and the training tools, all sharing a single conda environment. A sixth tool, a GPU health suite, sits alongside them.",
+          "The installer is script-based by choice rather than omission, and the README says so: it does not build standalone executables. It installs a launcher and an updater with generated icons and shortcuts, and the updater has no Python environment of its own. It drives the application's environment from outside, fetches the newest release wheel, and on a same-version reinstall runs two explicit forced steps.",
+        ],
+        source: "reachx-tools/.gitmodules, reachx-installer/README.md",
+      },
+      {
+        heading: "Alignment that previews, backs up, and refuses",
+        body: [
+          "The camera tool shows master, raw secondary and compensated secondary frames side by side before it writes anything, then applies the fix under a dry run, a backup and an undo, and verifies the paired output afterwards with both a container probe and real frame reads.",
+          "It also refuses past a threshold: a frame-count mismatch beyond one hundred frames is treated as a significant acquisition error and stops the tool rather than being corrected, and mid-recording hardware drops produce a warning instead of a silent fix. Compensation keeps one authoritative clock, so the master timeline is fixed and offsets apply only to selected secondary cameras.",
+        ],
+        source: "cam-align/src/cam_align_tool/core/engine.py, postcheck.py, inspect.py",
+      },
+      {
+        heading: "A logger that sanitises before it writes",
+        body: [
+          "The git monitor is a Rust binary that logs a timestamp, repository and command per line, sanitises sensitive values before writing, and rotates by size and retention. It captures through shell hooks rather than by polling processes, because hooks give the most accurate repository context on Windows, and it ships as a prebuilt bundle for three platforms so operators never compile it.",
+          "Its predecessor is still in the tree as the shell-and-Python version of the same idea, with a timeline visualiser and separate user and developer guides written for researchers who need to check out an old tag to reanalyse data.",
+        ],
+        source: "git-log-access/src/service/logger.rs, hooks.rs",
+      },
     ],
   },
   {
@@ -476,9 +666,41 @@ export const projects = [
     bullets: [
       "Built a four-stage gear train that indexes eight vials off a single servo.",
       "Gated delivery with two shutter servos and two solenoid valves, with manual purge for priming.",
-      "Ran manual, randomized, and automated protocols against per-vial solution assignments held in YAML.",
+      /* Was "per-vial solution assignments held in YAML". The YAML holds the
+         port, mode, two delays, two idle timeouts and the acid orientation;
+         the per-vial table is a pandas-read Excel protocol. The three modes
+         were right, the storage was not. */
+      "Ran manual, randomized, and automated protocols against a per-vial solution table read from an Excel protocol sheet.",
       "Guarded sessions with separate idle timeouts for the main and reward spouts.",
       "Framed the serial link so the interface and the board both recover from a partial message.",
+    ],
+    /* Repo-derived. Each part cites the files behind it so a claim can
+       be checked rather than taken on trust. */
+    deepDive: [
+      {
+        heading: "The board owns the trial, the interface owns the protocol",
+        body: [
+          "The carousel is defined in firmware as eight equal positions computed at boot, so one index step is 45 degrees, mapped to a servo pulse width. The board holds the trial state machine, idle then main-spout listen then reward listen, entered on a vial change, and the state transition itself is what emits the markers the interface logs.",
+          "Three lick channels are read as separate TTL inputs, one main and two reward, and each detection is confirmed by a second read half a millisecond later before it counts.",
+        ],
+        source: "kinnamon-lick/Arduino_LickRevolver/LickRevolver/LickRevolver_v4.ino",
+      },
+      {
+        heading: "Priming is hardware, so it cannot fire mid-trial",
+        body: [
+          "Two momentary purge buttons open their solenoid directly rather than through a software mode, and only while the trial state is idle. A purge therefore cannot interrupt a trial, which is a property of the wiring rather than of the firmware's good behaviour.",
+          "Idle timeouts are genuinely separate per spout: two values set by distinct serial commands, swapped in on state entry, each expiry emitting its own marker before the shutters close and the board returns to idle.",
+        ],
+        source: "kinnamon-lick firmware, LickRevolver_v4.ino",
+      },
+      {
+        heading: "A framed protocol that survives a partial read",
+        body: [
+          "The serial protocol is a single letter plus an optional integer, nine commands wide. Framing is explicit in both directions: the board echoes the command character, then a marker, then a closing marker to complete a handshake, and every event is terminated. The host splits on those delimiters and re-buffers the remainder, so a message cut in half survives to the next read.",
+          "Events decode through a fifteen-entry table, each carrying a session-relative millisecond timestamp, and the acquisition loop runs in a separate process communicating through shared values, so a stalled interface cannot stall the trial.",
+        ],
+        source: "kinnamon-lick/arduinoCtrl_LickRevolver_v2.py, LickRevolver_GUI_v2.py",
+      },
     ],
   },
   {
