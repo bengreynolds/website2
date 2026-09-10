@@ -283,24 +283,38 @@ export default NavSwap;
 
    The clip is on the outer box and the movement is on the track, so the
    faces themselves are never transformed and their text stays on the
-   pixel grid. line-height is fixed rather than inherited: the translate is
-   exactly 50% of a two-face track, which is only exactly one line if both
-   faces are exactly one line tall. */
+   pixel grid. The second face is taken out of flow, so the box height is
+   driven by the first face alone at any wrap depth - the clip window is one
+   face tall whether a label sits on one line or wraps to two.
+
+   An earlier draft left .nav-swap at auto height with only overflow:hidden.
+   An inline-block sizes to its in-flow content, so it grew to the full
+   two-face track, clipped nothing, and rendered every label twice. A fixed
+   height would fix that and break any label that wraps; out-of-flow is the
+   form that survives both. */
 
 .nav-swap {
+  position: relative;
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
 }
 
 .nav-swap-track {
-  display: grid;
+  display: block;
   transform: translateY(0);
 }
 
 .nav-swap-face {
   display: block;
   line-height: 1.35;
+}
+
+.nav-swap-face:nth-child(2) {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -312,7 +326,7 @@ export default NavSwap;
   .nav-link:focus-visible .nav-swap-track,
   .rail-link:hover .nav-swap-track,
   .rail-link:focus-visible .nav-swap-track {
-    transform: translateY(-50%);
+    transform: translateY(-100%);
   }
 }
 ```
@@ -382,16 +396,22 @@ const faces=link.querySelectorAll('.nav-swap-face');
 
 Expected: `faces` is `2`, `hiddenOnSecond` is `"true"`, `clipped` is `"hidden"`. `rawText` **will** read doubled (e.g. `"WorkWork"`) — that is the DOM text and it is expected; the accessible name is what `aria-hidden` fixes.
 
-- [ ] **Step 8: Assert the swap distance is exactly one line**
+- [ ] **Step 8: Assert the clip window is exactly one face tall**
+
+This is the assertion that matters, and it must measure the **clip window** against a face — not the track against a face. A draft of this step compared track to face and expected `2.000`, which is exactly what the broken auto-height version reported; it would have passed while every label rendered twice.
 
 ```js
-const t=document.querySelector('.nav-swap-track');
-const f=t.querySelector('.nav-swap-face');
-({trackH:t.getBoundingClientRect().height, faceH:f.getBoundingClientRect().height,
-  ratio:+(t.getBoundingClientRect().height/f.getBoundingClientRect().height).toFixed(3)})
+const swap=document.querySelector('.nav-swap');
+const faces=swap.querySelectorAll('.nav-swap-face');
+const sb=swap.getBoundingClientRect(), f0=faces[0].getBoundingClientRect(), f1=faces[1].getBoundingClientRect();
+({windowVsFace:+(sb.height/f0.height).toFixed(3),
+  secondFaceBelowWindow: f1.top >= sb.bottom - 1,
+  hidden:getComputedStyle(swap).overflow})
 ```
 
-Expected: `ratio` is `2.000`. Anything else means a face is wrapping to two lines and `translateY(-50%)` will land mid-glyph — shorten the label or fix `line-height` before continuing.
+Expected: `windowVsFace` is `1.000`, `secondFaceBelowWindow` is `true`, `hidden` is `"hidden"`.
+
+Run it against a wrapped label as well as a single-line one. The out-of-flow form is wrap-agnostic by construction, and this is the check that proves it.
 
 - [ ] **Step 9: Commit**
 
