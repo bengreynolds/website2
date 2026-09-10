@@ -62,7 +62,7 @@ function useStuckHeader() {
 }
 
 /* Which section the reader is in, for the masthead's current marker and for
-   deciding which rail group opens itself.
+   which rail group is emphasised once the rail is open.
 
    `epoch` is in the dependency list because the observed elements are route
    content: after a navigation the old sections are gone and the observer is
@@ -77,15 +77,21 @@ function useSectionSpy(setActive, epoch) {
       .filter(Boolean);
     if (!sections.length) return undefined;
 
+    /* The same thin band as useStageSpy, and for the same reason. Ranking by
+       intersectionRatio needs a section to fill enough of the observation box
+       to clear a threshold, and once the skills section collapsed, the work
+       grid became more than twice the height of that box: its ratio never
+       reached 0.2, no entry ever reported as intersecting, and the callback
+       returned early - leaving "skills" marked in the masthead and in the
+       rail while the reader was standing in the work grid. A band that
+       exactly one section crosses does not care how tall the sections are. */
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (!visible) return;
-        setActive(visible.target.id);
+        const hit = entries.find((entry) => entry.isIntersecting);
+        if (!hit) return;
+        setActive(hit.target.id);
       },
-      { threshold: [0.2, 0.5], rootMargin: "-15% 0px -45% 0px" }
+      { rootMargin: "-50% 0px -49% 0px" }
     );
 
     sections.forEach((section) => observer.observe(section));

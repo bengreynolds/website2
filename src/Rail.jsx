@@ -31,21 +31,28 @@ const RailGroup = memo(function RailGroup({ label, open, children }) {
 export default function Rail({ route, activeSection, activeStage, onJump }) {
   const onWork = route.name === "work";
 
-  /* On home, the open group is the one the reader is standing in. On a project
-     page there is only one group and it is always open. */
-  const skillsOpen = !onWork && activeSection === "skills";
-  const workOpen = onWork || activeSection === "projects";
+  /* Emphasis only. This no longer decides whether the rail is open - CSS
+     does that from hover and focus - it decides which group is at full
+     strength once it is. */
+  const skillsCurrent = !onWork && activeSection === "skills";
+  const workCurrent = onWork || activeSection === "projects";
+
+  /* The stage spy only ever names a stage; it has nothing to report once the
+     reader is past the last one. Marking a skill while the reader is down in
+     the work grid puts the current-item bar in the wrong list, so the mark
+     is only honoured while the skills section is the one being read. */
+  const markedStage = skillsCurrent ? activeStage : null;
 
   return (
-    <div className={`rail ${skillsOpen || workOpen ? "is-open" : ""}`}>
+    <div className="rail">
       <nav className="rail-inner" aria-label="Index">
         {onWork ? null : (
-          <RailGroup label="Skills" open={skillsOpen}>
+          <RailGroup label="Skills" open={skillsCurrent}>
             {skills.map((skill) => (
               <li key={skill.id}>
                 <a
-                  className={`rail-link ${activeStage === skill.id ? "is-current" : ""}`}
-                  aria-current={activeStage === skill.id ? "true" : undefined}
+                  className={`rail-link ${markedStage === skill.id ? "is-current" : ""}`}
+                  aria-current={markedStage === skill.id ? "true" : undefined}
                   href={`#skill-${skill.id}`}
                   onClick={(event) => onJump(event, `skill-${skill.id}`)}
                 >
@@ -57,7 +64,7 @@ export default function Rail({ route, activeSection, activeStage, onJump }) {
           </RailGroup>
         )}
 
-        <RailGroup label="Work" open={workOpen}>
+        <RailGroup label="Work" open={workCurrent}>
           {workIndex.map((entry) => {
             const current = onWork && route.project.id === entry.project.id;
             return (
