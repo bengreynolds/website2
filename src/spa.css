@@ -807,13 +807,15 @@ summary {
   margin-top: 0.75rem;
 }
 
+/* Prose, not a label. The uppercase mono treatment that .rig-figure-caption
+   uses works on its one short line; these captions run several sentences and
+   turned into a thirty-line block of capitals in a 46ch column. */
 .demo-caption span {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-subtle);
-  max-width: 46ch;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: var(--measure);
+  text-wrap: pretty;
 }
 
 /* All three demos share one figure, so the buttons are a row of triggers.
@@ -1073,6 +1075,17 @@ summary {
   flex-wrap: wrap;
   gap: 0.3rem 0.6rem;
   align-items: baseline;
+}
+
+/* A wrapping flex line breaks on an item's max-content size, so a long stack
+   dropped the whole list below its label while a short one stayed beside it -
+   the same row reading two different ways from card to card. A grid gives the
+   label a column and lets the list wrap inside its own. */
+@media (min-width: 40rem) {
+  .work-meta-row {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
 }
 
 .work-meta-label {
