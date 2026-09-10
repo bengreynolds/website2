@@ -9,14 +9,20 @@ import { skillCredits } from "./skillCredits";
    project's data flow, so nothing here reads a project or borrows a project
    figure.
 
-   Stacked, not pinned. The pinned version held each stage still while its
-   track scrolled past, which took three viewports of scroll per skill and
-   made eight of them a very long page. These are ordinary sections using the
-   same .reveal entrance as the rest of the site, so nothing here is
-   scroll-driven and there is no fallback to reason about.
+   Eight competences, each a disclosure, all closed on arrival. Collapsed,
+   the section is eight lines: a number, a title, and four terms. That is the
+   point of collapsing it - a reader sees the shape of what this person does
+   in one screen and opens only what they care about, rather than scrolling
+   eight full stages to discover there were eight.
 
-   data-stage-id stays: it is what the rail spies on to mark the current
-   skill.
+   Native <details>, not a JS accordion: keyboard operable and findable by
+   the browser's own find-in-page with nothing from us, and the experience
+   entries on this site already use the same element.
+
+   Nothing here is scroll-driven. data-stage-id stays because it is what the
+   rail spies on to mark the current skill, and App.jsx opens a stage when
+   the rail jumps to it, since landing on a collapsed heading is not
+   arriving anywhere.
    -------------------------------------------------------------------------- */
 
 const creditBySlug = new Map(skillCredits.map((entry) => [entry.slug, entry]));
@@ -77,13 +83,29 @@ const SkillFigure = memo(function SkillFigure({ skill }) {
 
 const SkillStage = memo(function SkillStage({ skill }) {
   return (
-    <div className="stage-track" data-stage-id={skill.id} id={`skill-${skill.id}`}>
+    <details className="stage-track" data-stage-id={skill.id} id={`skill-${skill.id}`}>
+      <summary className="stage-summary">
+        <span className="stage-num">{skill.n}</span>
+        <span className="stage-heading">
+          <h3 className="stage-title">{skill.title}</h3>
+          {/* Spans, not a list: a summary takes phrasing content, and a <ul>
+              in here is invalid even though every browser renders it. */}
+          <span className="stage-terms">
+            {skill.terms.map((term) => (
+              <span className="stage-term" key={term}>
+                {term}
+              </span>
+            ))}
+          </span>
+        </span>
+        <span className="stage-toggle" aria-hidden="true">
+          +
+        </span>
+      </summary>
+
       <div className="stage-frame">
         <div className="container stage-grid">
-          <div className="stage-body reveal">
-            <p className="stage-num">{skill.n}</p>
-            <h3 className="stage-title">{skill.title}</h3>
-            <p className="stage-subtitle">{skill.subtitle}</p>
+          <div className="stage-body">
             <p className="stage-lede">{skill.lede}</p>
 
             <dl className="stage-readout">
@@ -101,7 +123,7 @@ const SkillStage = memo(function SkillStage({ skill }) {
           </div>
         </div>
       </div>
-    </div>
+    </details>
   );
 });
 

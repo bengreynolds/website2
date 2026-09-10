@@ -195,6 +195,9 @@ export default function App() {
     const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
+    /* The skills are closed by default, so jumping to one has to open it.
+       Landing on a collapsed heading looks like the link did nothing. */
+    if (target.tagName === "DETAILS") target.open = true;
     target.scrollIntoView({ block: "start" });
   }, []);
 
