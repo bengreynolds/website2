@@ -1,5 +1,9 @@
+/* Section order is the page order. "path" is the narrative spine (see
+   pathStages at the end of this file); the anchor ids of the other five are
+   load-bearing permalinks and must not change. */
 export const navigation = [
   { id: "home", label: "Home" },
+  { id: "path", label: "Signal path" },
   { id: "projects", label: "Selected Work" },
   { id: "experience", label: "Experience" },
   { id: "capabilities", label: "Capabilities" },
@@ -459,7 +463,7 @@ export const projects = [
         ids: ["lickrevolver-trial", "lickrevolver-trial-close", "lickrevolver-ui"],
         label: "Trial demo",
         caption:
-          "Two trials, structured the way the rig runs them. One protocol row is one trial. The spouts sit retracted while the carousel indexes a single 45° step to the next vial; the spouts are then presented once, 90° about the servo's gear axis taken from the assembly's coaxial mate. The rewarded side shows green and the other red, the outcome flashes with a ring around that side, and the spouts retract once — that retraction is where the next trial begins. The second trial swaps which side pays out and flashes red: a miss rather than a reward. Colour marks what moves; every other part keeps its Inventor appearance. The rig is symmetric and the second spout and solenoid are reconstructed across the assembly's own centre plane, since the master CAD currently carries one side.",
+          "Two trials, structured the way the rig runs them. One protocol row is one trial. The spouts sit retracted while the carousel indexes a single 45° step to the next vial; the spouts are then presented once, 90° about the servo's gear axis taken from the assembly's coaxial mate. The rewarded side shows green and the other red, the outcome flashes with a ring around that side, and the spouts retract once - that retraction is where the next trial begins. The second trial swaps which side pays out and flashes red: a miss rather than a reward. Colour marks what moves; every other part keeps its Inventor appearance. The rig is symmetric and the second spout and solenoid are reconstructed across the assembly's own centre plane, since the master CAD currently carries one side.",
       },
     ],
     summary:
@@ -537,3 +541,394 @@ export const contactLinks = [
   { label: "GitHub", href: "https://github.com/bengreynolds", value: "github.com/bengreynolds" },
   { label: "Resume", href: resumeHref, value: "Download resume (PDF)", download: true },
 ];
+
+/* ==========================================================================
+   Signal path
+   --------------------------------------------------------------------------
+   The narrative spine. One reach, from the box the animal is in to a file
+   another lab can trust, told as seven stages with the projects that own
+   each one named against it.
+
+   EVERY sentence below is a re-sequencing of strings that already appear
+   earlier in this file. The source phrase is cited in a comment on each
+   field. The narrative may order and frame those facts; it may not add any.
+   If a claim here cannot be traced upward, it is a bug.
+   ========================================================================== */
+
+/* Sources: "Reach training needed an operator present for every session"
+   (rig challenge), "Built a three-axis pellet delivery" (rig bullet), and
+   "so complex datasets stay auditable and safe to share" (platform summary).
+   The chain, not a new claim about it. */
+export const pathIntro =
+  "One animal reaches for one pellet, and that reach has to come out the other end as a file somebody else can audit. Seven stages sit between those two facts. Each one names the projects that own it.";
+
+export const pathStages = [
+  {
+    n: "01",
+    id: "enclosure",
+    title: "The enclosure",
+    /* "Designed a 215-part enclosure carrying every module, cable route, and
+       panel connector." + "Designed the enclosure, pellet mechanism, and
+       mounts in CAD" (rig) / "Designed a panel-built operant box with
+       machined and PVC variants for different housing needs." (lick port) /
+       "Sealed the enclosure with an O-ring groove, magnetic latch, and
+       captive panel screws" (hypoxia chamber). */
+    lede: "Nothing downstream exists until something holds it. The training rig is a 215-part enclosure carrying every module, cable route, and panel connector, drawn in CAD before any of it was integrated. The same problem recurs across the lab: a panel-built operant box with machined and PVC variants, and a chamber sealed with an O-ring groove, magnetic latch, and captive panel screws.",
+    figure: {
+      kind: "scrub",
+      /* All three from the rig entry above: figure, figureFrames,
+         figureLabel. The sheet size is the byte size of the checked-in
+         public/rig/buildup.webp, stated because the reader opts into it. */
+      id: "buildup",
+      frames: 100,
+      sheet: "3 MB",
+    },
+    /* Values lifted from rig.tools, lick-port.tools, the 215-part bullet and
+       rig.figureFrames. */
+    readout: [
+      { label: "CAD", value: "Fusion 360 / Inventor" },
+      { label: "Parts", value: "215" },
+      { label: "Sequence", value: "100 frames" },
+    ],
+    owners: [
+      {
+        project: "automated-multicamera-training-control-system",
+        note: "A 215-part enclosure carrying every module, cable route, and panel connector.",
+      },
+      {
+        project: "lick-port-reward-hardware",
+        note: "A panel-built operant box with machined and PVC variants.",
+      },
+      {
+        project: "neonatal-hypoxia-chamber",
+        note: "Sealed with an O-ring groove, magnetic latch, and captive panel screws.",
+      },
+    ],
+  },
+  {
+    n: "02",
+    id: "capture",
+    title: "Restraint and capture",
+    /* tunnel demo caption ("Releasing and re-engaging the head clamp, 28 deg
+       off the shoulder-screw axis. Servo horn, push rod, spring and swing are
+       solved as the four-bar they are, off pivots measured from the pin
+       bores.") + rig bullet ("Synchronized multi-camera capture with tracking
+       and hardware control.") + reachAQ approach ("x86_64 Ubuntu
+       workstations: PEAK CAN in place of Jetson-native CAN, NI-DAQ and PXI
+       instrumentation added"). */
+    lede: "The animal has to be held still, and the cameras have to agree on when. The head clamp releases and re-engages 28 degrees off the shoulder-screw axis, solved as the four-bar it is off pivots measured from the pin bores. Above it, multi-camera capture is synchronized with tracking and hardware control, and that same acquisition core now also runs on x86_64 Ubuntu workstations with NI-DAQ and PXI instrumentation.",
+    figure: {
+      kind: "demos",
+      demos: [
+        { project: "automated-multicamera-training-control-system", demo: "tunnel" },
+      ],
+    },
+    /* All four from skillGroups "Acquisition and control" and reachAQ.tools. */
+    readout: [
+      { label: "Cameras", value: "Multi-camera capture" },
+      { label: "Sync", value: "Frame and TTL sync" },
+      { label: "Driver", value: "FLIR Spinnaker" },
+      { label: "DAQ", value: "NI-DAQ / PXI" },
+    ],
+    owners: [
+      {
+        project: "automated-multicamera-training-control-system",
+        note: "Synchronized multi-camera capture with tracking and hardware control.",
+      },
+      {
+        project: "reachaq-acquisition-platform",
+        note: "NI-DAQ and PXI acquisition added on x86_64 workstations.",
+      },
+      {
+        project: "application-deployment-support-toolkit",
+        note: "Camera alignment, and recovery for frame-count mismatches.",
+      },
+    ],
+  },
+  {
+    n: "03",
+    id: "tracking",
+    title: "Machine-learning tracking",
+    /* rig approach ("integrated multi-camera acquisition, DeepLabCut
+       tracking, CAN bus motor control, and load-cell sensing into a closed
+       loop") + reachAQ bullet ("Carried the trainer's core, video, device,
+       inference, and behavior modules onto a new platform.") + toolkit bullet
+       ("Model conversion: GUI and command-line conversion of pose-estimation
+       models between the analysis app and DeepLabCut formats."). */
+    lede: "Frames become coordinates. DeepLabCut tracking is integrated into the loop rather than run after the session, and the trainer's core, video, device, inference, and behavior modules carried onto the re-platformed acquisition system intact. A GUI and command-line tool converts pose-estimation models between the analysis app and DeepLabCut formats, so a trained model is never stranded in one program.",
+    /* No render exists for this stage because the stage is software. The
+       readout takes the figure column rather than a placeholder. */
+    figure: null,
+    /* DeepLabCut and Jetson from rig.tools; OpenCV and NumPy / SciPy from
+       skillGroups "Scientific Python". */
+    readout: [
+      { label: "Tracking", value: "DeepLabCut" },
+      { label: "Vision", value: "OpenCV" },
+      { label: "Compute", value: "NumPy / SciPy" },
+      { label: "Runs on", value: "Jetson" },
+    ],
+    owners: [
+      {
+        project: "automated-multicamera-training-control-system",
+        note: "DeepLabCut tracking integrated into the closed loop.",
+      },
+      {
+        project: "reachaq-acquisition-platform",
+        note: "The inference module carried onto a new platform.",
+      },
+      {
+        project: "application-deployment-support-toolkit",
+        note: "Model conversion between the analysis app and DeepLabCut formats.",
+      },
+    ],
+  },
+  {
+    n: "04",
+    id: "control",
+    title: "Closed-loop control",
+    /* rig approach ("CAN bus motor control, and load-cell sensing into a
+       closed loop with tone cues, barrier servos, and recovery paths for
+       unattended overnight operation") + rig bullet ("Closed the loop on
+       detected movement, with load-cell and presence sensing as guards.") +
+       pcb caption ("Six motor and CAN connectors, then the drive and sensing
+       hardware."). */
+    lede: "Detected movement is what closes the loop. Motor control goes out over CAN bus alongside tone cues and barrier servos, with load-cell and presence sensing as the guards that let a session run unattended overnight. The board driving the pellet module carries six motor and CAN connectors, then the drive and sensing hardware.",
+    figure: {
+      kind: "demos",
+      demos: [
+        { project: "automated-multicamera-training-control-system", demo: "pcb" },
+        { project: "haptic-device-validation-test-bench", demo: "prosthetic-function" },
+      ],
+    },
+    /* CAN bus from rig.tools; Load-cell sensing and Closed-loop control from
+       skillGroups; the recovery row from the rig bullet "Designed repeatable
+       startup, validation, and recovery so sessions survive being left
+       alone." */
+    readout: [
+      { label: "Bus", value: "CAN bus" },
+      { label: "Sensing", value: "Load-cell sensing" },
+      { label: "Loop", value: "Closed-loop control" },
+      { label: "Recovery", value: "Repeatable startup and validation" },
+    ],
+    owners: [
+      {
+        project: "automated-multicamera-training-control-system",
+        note: "Closed the loop on detected movement, with sensing as guards.",
+      },
+      {
+        project: "haptic-device-validation-test-bench",
+        note: "Load-cell feedback verifying force, timing, and repeatability.",
+      },
+      {
+        project: "multi-solution-lickometer",
+        note: "The board holds the trial state machine and the timing.",
+      },
+      {
+        project: "reachaq-acquisition-platform",
+        note: "PEAK CAN in place of Jetson-native CAN.",
+      },
+      {
+        project: "neonatal-hypoxia-chamber",
+        note: "In progress: staging the timed descent-and-hold protocol.",
+      },
+    ],
+  },
+  {
+    n: "05",
+    id: "delivery",
+    title: "The delivery mechanism",
+    /* rig bullet ("Built a three-axis pellet delivery with servo scoop and
+       barrier, driven over CAN.") + pellet caption (the move_config order and
+       the 109 deg scoop) + lickrevolver-trial caption ("the carousel indexes a
+       single 45 deg step to the next vial") + lickometer bullet ("Gated
+       delivery with two shutter servos and two solenoid valves, with manual
+       purge for priming."). */
+    lede: "The reward has to arrive the same way every time. A three-axis pellet delivery runs a fixed order taken from the rig's own move_config: barrier out, traverse, drop, scoop through 109 degrees, lift, arm back to flush, barrier closed over the pellet, send. Where the solution itself is the variable, an eight-vial carousel indexes a single 45 degree step per trial and gates delivery through two shutter servos and two solenoid valves.",
+    figure: {
+      kind: "demos",
+      demos: [
+        { project: "automated-multicamera-training-control-system", demo: "pellet" },
+        /* The assembly, not the trial demo. The trial is three frame-locked
+           figures and the third carries readable text, which needs the full
+           width of a case body; a pinned stage cannot give it that without
+           running taller than the viewport. It stays on the case study. */
+        { project: "multi-solution-lickometer", demo: "lickrevolver-build" },
+      ],
+    },
+    /* Axes and the scoop angle from the pellet caption; vials, gear train and
+       gating from the lickometer bullets. */
+    readout: [
+      { label: "Axes", value: "Three, driven over CAN" },
+      { label: "Scoop", value: "109 degrees" },
+      { label: "Vials", value: "Eight, one servo" },
+      { label: "Gating", value: "Two shutter servos, two valves" },
+    ],
+    owners: [
+      {
+        project: "automated-multicamera-training-control-system",
+        note: "A three-axis pellet delivery with servo scoop and barrier.",
+      },
+      {
+        project: "multi-solution-lickometer",
+        note: "A four-stage gear train that indexes eight vials off a single servo.",
+      },
+      {
+        project: "lick-port-reward-hardware",
+        note: "Nose cone, spout clamp, dropper, and electronics mount as one reward-port assembly.",
+      },
+    ],
+  },
+  {
+    n: "06",
+    id: "conversion",
+    title: "Conversion and validation",
+    /* platform bullets ("Grouped related recording files into reviewable
+       sessions." / "Added metadata conflict review before file assembly.") +
+       walkthrough step notes ("their metadata normalised onto one canonical
+       key set, and every field where the two disagree is surfaced. Nine
+       did." / "PyNWB writes the file and NWB Inspector validates it in the
+       same pass" / "The validation report is written beside the NWB, so a
+       reviewer can audit the conversion later instead of taking it on
+       trust."). */
+    lede: "A session that cannot be validated is not a result. Mixed recordings are grouped into reviewable sessions, normalised onto one canonical key set, and every field where two sources disagree is surfaced before anything is written; nine of them on the run captured here. PyNWB writes the file and NWB Inspector validates it in the same pass, and the report is written beside the NWB so a reviewer can audit the conversion instead of taking it on trust.",
+    figure: {
+      /* One real frame out of the walkthrough that already lives on the
+         project entry, resolved by step id below. The full six-step
+         walkthrough stays on the case study rather than being mounted
+         twice. */
+      kind: "shot",
+      project: "scientific-data-standardization-platform",
+      demo: "nwbforge-walkthrough",
+      step: "written",
+    },
+    /* All four read off the same captured run: walkthrough steps "written"
+       and "artifacts", plus platform.approach for the standard's name. */
+    readout: [
+      { label: "Standard", value: "Neurodata Without Borders" },
+      { label: "Validation", value: "0 errors, 0 warnings" },
+      { label: "Written", value: "197,056 bytes" },
+      { label: "Artifacts", value: "2" },
+    ],
+    owners: [
+      {
+        project: "scientific-data-standardization-platform",
+        note: "Import, metadata review, mapping, assembly, provenance, recovery, validation.",
+      },
+    ],
+  },
+  {
+    n: "07",
+    id: "analysis",
+    title: "Analysis",
+    /* motion-analysis summary ("A headless analysis engine folded into
+       ReachX, so intersession and intrasession results come out of the same
+       app that curates the reaches."), challenge ("each figure was rebuilt by
+       hand rather than rerun"), approach ("Nothing in the compute path
+       imports a widget.") and bullets (session comparison across mice, dates,
+       rigs and named condition groups; intrasession mode; cancelable
+       background tasks). */
+    lede: "Curation and analysis in the same application, so a figure is rerun rather than rebuilt by hand. A Qt-free backend inside ReachX compares session summaries across mice, dates, rigs, and named condition groups, with an intrasession mode for reach-level distributions inside a single session. Nothing in the compute path imports a widget, which is what lets it run headless as cancelable background tasks.",
+    /* Software again, so the readout takes the figure column. */
+    figure: null,
+    /* All four from motion-analysis.tools. */
+    readout: [
+      { label: "Compute", value: "NumPy" },
+      { label: "Plotting", value: "pyqtgraph" },
+      { label: "Interface", value: "PySide6" },
+      { label: "Mode", value: "Headless compute" },
+    ],
+    owners: [
+      {
+        project: "motion-analysis-reporting-suite",
+        note: "Training progression, outcome composition, reach timing, and kinematics.",
+      },
+      {
+        project: "application-deployment-support-toolkit",
+        note: "Windows launcher, updater, and shortcuts for non-developers.",
+      },
+    ],
+  },
+];
+
+/* --------------------------------------------------------------------------
+   Derived lookups
+   Nothing below introduces a fact. Each value is either a subset of a string
+   above or a path already written above.
+   -------------------------------------------------------------------------- */
+
+/* The fixed rail is a 15rem column and cannot hold a five-word title, so it
+   gets fewer of the same words. No entry adds a word that is not already in
+   that project's own `title`. */
+export const shortTitles = {
+  "scientific-data-standardization-platform": "Data Standardization",
+  "automated-multicamera-training-control-system": "Behavioral Training Rig",
+  "reachaq-acquisition-platform": "reachAQ",
+  "motion-analysis-reporting-suite": "Motion Analysis Suite",
+  "application-deployment-support-toolkit": "Deployment Toolkit",
+  "haptic-device-validation-test-bench": "Sensation Test Bench",
+  "multi-solution-lickometer": "Multi-Solution Lickometer",
+  "lick-port-reward-hardware": "Lick Port Hardware",
+  "neonatal-hypoxia-chamber": "Hypoxia Chamber",
+};
+
+const projectById = new Map(projects.map((project) => [project.id, project]));
+
+export const findProject = (id) => projectById.get(id);
+
+/* Resolves a { project, demo } reference on a stage back to the one demo
+   object on the project, so a caption is written once and read twice. */
+export function resolveDemo(ref) {
+  const project = projectById.get(ref.project);
+  if (!project || !project.demos) return null;
+  return project.demos.find((demo) => demo.id === ref.demo) || null;
+}
+
+/* Resolves a stage's { project, demo, step } reference to one captured frame
+   of the walkthrough. */
+export function resolveShot(ref) {
+  const demo = resolveDemo(ref);
+  if (!demo || !demo.steps) return null;
+  const step = demo.steps.find((entry) => entry.id === ref.step);
+  return step ? { demo, step } : null;
+}
+
+/* Which stages a project owns, read straight back off pathStages so the rail
+   and the work index cannot disagree with the narrative. */
+const stagesByProject = new Map();
+pathStages.forEach((stage) => {
+  stage.owners.forEach((owner) => {
+    const list = stagesByProject.get(owner.project) || [];
+    list.push(stage);
+    stagesByProject.set(owner.project, list);
+  });
+});
+
+/* The thumbnail for the dense index: the poster of the scroll figure the
+   project already carries, else the poster of its first demo, else the first
+   captured frame of its walkthrough. Posters are 4-46KB, so the whole index
+   costs less than one sprite sheet. Five projects have no render at all;
+   those show the stages they own instead of a placeholder. */
+function indexShot(project) {
+  if (project.figure) {
+    return { src: `/rig/${project.figure}-poster.webp`, fit: "contain", plate: true };
+  }
+  const demo = project.demos && project.demos[0];
+  if (!demo) return null;
+  if (demo.steps) {
+    return { src: demo.steps[0].shot, fit: "cover", plate: false };
+  }
+  const id = (demo.ids && demo.ids[0]) || demo.id;
+  return { src: `/rig/${id}-poster.webp`, fit: "contain", plate: true };
+}
+
+/* `n` is the project's permanent figure number, not its position in whatever
+   filtered view is on screen. The rail always lists all nine, so a number
+   that shifted when a discipline filter was applied would make the rail and
+   the index disagree about which project is 04. */
+export const workIndex = projects.map((project, index) => ({
+  project,
+  n: String(index + 1).padStart(2, "0"),
+  short: shortTitles[project.id] || project.title,
+  shot: indexShot(project),
+  stages: stagesByProject.get(project.id) || [],
+}));
