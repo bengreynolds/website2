@@ -440,13 +440,19 @@ In the `WorkGrid` default export, above the `return`, add:
     tile.style.setProperty("--py", ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
   }, []);
 
-  /* Clearing on leave lets the tile fall back to its resting transform rather
-     than freezing at whatever angle the pointer left it at. */
+  /* Clearing on leave lets tiles fall back to their resting transform rather
+     than freezing at whatever angle the pointer left them at.
+
+     This clears every tile, not event.target.closest(".tile"). pointerleave
+     fires on the grid when the pointer exits the grid, and at that moment
+     event.target is the grid itself - closest(".tile") returns null from
+     there, so the closest() version would clear nothing and leave the last
+     hovered tile stuck tilted. */
   const release = useCallback((event) => {
-    const tile = event.target.closest(".tile");
-    if (!tile) return;
-    tile.style.removeProperty("--px");
-    tile.style.removeProperty("--py");
+    event.currentTarget.querySelectorAll(".tile").forEach((tile) => {
+      tile.style.removeProperty("--px");
+      tile.style.removeProperty("--py");
+    });
   }, []);
 ```
 
@@ -640,17 +646,27 @@ function withViewTransition(apply) {
 
 - [ ] **Step 2: Route the navigation through it**
 
-Find the `navigate` callback in `useRouter` — the one that calls `history.pushState` and sets path state. Wrap only the state update, not the `pushState`:
+In the `navigate` callback inside `useRouter`, these three lines currently end the function:
 
 ```jsx
-      window.history.pushState({}, "", href);
-      withViewTransition(() => {
-        setPath(window.location.pathname);
-        setPendingHash(hash || null);
-      });
+    window.history.pushState(null, "", href);
+    setPath(nextPath);
+    setPendingHash(hash);
 ```
 
-Keep the existing `isPlainClick` guard and the `<a href>` behaviour exactly as they are.
+Wrap only the two state updates, leaving `pushState` outside so the URL changes even when the transition is skipped:
+
+```jsx
+    window.history.pushState(null, "", href);
+    withViewTransition(() => {
+      setPath(nextPath);
+      setPendingHash(hash);
+    });
+```
+
+Use `nextPath` and `hash` — the local variables already computed above — not `window.location.pathname`. The early-return guard above them (`if (nextPath === window.location.pathname && !hash) return;`) stays exactly as it is.
+
+Note that `AppLink` routes every intercepted link through this, so rail links to a project transition too. That is intended: navigating between two project pages morphs one figure into the other, and navigating from a rail link on home has no source name, so the destination figure simply animates in alone.
 
 - [ ] **Step 3: Name the source element in `src/WorkGrid.jsx`**
 
@@ -755,20 +771,22 @@ Expected: `namedAtRest` is `0`. Then click one tile's title link and re-run imme
 
 - [ ] **Step 9: Assert the fallback path**
 
-Confirm the no-API branch works, since most of the risk is there:
+Confirm the no-API branch works, since most of the risk is there. This must exercise the `navigate` path — a `popstate` would bypass `withViewTransition` entirely and prove nothing.
+
+From the home page:
 
 ```js
 const real=document.startViewTransition;
-document.startViewTransition=undefined;
-history.pushState({},'','/');
-dispatchEvent(new PopStateEvent('popstate'));
-await new Promise(r=>setTimeout(r,200));
-const ok=!!document.querySelector('.work-grid');
+document.startViewTransition=undefined;          // force the fallback branch
+document.querySelector('.tile-link').click();     // goes through AppLink -> navigate
+await new Promise(r=>setTimeout(r,300));
+const onProject=location.pathname.startsWith('/work/');
+const rendered=!!document.querySelector('.project-kicker');
 document.startViewTransition=real;
-({fellBackCleanly:ok, path:location.pathname})
+({fellBackCleanly:onProject&&rendered, path:location.pathname})
 ```
 
-Expected: `fellBackCleanly` is `true`. The route must still change with the API removed.
+Expected: `fellBackCleanly` is `true` and `path` starts with `/work/`. The route must still change with the API removed. Navigate back to home before the next assertion.
 
 - [ ] **Step 10: Assert middle-click and modifier-click still leave the site**
 
