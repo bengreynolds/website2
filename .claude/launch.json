@@ -14,6 +14,36 @@
       "runtimeArgs": ["run", "preview"],
       "port": 5199,
       "autoPort": true
+    },
+    {
+      "name": "compare-main",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/main", "--port", "5180", "--strictPort"],
+      "port": 5180
+    },
+    {
+      "name": "compare-a-contact-sheet",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/a", "--port", "5181", "--strictPort"],
+      "port": 5181
+    },
+    {
+      "name": "compare-b-systems-map",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/b", "--port", "5182", "--strictPort"],
+      "port": 5182
+    },
+    {
+      "name": "compare-c-instrument-panel",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/c", "--port", "5183", "--strictPort"],
+      "port": 5183
+    },
+    {
+      "name": "compare-d-signal-path",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/d", "--port", "5184", "--strictPort"],
+      "port": 5184
     }
   ]
 }
