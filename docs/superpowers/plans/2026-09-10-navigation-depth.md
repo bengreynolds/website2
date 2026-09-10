@@ -572,15 +572,19 @@ Expected: `✓ built` with no errors.
 
 On the home page:
 
+Scope this to sprite-bearing plates only. `src/spa.css:1656` already sets `.tile[data-art="shot"] .tile-plate { aspect-ratio: 16 / 10 }`, deliberately and from before this work: that tile holds a captured screenshot rather than a sprite, and a screenshot letterboxes badly in a square. Asserting every plate is square would flag that legitimate tile.
+
 ```js
-const bad=[...document.querySelectorAll('.tile-plate')].map(p=>{
+const sprite=[...document.querySelectorAll('.tile:not([data-art="shot"]) .tile-plate')];
+const bad=sprite.map(p=>{
   const r=p.getBoundingClientRect(); const s=getComputedStyle(p);
   return {ratio:+(r.width/r.height).toFixed(3), ar:s.aspectRatio};
 }).filter(x=>Math.abs(x.ratio-1)>0.01);
-({plates:document.querySelectorAll('.tile-plate').length, nonSquare:bad})
+({spritePlates:sprite.length, nonSquare:bad,
+  shotPlates:document.querySelectorAll('.tile[data-art="shot"] .tile-plate').length})
 ```
 
-Expected: `nonSquare` is `[]`. Any entry here means a sprite is drawing stretched — stop and fix before committing.
+Expected: `nonSquare` is `[]`. Any entry means a sprite is drawing stretched — stop and fix before committing. `shotPlates` is expected to be non-zero and is not a failure.
 
 - [ ] **Step 6: Assert the pointer properties drive a real 3D transform**
 
