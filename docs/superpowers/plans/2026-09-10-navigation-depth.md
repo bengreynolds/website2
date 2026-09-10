@@ -202,7 +202,7 @@ const read=links.map(a=>{const s=getComputedStyle(a);return{
   anyMatrix3d:read.some(r=>r.t.startsWith('matrix3d')), sample:read.slice(0,4)})
 ```
 
-Expected: `count` is 8 or 9, `distinctDepths` is greater than 1, `allDistNonNegative` is `true`, `anyMatrix3d` is `true`, and the samples show `--depth` values that differ in sign either side of the marked link.
+Expected: `count` is 17 — both groups mount on the home route, 8 skills plus 9 projects; only which one is *emphasised* changes. `distinctDepths` is greater than 1, `allDistNonNegative` is `true`, `anyMatrix3d` is `true`, and the samples show `--depth` values that differ in sign either side of the marked link.
 
 Failure to watch for: `distinctDepths` of 1 means `activeSkillIndex` resolved to `-1` — the stage spy has not marked anything yet, so scroll further into the spine before re-running.
 
