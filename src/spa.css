@@ -1361,12 +1361,12 @@ summary {
   background-size: contain;
 }
 
-/* Per-figure sprite, poster, grid and keyframes are GENERATED into
-   src/rig-<id>.css and scoped to [data-figure="<id>"], so more than one
-   scroll figure can coexist. */
-.rig-figure[data-figure="buildup"] {
-  background-image: url("/rig/buildup-poster.webp");
-}
+/* Per-figure sprite, poster, grid, keyframes and animation range are all
+   GENERATED into src/rig-<id>.css and scoped to [data-figure="<id>"], so more
+   than one figure can coexist and nothing about a sheet lives here. buildup
+   used to be the exception - its attach sat in this file while only
+   background-size was generated - and that split is what let a stylesheet
+   change scale the poster by 1000%. Do not reintroduce it. */
 
 .rig-figure-caption {
   margin-top: 0.6rem;
@@ -1375,50 +1375,6 @@ summary {
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--text-subtle);
-}
-
-/* The buildup sheet is attached here rather than in src/rig-buildup.css
-   because that file predates the generator that now writes the whole block
-   (compare src/rig-prosthetic-build.css, which carries its own). Do not move
-   it into the generated file; do not change the animation name or the
-   background-size, which lives there so a re-capture cannot desync it.
-
-   The 3MB grid is gated behind .is-live, which React adds when the case study
-   is opened or when the reader loads the sequence on stage 01. A closed
-   <details> does NOT prevent a background fetch, so this gating is what makes
-   it opt-in. Until then only the 46KB poster loads.
-
-   Both ranges below are overridden by src/rig-scrub.css, which widens the
-   travel and, for a figure inside a pinned stage, re-binds the timeline to
-   the stage track. They stay so this block matches what the generator writes
-   and so the figure still works outside a stage. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .rig-figure[data-figure="buildup"].is-live {
-      background-image: url("/rig/buildup.webp");
-      background-position: 0% 0%;
-      animation: rig-buildup step-end both;
-      animation-timeline: view();
-      /* Not "entry 100%": that completes the instant the figure is fully in
-         view, which for a figure revealed by opening a disclosure is
-         immediately, leaving nothing to scrub. Not plain "cover" either:
-         cover spans the figure's whole travel, so the opening frames advance
-         while it is still below the fold. contain is the window where the
-         figure is wholly on screen, inset at both ends so the first and last
-         frames get a beat of stillness. */
-      animation-range: contain 8% contain 92%;
-    }
-
-    /* Where the square figure cannot fit inside the viewport, contain has no
-       range and the scrub would hold on frame 0. Fall back to the middle of
-       cover, which is the part of the travel with the most of the figure on
-       screen. */
-    @media (max-height: 45rem) {
-      .rig-figure[data-figure="buildup"].is-live {
-        animation-range: cover 32% cover 68%;
-      }
-    }
-  }
 }
 
 /* Both figures share one grid column; the prose keeps the other. Without this
