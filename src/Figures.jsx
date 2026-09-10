@@ -1,12 +1,12 @@
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import PipelineDemo from "./PipelineDemo";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
-import useWheelScrub from "./useWheelScrub";
 
 /* --------------------------------------------------------------------------
    Shared figures
-   The same two components serve the work grid and the project pages, so a
-   caption is written once in siteData and rendered wherever it is needed.
+   One component now: the sprite stage and its switcher. The scroll-scrubbed
+   ScrubFigure that used to live here is gone with the scroll driving - the
+   assembly sequences run from buttons in SequencePanel.jsx.
    -------------------------------------------------------------------------- */
 
 /* One sprite stage plus its trigger row. Its own module so a project page
@@ -99,20 +99,3 @@ export const SpriteStage = memo(function SpriteStage({ demos, className = "" }) 
     </figure>
   );
 });
-
-/* The scroll-scrubbed assembly sequence. `live` is what attaches the sheet;
-   until it flips, the poster is the whole image. */
-export function ScrubFigure({ figureId, frames, label, live }) {
-  const ref = useRef(null);
-  useWheelScrub(ref, frames, live);
-  return (
-    <div
-      ref={ref}
-      className={`rig-figure ${live ? "is-live" : ""}`}
-      data-figure={figureId}
-      role="img"
-      aria-label={label}
-    />
-  );
-}
-

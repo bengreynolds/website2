@@ -7,8 +7,7 @@ import { AppLink } from "./router";
    A thin strip that opens itself. Which group is expanded follows where the
    reader is: standing in the skills spine expands the skill list, standing in
    the work grid expands the project list, and everywhere else it stays a
-   strip. Hover and focus-within open it too, in CSS, and the pin holds it
-   open for anyone who would rather it stopped moving.
+   strip. Hover and focus-within open it too, in CSS.
 
    Everything here is driven by IntersectionObserver upstream in App.jsx and
    arrives as props. There is no scroll listener: AGENTS.md bans them, and the
@@ -29,39 +28,17 @@ const RailGroup = memo(function RailGroup({ label, open, children }) {
   );
 });
 
-export default function Rail({
-  route,
-  activeSection,
-  activeStage,
-  pinned,
-  onTogglePin,
-  onJump,
-}) {
+export default function Rail({ route, activeSection, activeStage, onJump }) {
   const onWork = route.name === "work";
 
   /* On home, the open group is the one the reader is standing in. On a project
      page there is only one group and it is always open. */
-  const skillsOpen = !onWork && (pinned || activeSection === "skills");
-  const workOpen = onWork || pinned || activeSection === "projects";
+  const skillsOpen = !onWork && activeSection === "skills";
+  const workOpen = onWork || activeSection === "projects";
 
   return (
-    <div
-      className={`rail ${pinned ? "is-pinned" : ""} ${
-        skillsOpen || workOpen ? "is-open" : ""
-      }`}
-    >
-      <div className="rail-inner">
-        <button
-          type="button"
-          className="rail-pin"
-          aria-pressed={pinned}
-          aria-label={pinned ? "Unpin the index" : "Pin the index open"}
-          onClick={onTogglePin}
-        >
-          <span className="rail-pin-label">Index</span>
-          <span className="rail-pin-hint">{pinned ? "Unpin" : "Pin open"}</span>
-        </button>
-
+    <div className={`rail ${skillsOpen || workOpen ? "is-open" : ""}`}>
+      <nav className="rail-inner" aria-label="Index">
         {onWork ? null : (
           <RailGroup label="Skills" open={skillsOpen}>
             {skills.map((skill) => (
@@ -97,7 +74,7 @@ export default function Rail({
             );
           })}
         </RailGroup>
-      </div>
+      </nav>
     </div>
   );
 }

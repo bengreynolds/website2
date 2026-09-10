@@ -21,5 +21,7 @@ Two habits that apply to either:
 - Read the media queries around a container before designing against it.
   `.case-body` is width-capped below 56rem and uncapped-but-two-column above,
   which has already invalidated one finished design.
-- A demo lives behind a `<details class="case">`, so nothing renders until the
-  **Case study** summary is clicked. Every verification pass starts there.
+- Demos live on the project routes at `/work/<id>`, under the **Mechanism**
+  heading, and every one of them runs from a control: Play and frame buttons
+  for the assembly sequences, a switcher for the rest. A verification pass has
+  to press something; scrolling past a figure will not start it.

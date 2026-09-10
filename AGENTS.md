@@ -20,20 +20,27 @@
 - Centralize motion values in CSS variables (see section 1 of `src/spa.css`).
 - Motion is pure CSS: a time-based `.rise` entrance for above-the-fold hero
   content, and a scroll-driven `.reveal` (`animation-timeline: view()`) for
-  everything below. No JS gating class, no scroll listeners, no observers.
-- The one exception is the wheel scrub on the `.rig-figure` sprites
-  (`useWheelScrub` in `src/App.jsx`, `src/rig-scrub.css`). `view()` gave a
-  100-frame sequence ~365px of travel — about four wheel notches for the whole
-  build — and no declarative timeline can widen that without also changing how
-  far the page scrolls. One notch is now one frame, with the page held only
-  while frames remain. It stays scoped: one `wheel` listener per figure, fine
-  pointers only, released at both ends. Coarse pointers and reduced motion keep
-  `view()` untouched. Do not generalize it to other motion.
-- It is also the only one. The NWB Forge walkthrough briefly held a second —
-  a `setTimeout` that advanced it — and that is gone: the visitor pages it with
-  arrows, so there is no timer, no reduced-motion branch to gate, and no live
-  region to silence. Prefer that shape. A demo the reader drives needs none of
-  the machinery a self-advancing one does.
+  everything below. No JS gating class and no scroll listeners. Two
+  IntersectionObservers do exist, in `src/App.jsx`, and neither drives motion:
+  they mark which section and which skill the reader is in so the rail can
+  open the right group.
+- Sprite figures are driven by controls, not by the page. The assembly
+  sequences run from buttons in `src/SequencePanel.jsx`: Play puts the
+  generated keyframes on the document timeline (`data-scrub="play"`), and the
+  frame buttons pause it and seek with a negative `animation-delay`
+  (`data-scrub="step"`). The button demos run from the switcher in
+  `src/Figures.jsx`. Nothing about a sprite depends on scroll position.
+- The wheel scrub that used to be the one sanctioned scroll exception is gone,
+  along with `useWheelScrub`. It existed because `view()` gave a 100-frame
+  sequence about four wheel notches of travel, which was a real problem while
+  the figure lived inside a page you scrolled past. Now the figure is the
+  subject of its own route and a button is the honest control. Two things it
+  left behind that are worth keeping in mind: `--scrub-dur` has to be defined
+  for whichever `data-scrub` mode is active, or the duration and the seek both
+  resolve to nothing and the figure sits on the wrong frame while the counter
+  moves; and a negative `animation-delay` is not re-evaluated on an animation
+  that has already finished, so entering step mode remounts the element.
+- Scroll-driven motion is therefore `.reveal` and nothing else.
 - Never animate opacity on a scroll-driven timeline. The timeline holds an
   element at its start state whenever it cannot advance, so a faded keyframe
   can leave text permanently invisible. Animate transform only.

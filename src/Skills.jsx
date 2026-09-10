@@ -9,13 +9,14 @@ import { skillCredits } from "./skillCredits";
    project's data flow, so nothing here reads a project or borrows a project
    figure.
 
-   The pin mechanics are the part worth keeping. Each stage is a tall track
-   holding a sticky frame, and the copy animates off the TRACK's travel rather
-   than the frame's, because a view() timeline on anything inside the frame
-   freezes the moment the frame pins: a pinned element's position in the
-   scrollport stops changing, so its own timeline has nothing left to measure.
-   The track declares the timeline name in CSS; this file only supplies the
-   element and the data attribute the rail spies on.
+   Stacked, not pinned. The pinned version held each stage still while its
+   track scrolled past, which took three viewports of scroll per skill and
+   made eight of them a very long page. These are ordinary sections using the
+   same .reveal entrance as the rest of the site, so nothing here is
+   scroll-driven and there is no fallback to reason about.
+
+   data-stage-id stays: it is what the rail spies on to mark the current
+   skill.
    -------------------------------------------------------------------------- */
 
 const creditBySlug = new Map(skillCredits.map((entry) => [entry.slug, entry]));
@@ -65,7 +66,7 @@ const SkillStage = memo(function SkillStage({ skill }) {
     <div className="stage-track" data-stage-id={skill.id} id={`skill-${skill.id}`}>
       <div className="stage-frame">
         <div className="container stage-grid">
-          <div className="stage-body">
+          <div className="stage-body reveal">
             <p className="stage-num">{skill.n}</p>
             <h3 className="stage-title">{skill.title}</h3>
             <p className="stage-subtitle">{skill.subtitle}</p>

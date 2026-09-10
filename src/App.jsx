@@ -18,9 +18,9 @@ const THEME_KEY = "theme";
 /* --------------------------------------------------------------------------
    Shell
    Masthead, theme, rail, and the two routes. Every scroll-aware behaviour
-   below is an IntersectionObserver; there is no scroll listener on the page.
-   The one documented exception on this site is the wheel scrub on a rig
-   figure, which lives in src/useWheelScrub.js and is scoped to one element.
+   below is an IntersectionObserver, used to mark where the reader is; there
+   is no scroll listener anywhere on the site, and nothing a sprite does
+   depends on scroll position.
    -------------------------------------------------------------------------- */
 
 function readStoredTheme() {
@@ -130,7 +130,6 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [activeStage, setActiveStage] = useState(null);
-  const [pinned, setPinned] = useState(false);
   const { sentinelRef, stuck } = useStuckHeader();
   const mainRef = useRef(null);
 
@@ -275,8 +274,6 @@ export default function App() {
           route={route}
           activeSection={activeSection}
           activeStage={activeStage}
-          pinned={pinned}
-          onTogglePin={() => setPinned((value) => !value)}
           onJump={onJump}
         />
 

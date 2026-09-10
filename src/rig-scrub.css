@@ -40,39 +40,28 @@
     animation-range: cover 22% cover 78%;
   }
 
-  /* ---- inside a pinned narrative stage ---------------------------------
+  /* The pinned-stage rule that used to sit here is gone with the pin: no
+     figure stands on a narrative stage any more, so there is no --stage
+     timeline to re-bind to. */
 
-     A figure in a position: sticky frame is the one case view() cannot
-     handle. view() maps progress to the element's position in the
-     scrollport, and a pinned element's position stops changing - so the
-     moment the stage frame sticks, the sequence freezes on whatever frame the
-     pin position happens to resolve to, and 100 frames become one still.
-     Measured on the shipped spine: the figure held frame ~50 for the entire
-     three viewports of scroll the stage owns.
-
-     The fix is to animate off the TRACK rather than off the figure. The
-     track (src/spa.css section 9) declares view-timeline-name: --stage and is
-     NOT sticky, so its own travel through the viewport is the real progress
-     of the stage. The figure attaches to that name; the lookup walks
-     ancestors, and the track is one.
-
-     The range is chosen to line up with the pin. A scrub track is 300vh
-     against a ~100vh frame, so cover spans 400vh and the frame is pinned from
-     cover 25% to cover 75%. Scrubbing exactly that window means the whole
-     assembly plays while the stage is held still, and no frame advances while
-     the figure is half off screen. At 200vh of pinned travel that is roughly
-     20px per frame - about six times the resolution plain view() gave, for no
-     extra page height. */
-  .stage-track .rig-figure[data-figure].is-live {
-    animation-timeline: --stage;
-    animation-range: cover 25% cover 75%;
+  /* The attribute takes specificity to 0,4,0, above the 0,3,0 of the
+     generated rules, so these win regardless of import order. "step" is the
+     name the buttons use; "wheel" is kept as an alias so the wheel hook, if
+     it is ever wired back up, still lands on the same rule. */
+  /* Played, not scrolled. The generated rule binds the sequence to view(),
+     which means the page's scroll position drives it; on a project page the
+     figure is the subject rather than something you pass, so it runs from a
+     button instead. animation-timeline: auto puts it back on the document
+     timeline, where duration and play-state mean what they say. */
+  .rig-figure[data-figure].is-live[data-scrub="play"] {
+    animation-timeline: auto;
+    animation-duration: var(--play-dur, 7s);
+    animation-iteration-count: 1;
+    animation-delay: 0s;
+    animation-play-state: running;
   }
 
-  /* The attribute takes specificity to 0,4,0, above the 0,3,0 of the generated
-     rules, so this wins regardless of import order. It also has to come after
-     the .stage-track rule above, which is 0,4,0 as well: equal specificity, so
-     source order is what keeps a click-engaged scrub in charge of a figure
-     that is standing on a narrative stage. */
+  .rig-figure[data-figure].is-live[data-scrub="step"],
   .rig-figure[data-figure].is-live[data-scrub="wheel"] {
     /* Back to the document timeline. animation-range comes with view() and is
        ignored once the timeline is auto, so it does not need unsetting. */
@@ -98,29 +87,24 @@
   }
 }
 
-/* Armed but not engaged: the scroll timeline is still driving, and the figure
-   is offering to hand over. Clickable, so it says so. */
-.rig-figure[data-scrub-armed="1"] {
-  cursor: pointer;
-}
 
-/* The offer is worthless if nobody knows it is there, and the caption is the
-   only place to say it. :has() keeps it truthful - the sentence appears only
-   where the hook actually armed, so a touch device or a reduced-motion
-   visitor is never told to click something that does nothing. */
-.rig-figure-wrap:has(.rig-figure[data-scrub-armed="1"]) .rig-figure-caption::after {
-  content: " Click it to step frame by frame.";
-}
 
-.rig-figure[data-scrub="wheel"] {
+/* Both stepping modes need this, and it was the cause of a real bug: scoped
+   to "wheel" alone, a figure in "step" mode had no --scrub-dur, so both
+   animation-duration and the delay calc above resolved to nothing and the
+   figure sat on whichever frame it was already showing while the counter
+   moved. */
+.rig-figure[data-scrub="wheel"],
+.rig-figure[data-scrub="step"] {
   /* Any finite non-zero value works; it is only ever a denominator for the
      seek above, never a duration anyone waits through. */
   --scrub-dur: 100s;
+}
 
-  /* The wheel is doing something other than scrolling the page here, so the
-     panel should not look inert. Cursor only: AGENTS.md reserves --accent for
-     interactive elements, and a lift or glow would fight the calm motion
-     language for something that is really just a hint. */
+/* Wheel only. In step mode the buttons are the control and the cursor should
+   not promise a gesture that does nothing. AGENTS.md reserves --accent for
+   interactive elements, so this is cursor and nothing else. */
+.rig-figure[data-scrub="wheel"] {
   cursor: ns-resize;
 }
 

@@ -1,67 +1,54 @@
-import { useEffect, useState } from "react";
 import { workNeighbours } from "./siteData";
 import { AppLink } from "./router";
-import { ScrubFigure, SpriteStage } from "./Figures";
+import { SpriteStage } from "./Figures";
+import SequencePanel from "./SequencePanel";
 
 /* --------------------------------------------------------------------------
    Project page
-   The reason these routes exist: the work grid affords a plated cell about
-   480px, and a 520px sprite cell cannot hold a readable filename. Here the
-   figure gets the full column, and the technical body gets room to be more
-   than three sentences.
+   The reason these routes exist: on the home grid a plated cell is about
+   420px, and a 520px sprite cell cannot hold a readable filename. Here the
+   figure gets the whole column and the body gets room to be more than three
+   sentences.
 
-   Leaving is deliberately overserved. The masthead wordmark, the breadcrumb
-   above the title, the rail, and the index link between previous and next are
-   four ways back, because the bottom of a project page is the easiest place
-   on a site to trap somebody.
+   Organised in four zones rather than one column of prose:
+
+     identity     what it is, who did what, and the stack by layer
+     mechanism    every figure, each run from a control
+     argument     the problem, the approach, what was built
+     detail       repo-derived, each part citing its files
+
+   Nothing on the page is driven by scroll position. The assembly sequences
+   run from buttons in SequencePanel and the demos run from the switcher in
+   SpriteStage, so a reader decides what moves and when.
+
+   Leaving is deliberately overserved: the masthead wordmark, the breadcrumb
+   above the title, the rail, and the index link between previous and next.
+   The bottom of a project page is the easiest place on a site to trap
+   somebody.
    -------------------------------------------------------------------------- */
 
-/* The scroll figure's sheet is 1 to 3MB and is not fetched until this flips.
-   On the grid a closed disclosure gated it; here the figure leads the page, so
-   the gate is an explicit control instead. Under reduce the generated CSS
-   never attaches a sheet, so the control would download megabytes to show the
-   poster that is already up, and it is not rendered at all. */
-function ScrubPanel({ project }) {
-  const [live, setLive] = useState(false);
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-
+function StackPanel({ stack }) {
+  if (!stack || !stack.length) return null;
   return (
-    <figure className="project-figure">
-      <ScrubFigure
-        figureId={project.figure}
-        frames={project.figureFrames}
-        label={project.figureLabel}
-        live={live}
-      />
-      <figcaption className="project-figure-caption">
-        {reduced ? (
-          <span>{project.figureLabel}</span>
-        ) : live ? (
-          <span>
-            Full assembly sequence, {project.figureFrames} frames. Scroll to build,
-            or click it to step frame by frame.
-          </span>
-        ) : (
-          <button type="button" className="btn btn--quiet" onClick={() => setLive(true)}>
-            Load the assembly sequence
-          </button>
-        )}
-      </figcaption>
-    </figure>
+    <div className="project-stack">
+      {stack.map((layer) => (
+        <div className="project-layer" key={layer.group}>
+          <h3 className="project-layer-name">{layer.group}</h3>
+          <ul className="project-layer-items">
+            {layer.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 
 export default function ProjectPage({ project }) {
   const { prev, next } = workNeighbours(project.id);
   const demos = project.demos || [];
+  const hasMechanism = Boolean(project.figure) || demos.length > 0;
 
   return (
     <article className="project">
@@ -72,79 +59,76 @@ export default function ProjectPage({ project }) {
         <h1 className="project-title">{project.title}</h1>
         <p className="project-summary">{project.summary}</p>
 
-        <dl className="project-meta">
-          <div className="project-meta-row">
-            <dt>Role</dt>
-            <dd>{project.role}</dd>
-          </div>
-          <div className="project-meta-row">
-            <dt>Stack</dt>
-            <dd>
-              <ul className="project-tools">
-                {project.tools.map((tool) => (
-                  <li key={tool}>{tool}</li>
-                ))}
-              </ul>
-            </dd>
-          </div>
-        </dl>
+        <div className="project-role">
+          <h2 className="project-kicker">Contribution</h2>
+          <p>{project.role}</p>
+        </div>
       </header>
 
-      {project.figure ? (
-        <div className="container">
-          <ScrubPanel project={project} />
-        </div>
-      ) : null}
+      <section className="container project-section" aria-labelledby="stack-heading">
+        <h2 className="project-kicker" id="stack-heading">
+          Stack
+        </h2>
+        <StackPanel stack={project.stack} />
+      </section>
 
-      {demos.length ? (
-        <div className="container">
-          <SpriteStage demos={demos} className="project-demo" />
-        </div>
+      {hasMechanism ? (
+        <section className="container project-section" aria-labelledby="mechanism-heading">
+          <h2 className="project-kicker" id="mechanism-heading">
+            Mechanism
+          </h2>
+          {project.figure ? <SequencePanel project={project} /> : null}
+          {demos.length ? <SpriteStage demos={demos} className="project-demo" /> : null}
+        </section>
       ) : null}
 
       <div className="container project-body">
         <section className="project-block">
-          <h2>Problem</h2>
+          <h2 className="project-kicker">Problem</h2>
           <p>{project.challenge}</p>
         </section>
 
         <section className="project-block">
-          <h2>Approach</h2>
+          <h2 className="project-kicker">Approach</h2>
           <p>{project.approach}</p>
         </section>
 
         <section className="project-block">
-          <h2>Implementation</h2>
+          <h2 className="project-kicker">What was built</h2>
           <ul className="project-list">
             {project.bullets.map((bullet) => (
               <li key={bullet}>{bullet}</li>
             ))}
           </ul>
         </section>
-
-        {/* Repo-derived depth. Absent until a project's sources have been read,
-            and simply not rendered when there is nothing to say, because an
-            empty heading reads as a broken page rather than as work in
-            progress. */}
-        {project.deepDive && project.deepDive.length ? (
-          <section className="project-block">
-            <h2>Deep dive</h2>
-            {project.deepDive.map((part) => (
-              <div className="project-deep" key={part.heading}>
-                <h3>{part.heading}</h3>
-                {part.body.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
-                {part.source ? <p className="project-source">{part.source}</p> : null}
-              </div>
-            ))}
-          </section>
-        ) : null}
       </div>
+
+      {/* Repo-derived depth. Not rendered at all when a project has no source
+          to cite, because an empty heading reads as a broken page rather than
+          as work in progress. */}
+      {project.deepDive && project.deepDive.length ? (
+        <section className="container project-detail" aria-labelledby="detail-heading">
+          <h2 className="project-kicker" id="detail-heading">
+            Implementation detail
+          </h2>
+          {project.deepDive.map((part) => (
+            <div className="project-deep" key={part.heading}>
+              <h3>{part.heading}</h3>
+              {part.body.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+              {part.source ? <p className="project-source">{part.source}</p> : null}
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       <nav className="container project-nav" aria-label="Other projects">
         {prev ? (
-          <AppLink className="project-nav-link project-nav-link--prev" href={`/work/${prev.project.id}`}>
+          <AppLink
+            className="project-nav-link project-nav-link--prev"
+            href={`/work/${prev.project.id}`}
+          >
             <span className="project-nav-dir">Previous</span>
             <span className="project-nav-title">{prev.short}</span>
           </AppLink>
@@ -157,7 +141,10 @@ export default function ProjectPage({ project }) {
         </AppLink>
 
         {next ? (
-          <AppLink className="project-nav-link project-nav-link--next" href={`/work/${next.project.id}`}>
+          <AppLink
+            className="project-nav-link project-nav-link--next"
+            href={`/work/${next.project.id}`}
+          >
             <span className="project-nav-dir">Next</span>
             <span className="project-nav-title">{next.short}</span>
           </AppLink>
