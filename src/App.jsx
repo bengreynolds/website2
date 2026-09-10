@@ -201,7 +201,11 @@ export default function App() {
 
   return (
     <NavigateProvider navigate={navigate}>
-      <div className="page-shell">
+      {/* The rail is permanently open on a project route, so the shell has to
+          reserve its full width there. On home it reserves only the collapsed
+          strip and the opening rail overlays, which is what stops the article
+          reflowing every time the rail breathes. */}
+      <div className="page-shell" data-route={route.name}>
         <a className="skip-link" href="#main">
           Skip to content
         </a>

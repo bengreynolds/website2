@@ -830,6 +830,13 @@ summary {
     padding-left: var(--rail-w-strip);
   }
 
+  /* A project route has no spine to spy on, so the rail's work group is
+     always open there. An always-open overlay would sit on top of the
+     reading column, so this route reserves the full width instead. */
+  .page-shell[data-route="work"] {
+    padding-left: var(--rail-w);
+  }
+
   .rail {
     position: fixed;
     left: 0;
