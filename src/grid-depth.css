@@ -13,7 +13,18 @@
    load-bearing: the generated sprite CSS computes background-size as a
    percentage of a square cell. translateZ changes the projection, never the
    layout box, so the ratio survives - but nothing in this file may set
-   width, height or aspect-ratio on it. */
+   width, height or aspect-ratio on it.
+
+   Every rule below establishes a containing block for absolutely positioned
+   descendants - transform does, and so does transform-style: preserve-3d.
+   That is why .tile-link is a child of .tile and not of the heading: an
+   inset: 0 overlay inside this subtree sizes itself to the nearest
+   transformed ancestor, which once shrank the tile's click target from
+   386x557 to 281x124. Two invariants follow, and both live in spa.css: the
+   link is anchored to .tile, and .tile-plate and .tile-read are
+   pointer-events: none so the raised elements do not take the hit in front
+   of it. Add depth to another element inside the tile and it must be
+   pointer-transparent too. */
 
 @media (hover: hover) and (pointer: fine) {
   @media (prefers-reduced-motion: no-preference) {

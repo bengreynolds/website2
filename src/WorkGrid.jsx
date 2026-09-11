@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink, isPlainClick } from "./router";
@@ -33,6 +33,7 @@ const Tile = memo(function Tile({ entry }) {
      so its tile shows the poster as an image and its animation lives on the
      project page. */
   const playable = shot && shot.kind === "demo" ? shot.id : null;
+  const titleId = `tile-title-${project.id}`;
 
   /* Bumping runs remounts the plate, which is the reliable way to restart a
      CSS animation. Hover and focus are intent, so the sheet is fetched there
@@ -41,7 +42,14 @@ const Tile = memo(function Tile({ entry }) {
 
   /* Only the tile being entered is named, and only while it is being entered.
      Two elements sharing a view-transition-name aborts the transition, so
-     naming all nine up front would break every navigation. */
+     naming all nine up front would break every navigation.
+
+     Nothing resets this, and that is only safe because HomePage unmounts on
+     navigate, which takes the name with it. If the grid is ever kept mounted
+     across a route change - a cached home, a modal route, a transition that
+     animates home out rather than replacing it - the name is stranded here,
+     the project page's figure claims the same name, and every later
+     transition aborts. Whoever makes that change owns resetting this. */
   const [leaving, setLeaving] = useState(false);
 
   const play = () => {
@@ -91,20 +99,8 @@ const Tile = memo(function Tile({ entry }) {
         <span className="tile-num" aria-hidden="true">
           {n}
         </span>
-        <h3 className="tile-title">
-          <AppLink
-            className="tile-link"
-            href={`/work/${project.id}`}
-            onFocus={() => playable && warmSprites([playable])}
-            onClick={(event) => {
-              /* A modifier-click opens a new tab without unmounting this
-                 grid, so naming the plate on one would strand the name and
-                 abort every later transition. */
-              if (isPlainClick(event)) setLeaving(true);
-            }}
-          >
-            {project.title}
-          </AppLink>
+        <h3 className="tile-title" id={titleId}>
+          {project.title}
         </h3>
         <ul className="tile-tools">
           {project.tools.map((tool) => (
@@ -112,6 +108,26 @@ const Tile = memo(function Tile({ entry }) {
           ))}
         </ul>
       </div>
+
+      {/* The link covers the whole panel, so it is a child of the tile rather
+          than of the heading: grid-depth.css gives .tile-read and its
+          children 3D transforms, and every one of those is a containing
+          block, so an overlay raised from inside the heading would size
+          itself to the title text instead of to the tile. See the .tile-link
+          note in spa.css. It is last so it paints over the content, and it
+          takes its accessible name from the heading. */}
+      <AppLink
+        className="tile-link"
+        href={`/work/${project.id}`}
+        aria-labelledby={titleId}
+        onFocus={() => playable && warmSprites([playable])}
+        onClick={(event) => {
+          /* A modifier-click opens a new tab without unmounting this grid,
+             so naming the plate on one would strand the name and abort every
+             later transition. */
+          if (isPlainClick(event)) setLeaving(true);
+        }}
+      />
     </article>
   );
 });
@@ -122,14 +138,19 @@ export default function WorkGrid() {
      in grid-depth.css. Writing the properties straight to the node rather
      than through state is deliberate - this fires at pointer rate, and a
      re-render per frame would be nine reconciliations for two numbers that
-     only CSS consumes. */
-  const track = useCallback((event) => {
+     only CSS consumes.
+
+     Plain functions, not useCallback: WorkGrid holds no state, so it renders
+     once and there is no identity to preserve. They are passed to a DOM
+     element, not to the memoised Tile, so a new identity would not re-render
+     anything either. */
+  const track = (event) => {
     const tile = event.target.closest(".tile");
     if (!tile) return;
     const box = tile.getBoundingClientRect();
     tile.style.setProperty("--px", ((event.clientX - box.left) / box.width - 0.5).toFixed(3));
     tile.style.setProperty("--py", ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
-  }, []);
+  };
 
   /* Clearing on leave lets tiles fall back to their resting transform rather
      than freezing at whatever angle the pointer left them at.
@@ -139,12 +160,12 @@ export default function WorkGrid() {
      event.target is the grid itself - closest(".tile") returns null from
      there, so the closest() version would clear nothing and leave the last
      hovered tile stuck tilted. */
-  const release = useCallback((event) => {
+  const release = (event) => {
     event.currentTarget.querySelectorAll(".tile").forEach((tile) => {
       tile.style.removeProperty("--px");
       tile.style.removeProperty("--py");
     });
-  }, []);
+  };
 
   return (
     <section id="projects" className="section section--tinted">
