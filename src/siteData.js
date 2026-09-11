@@ -1072,10 +1072,10 @@ export const skills = [
     image: "03-cad",
     lede: "Enclosures, mechanisms and mounts, designed toward the constraints that actually decide the part: how it is cut, how it seals, whether a cable reaches its connector, and whether a person can service it afterwards. Printed parts for iteration, machined and waterjet panels for anything that has to hold.",
     readout: [
-      { label: "CAD", value: "Fusion 360, Inventor, SolidWorks" },
+      { label: "CAD", value: "Fusion 360, Inventor, SolidWorks, Blender" },
       { label: "Modeling", value: "parametric solids, assemblies and mates, sheet metal, weldments, motion studies" },
       { label: "Design for manufacture", value: "tolerancing, press and clearance fits, O-ring seals, fastener stacks, cable routing" },
-      { label: "Fabrication", value: "FDM, SLA, CNC machining, laser cutting, waterjet, extruded aluminium framing" },
+      { label: "Fabrication", value: "FDM, SLA, Bambu Lab, CNC machining, laser cutting, waterjet, extruded aluminium framing" },
       { label: "Release", value: "2D drawings, STEP, DXF, STL, BOM, cut files" },
     ],
   },

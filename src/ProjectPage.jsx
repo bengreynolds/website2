@@ -2,7 +2,7 @@ import { workNeighbours } from "./siteData";
 import { AppLink } from "./router";
 import { SpriteStage } from "./Figures";
 import SequencePanel from "./SequencePanel";
-import { Tool } from "./Logos";
+import { LogoArray } from "./Logos";
 
 /* --------------------------------------------------------------------------
    Project page
@@ -35,15 +35,9 @@ function StackPanel({ stack }) {
       {stack.map((layer) => (
         <div className="project-layer" key={layer.group}>
           <h3 className="project-layer-name">{layer.group}</h3>
-          {/* A stack item is already a whole token, so it goes to Tool
-              directly rather than through ToolList. Most items here are
-              counts and parts rather than products - "215-part enclosure",
-              "nine custom drivers" - and those render exactly as written. */}
           <ul className="project-layer-items">
             {layer.items.map((item) => (
-              <li key={item}>
-                <Tool name={item} />
-              </li>
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </div>
@@ -76,7 +70,20 @@ export default function ProjectPage({ project }) {
         <h2 className="project-kicker" id="stack-heading">
           Stack
         </h2>
-        <StackPanel stack={project.stack} />
+        {/* The marks sit in their own column beside the layers, never among
+            them. A stack layer is mostly counts and parts - "215-part
+            enclosure", "nine custom drivers" - so most projects resolve to
+            one or two marks and the rail declines to draw itself; see the
+            note on `min` in Logos.jsx. The rig is the project this is really
+            for, where the stack does name four products. */}
+        <div className="project-stack-wrap">
+          <StackPanel stack={project.stack} />
+          <LogoArray
+            className="logo-array--rail"
+            min={3}
+            values={(project.stack || []).flatMap((layer) => layer.items || [])}
+          />
+        </div>
       </section>
 
       {hasMechanism ? (

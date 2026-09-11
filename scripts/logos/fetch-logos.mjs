@@ -41,12 +41,18 @@ const DEV_SVG = (n, variant) =>
 
 /* Simple Icons marks: single-path and monochrome, so the page colours them
    with the brand hex and can lift that hex where a ground needs it.
+
+   Some entries list a version-suffixed spelling as well ("Rust 1.70",
+   "TensorFlow 2.10.1"). The project stacks pin versions in the item text, and
+   matching stays exact, so the pinned spelling has to be listed to resolve.
+   Listing them beats loosening the match: a prefix rule that caught
+   "Rust 1.70" also caught every sentence starting with C.
    id: [slug, display label, ...strings in siteData.js that mean it] */
 const MONO = {
   python: ["python", "Python", "Python"],
   cplusplus: ["cplusplus", "C++", "C++"],
   c: ["c", "C", "C"],
-  rust: ["rust", "Rust", "Rust", "Cargo"],
+  rust: ["rust", "Rust", "Rust", "Cargo", "Rust 1.70"],
   javascript: ["javascript", "JavaScript", "JavaScript"],
   typescript: ["typescript", "TypeScript", "TypeScript"],
   bash: ["gnubash", "Bash", "Bash", "bash"],
@@ -65,7 +71,7 @@ const MONO = {
   arduino: ["arduino", "Arduino", "Arduino"],
   stm32: ["stmicroelectronics", "STM32", "STM32", "STM32 HAL", "STM32G474RET"],
   kicad: ["kicad", "KiCad", "KiCad"],
-  tensorflow: ["tensorflow", "TensorFlow", "TensorFlow"],
+  tensorflow: ["tensorflow", "TensorFlow", "TensorFlow", "TensorFlow 2.10.1"],
   pytorch: ["pytorch", "PyTorch", "PyTorch"],
   sklearn: ["scikitlearn", "scikit-learn", "scikit-learn"],
   opencv: ["opencv", "OpenCV", "OpenCV"],
@@ -86,8 +92,8 @@ const MONO = {
   ],
   docker: ["docker", "Docker", "Docker"],
   git: ["git", "Git", "git", "Git hooks"],
-  linux: ["linux", "Linux", "Linux", "Ubuntu x86_64"],
-  conda: ["anaconda", "conda", "conda", "Conda"],
+  linux: ["linux", "Linux", "Linux", "Ubuntu x86_64", "Ubuntu 22.04 x86_64"],
+  conda: ["anaconda", "conda", "conda", "Conda", "Conda environment"],
   pip: ["pypi", "pip", "pip"],
   blender: ["blender", "Blender", "Blender"],
   bambulab: ["bambulab", "Bambu Lab", "Bambu Lab"],

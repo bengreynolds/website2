@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
-import { ToolList } from "./Logos";
+import { LogoArray } from "./Logos";
 
 /* --------------------------------------------------------------------------
    Skills
@@ -113,21 +113,21 @@ const SkillStage = memo(function SkillStage({ skill }) {
               {skill.readout.map((row) => (
                 <div className="stage-readout-row" key={row.label}>
                   <dt>{row.label}</dt>
-                  {/* The row's value is still one authored string in
-                      siteData.js; ToolList only splits it on its own commas
-                      to hang a mark off the tokens that name a tool, and
-                      rejoins with the same ", ". The rendered text is what it
-                      was before the marks existed. */}
-                  <dd>
-                    <ToolList value={row.value} />
-                  </dd>
+                  <dd>{row.value}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
+          {/* The marks go in the figure column, under the plate, so they sit
+              beside the readout rather than inside it - and so they inherit
+              the alternating side the asymmetry rules give every stage.
+              Collected from the whole stage rather than per row: one array of
+              what this competence is worked in, deduplicated, in the order
+              the readout names them. */}
           <div className="stage-figure">
             <SkillFigure skill={skill} />
+            <LogoArray values={skill.readout.map((row) => row.value)} />
           </div>
         </div>
       </div>

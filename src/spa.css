@@ -1264,37 +1264,64 @@ summary {
 }
 
 /* ---- brand marks ------------------------------------------------------
-   A tool's own logo beside its name, in the readouts here and in the project
-   stack panels in section 14. Shapes, brand hexes and licences are generated
-   into src/logoCredits.js by scripts/logos/fetch-logos.mjs.
+   The tools a stage or a project is worked in, gathered into one array beside
+   the text instead of threaded through it, and reused by the project stack in
+   section 14. Shapes, brand hexes and licences are generated into
+   src/logoCredits.js by scripts/logos/fetch-logos.mjs.
 
-   Decoration, not information. The tool is named in text immediately beside
-   its mark, so the marks are aria-hidden and a reader who never sees one has
-   lost nothing. A tool with no mark is the normal case, not a gap: most of
-   the strings in these lists name a practice rather than a product.
+   Beside, not inline. Marks set in front of each word turned a readout into a
+   run of coloured interruptions and moved the line box wherever one landed.
+   As a block they are one object, which a reader can take in or skip whole.
 
-   Sized in em so a mark tracks whatever text it sits in and no call site has
-   to pass a size. Accent is untouched here on purpose - these are brand
-   colours on static text, and this sheet reserves --accent for things that
-   can be interacted with. */
-.tool {
-  white-space: nowrap;
+   Decoration, and marked as such in the markup: every tool here is named in
+   the text alongside, so the array is aria-hidden and carries no second copy
+   of the list. A stage whose readout names no products renders no array at
+   all rather than an empty frame.
+
+   Accent is untouched on purpose. These are brand colours on static content,
+   and this sheet reserves --accent for what can be interacted with. */
+.logo-array {
+  /* A fixed column count, not flex-wrap. Wrapping let the marks spread to
+     whatever the column was wide - in the figure column that was fifteen of
+     them in a single 660px line, which is a strip, not an array. Counting
+     columns instead makes the block the same shape wherever it is used and
+     keeps it reading as one object. */
+  /* Declared here rather than in section 1: the cell size is local to this
+     block and the children inherit it, so the column track and the cell can
+     never drift apart. The cell is now exactly the mark - there is no plate
+     behind it - so this one value is the only size to tune. */
+  --logo-cell: 1.75rem;
+  --logo-cols: 6;
+
+  display: grid;
+  grid-template-columns: repeat(var(--logo-cols), var(--logo-cell));
+  gap: clamp(0.85rem, 1.6vw, 1.25rem);
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  justify-content: start;
+}
+
+/* No plate, no border. A bordered cell behind each mark turned the array into
+   a sheet of buttons, which read as interactive on a page where this sheet
+   reserves that reading for things that are. The marks sit on the page ground
+   and the grid alone holds the alignment. */
+.logo-cell {
+  display: grid;
+  place-items: center;
+  width: var(--logo-cell);
+  height: var(--logo-cell);
 }
 
 .mark {
-  width: 1.05em;
-  height: 1.05em;
-  margin-right: 0.32em;
-  /* Optically centred on a mono line rather than sat on the baseline, which
-     left every mark reading half a step low against lowercase text. */
-  vertical-align: -0.17em;
-  flex: none;
+  width: 100%;
+  height: 100%;
 }
 
 /* The fallback chain is the whole mechanism. --mark-light and --mark-dark are
    emitted only onto the marks whose brand hex misses contrast on that
-   particular ground, so every other mark resolves straight through to --mark
-   and ships the exact colour its owner published, in both themes. */
+   particular ground, so every other mark resolves through to --mark and ships
+   the exact colour its owner published, in both themes. */
 .mark[data-tone="mono"] {
   fill: var(--mark-light, var(--mark));
 }
@@ -1303,9 +1330,24 @@ summary {
   fill: var(--mark-dark, var(--mark));
 }
 
-/* Multi-colour marks carry their own fills and are left alone. Nothing here
-   may recolour them: the colour relationships inside the drawing are the
-   mark. */
+/* Multi-colour marks carry their own fills and are left alone. Nothing may
+   recolour them: the colour relationships inside the drawing are the mark. */
+
+/* On a stage the array hangs under the plate, in the figure column, so it
+   picks up whichever side that stage's asymmetry rules put the figure on. */
+.stage-figure .logo-array {
+  margin-top: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+/* Ten to a row once there is width for it, so the array spans the figure
+   column rather than huddling at one end of it. Six below that: ten marks at
+   this size overflow a phone, and the array must never be the thing that
+   makes the page scroll sideways. */
+@media (min-width: 42rem) {
+  .stage-figure .logo-array {
+    --logo-cols: 10;
+  }
+}
 
 /* ---- the skill plate --------------------------------------------------
    A sourced still, or a labelled slot saying which one is missing. The
@@ -2045,6 +2087,29 @@ summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.1rem, 2.5vw, 1.75rem) clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* The stack and its marks. One column until there is width for two, then the
+   array becomes a fixed rail on the right and the layers take what is left -
+   auto rather than a fraction, so the rail is exactly as wide as the marks
+   need and the layer grid never loses a column to it. */
+.project-stack-wrap {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+@media (min-width: 62rem) {
+  .project-stack-wrap {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  /* Three to a row keeps the rail narrow and holds its width steady from
+     project to project, however many tools the stack happens to name. */
+  .logo-array--rail {
+    --logo-cols: 4;
+    margin-top: 0;
+  }
 }
 
 @media (min-width: 42rem) {
