@@ -1,10 +1,7 @@
 import { memo, useEffect, useRef, useSyncExternalStore } from "react";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
 import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
-
-gsap.registerPlugin(ScrollTrigger);
+import { JUMP_AT, MARK_LEAD } from "./deckGeometry";
 
 /* --------------------------------------------------------------------------
    Skills - eight panels dealt off a pinned deck
@@ -17,8 +14,8 @@ gsap.registerPlugin(ScrollTrigger);
 
    The whole of that failure is a single missing number. The old version let
    the pin length fall out of the layout - a track taller than its content,
-   per stage - so nobody ever wrote down what the section cost. Here the cost
-   IS the number, declared once:
+   per stage - so nobody ever wrote down what the section cost. Now the cost
+   IS a number, declared once in src/deckGeometry.js:
 
        DECK_SCROLL_VH = 5
 
@@ -27,22 +24,31 @@ gsap.registerPlugin(ScrollTrigger);
    it sets the spacing of the scroll marks the rail jumps to. Change it and
    every one of those moves together.
 
+   ---- three files, and why -------------------------------------------------
+
+   This one renders the markup and decides which of the two layouts it is.
+   src/deckGeometry.js holds the numbers and imports nothing.
+   src/deckTimeline.js builds the pin and the timeline, and it is imported
+   DYNAMICALLY - because it is the only one of the three that needs GSAP and
+   ScrollTrigger, 45.5kB gzipped that a phone, a reduced-motion reader and a
+   narrow window can never use. The import is armed by an IntersectionObserver
+   about a viewport and a half ahead of the section, which is the same shape
+   of gate the site already puts in front of its sprite sheets.
+
+   Ahead, and not on arrival, for a specific reason: switching from the flow
+   stack to the pinned deck changes the height of the section by several
+   viewports. Armed early that happens below the fold and nothing a reader is
+   looking at moves. Armed late it would happen under them.
+
    ---- what is pinned, and what is not -------------------------------------
 
-   .deck-stage is pinned; .deck is the trigger and keeps its full scroll
-   height because ScrollTrigger's pin spacer stands in for the stage. The
-   eight .deck-mark elements are siblings of that spacer, absolutely
-   positioned against .deck, so they sit at fixed points along the track
-   rather than being carried along with the pin.
-
-   The marks exist because a pinned panel has no scroll position of its own.
-   All eight panels occupy the same 100vh box, so #skill-<id> on a panel would
-   scroll every skill to the same place, and App.jsx's stage observer - a 1%
-   band across the middle of the viewport - would see all eight cross it at
-   once and mark an arbitrary one. Each mark instead spans exactly the slice
-   of the track where its panel is the front card, which makes the observer
-   correct rather than merely alive, and makes a rail jump land on the panel
-   it names. See the geometry note in src/deck.css.
+   .deck-stage is pinned; .deck is the trigger. The eight .deck-mark elements
+   are absolutely positioned against .deck and stand in for the scroll
+   positions a pinned panel does not have - each spans exactly the slice of
+   track where its panel is the front card, which is what makes App.jsx's
+   stage observer correct rather than merely alive and makes a rail jump land
+   on the panel it names. See the geometry note in src/deck.css and the longer
+   one in src/deckTimeline.js.
 
    ---- when the deck does not run -----------------------------------------
 
@@ -50,58 +56,16 @@ gsap.registerPlugin(ScrollTrigger);
    same eight panels in ordinary document flow, and there the panels carry
    #skill-<id> and data-stage-id themselves because they have real positions
    again. Nothing is pinned, nothing is scrubbed, no marks are rendered, and
-   GSAP builds no timeline at all.
+   GSAP is never even fetched.
 
    Both modes are decided at first render from matchMedia, not in an effect,
    so the DOM App.jsx's observer queries on mount is already the right one.
    -------------------------------------------------------------------------- */
 
-/* The one number. Total scroll, in viewport heights, for all eight panels. */
-export const DECK_SCROLL_VH = 5;
-
-/* One unit of the timeline is one panel. Of that unit the panel holds still
-   for DWELL and hands over for the rest, so a reader gets a stationary page
-   of text before it starts moving rather than eight continuously drifting
-   ones. Held here as a fraction because the mark geometry in deck.css assumes
-   unit == panel and nothing else. */
-const DWELL = 0.45;
-const HANDOVER = 1 - DWELL;
-
-/* The three card states. z is what does the work: the front card is on the
-   projection plane, the outgoing card recedes behind the incoming one, and
-   painting order in a preserve-3d stage follows z, so nothing here needs a
-   z-index. */
-const FRONT = { yPercent: 0, z: 0, rotateX: 0 };
-const BELOW = { yPercent: 11, z: -260, rotateX: 7 };
-const RECEDED = { yPercent: -8, z: -520, rotateX: -13 };
-
-/* Alpha is tweened apart from the transform, and the two windows do not line
-   up, because a linear crossfade of two full pages of text is unreadable in
-   the middle - measured at 0.51 and 0.74 on the first build, which put two
-   ledes on top of each other for a third of a viewport of scroll.
-
-   The cards are opaque (--surface, see deck.css), and the incoming one is in
-   front, so the fix is to stop treating this as a crossfade at all: the
-   incoming card reaches full opacity in the first third of the handover and
-   covers the outgoing one, which only then fades, behind it, where nobody is
-   trying to read it. Fractions of one handover, so they follow DWELL. */
-const FADE_IN = 0.32;
-const FADE_OUT_FROM = 0.55;
-const FADE_OUT = 0.45;
-
-/* Where the reader thinks one card became the next, in units, and how far the
-   scroll marks therefore run ahead of the timeline's own unit boundaries.
-
-   Panel i is the front card for the first DWELL of unit i, and the incoming
-   card is fully opaque and covering it FADE_IN of the handover later - so the
-   card a reader is looking at changes at i + 0.63, not at i + 1. Marking the
-   unit boundaries instead left the rail saying 03 with card 04 filling the
-   screen, which was visible and wrong. */
-const HANDOVER_SEEN = DWELL + HANDOVER * FADE_IN;
-const MARK_LEAD = 1 - HANDOVER_SEEN;
-/* Where a rail jump aims: the middle of the stationary part of a unit, so the
-   card lands still rather than already moving. */
-const JUMP_AT = DWELL / 2;
+/* How far ahead of the section the timeline is fetched. One and a half
+   viewports of margin on each side of the root, so the arming happens while
+   the deck is still comfortably off screen. */
+const ARM_MARGIN = "150% 0px";
 
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 /* A pinned panel is a full viewport of text. Below this it does not fit, and
@@ -265,142 +229,56 @@ export default function Skills() {
     const stage = stageRef.current;
     if (!deck || !stage) return undefined;
 
-    /* data-deck is what switches deck.css from the flow stack to the stacked
-       cards. It is set from the effect rather than from render on purpose: if
-       this module ever fails to run - GSAP missing, an exception in the
-       timeline - the markup is still the readable stack, because the CSS that
-       collapses eight panels onto one box only applies once the code that
-       animates them is known to have run. */
-    deck.dataset.deck = "pinned";
-
-    const ctx = gsap.context(() => {
-      const panels = gsap.utils.toArray(".deck-panel", stage);
-      const count = panels.length;
-      if (!count) return;
-
-      /* The card the reader is looking at. Held here so onUpdate writes to
-         the DOM only when it changes rather than on every scroll frame. */
-      let front = 0;
-      panels[0].dataset.front = "1";
-
-      /* opacity, NOT autoAlpha, and this is the whole of the find-in-page
-         fix. autoAlpha is opacity plus visibility, and it sets
-         visibility: hidden the moment alpha reaches 0 - which takes seven of
-         the eight cards out of find-in-page and out of the accessibility
-         tree. Ctrl-F for any skill but the one on screen found nothing,
-         measured at 1 of 8, and that was a straight regression against the
-         <details> version this replaced, where all eight were always
-         findable. Plain opacity leaves the text rendered, so it is found,
-         announced and selectable-by-search while still being invisible.
-         content-visibility: hidden would have the same problem. */
-      gsap.set(panels[0], { ...FRONT, opacity: 1 });
-      gsap.set(panels.slice(1), { ...BELOW, opacity: 0 });
-
-      /* An empty tween sets the length so the timeline is exactly one unit
-         per panel: panel i is the front card over [i, i+1). Everything below
-         is inserted at an absolute position in those units, so the mark
-         geometry in deck.css and this timeline share one grid. */
-      const tl = gsap.timeline({ defaults: { ease: "none", immediateRender: false } });
-      tl.to({}, { duration: count });
-
-      for (let i = 0; i < count - 1; i += 1) {
-        const at = i + DWELL;
-        const out = panels[i];
-        const next = panels[i + 1];
-
-        /* Transforms run the full handover at a constant rate: the scrub is
-           the reader's hand, and an ease on top of it makes the card lag the
-           wheel rather than follow it. */
-        tl.fromTo(out, FRONT, { ...RECEDED, duration: HANDOVER }, at);
-        tl.fromTo(next, BELOW, { ...FRONT, duration: HANDOVER }, at);
-
-        tl.fromTo(
-          next,
-          { opacity: 0 },
-          { opacity: 1, duration: HANDOVER * FADE_IN, ease: "power2.out" },
-          at
-        );
-        tl.fromTo(
-          out,
-          { opacity: 1 },
-          { opacity: 0, duration: HANDOVER * FADE_OUT, ease: "power1.in" },
-          at + HANDOVER * FADE_OUT_FROM
-        );
-      }
-
-      ScrollTrigger.create({
-        animation: tl,
-        trigger: deck,
-        start: "top top",
-        /* The whole point. A function so it is re-evaluated on every refresh
-           rather than frozen at the viewport height the page happened to load
-           at, and the only place the section's scroll cost is decided. */
-        end: () => `+=${DECK_SCROLL_VH * window.innerHeight}`,
-        pin: stage,
-        pinSpacing: true,
-        /* A little smoothing, not a lag: 0.3s of catch-up keeps a trackpad
-           flick from snapping through three cards in one frame. */
-        scrub: 0.3,
-        invalidateOnRefresh: true,
-        /* Two numbers out to CSS, which derives the marks from them. Taken
-           from the trigger rather than recomputed so they cannot disagree
-           with the pin that actually ran. */
-        onRefresh: (self) => {
-          const span = self.end - self.start;
-          deck.style.setProperty("--deck-vh", `${window.innerHeight}px`);
-          deck.style.setProperty("--deck-step", `${span / count}px`);
-        },
-        /* Which card the reader is looking at, out to CSS as data-front, and
-           the only thing CSS uses it for is pointer-events.
-
-           That became necessary with the line above. While the cards were
-           visibility: hidden they were not hit targets; at opacity 0 they
-           are, and seven full-viewport cards stacked on the one being read
-           would swallow every click and every drag-select in the section.
-
-           Same arithmetic as the scroll marks in deck.css, deliberately: the
-           card a reader sees changes at unit i + HANDOVER_SEEN, which is
-           floor(t + MARK_LEAD). Two places agreeing by construction rather
-           than by coincidence. */
-        onUpdate: (self) => {
-          const t = self.progress * count;
-          const seen = Math.min(count - 1, Math.max(0, Math.floor(t + MARK_LEAD)));
-          if (seen === front) return;
-          front = seen;
-          panels.forEach((panel, i) => {
-            if (i === seen) panel.dataset.front = "1";
-            else delete panel.dataset.front;
-          });
-        },
-      });
-    }, deck);
-
-    /* The deck's start position depends on where the section head ends, which
-       depends on which font is drawing it. Without this the pin begins a few
-       dozen pixels off on a cold load and every mark inherits the error. */
+    /* The timeline, and GSAP with it, is fetched on approach rather than on
+       mount. Everything below is the arming: one observer, fired once, and a
+       teardown that has to be correct in three states - before the import is
+       started, while it is in flight, and after it has built the deck. */
     let cancelled = false;
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        if (!cancelled) ScrollTrigger.refresh();
-      });
+    let armed = false;
+    let teardown = null;
+
+    const arm = () => {
+      if (cancelled || armed) return;
+      armed = true;
+      import("./deckTimeline")
+        .then(({ buildDeck }) => {
+          /* The reader may have resized into the flow layout, or navigated
+             away, while the chunk was in flight. Building the deck then would
+             pin a section nobody is looking at and leave a spacer behind. */
+          if (cancelled) return;
+          teardown = buildDeck(deck, stage);
+        })
+        .catch(() => {
+          /* A chunk that will not load leaves the markup exactly as it is:
+             eight panels in document flow, which is the same layout reduced
+             motion and a narrow window get, and is readable. data-deck is
+             set inside buildDeck for precisely this reason. */
+          armed = false;
+        });
+    };
+
+    if (typeof IntersectionObserver !== "function") {
+      arm();
+      return () => {
+        cancelled = true;
+        if (teardown) teardown();
+      };
     }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        arm();
+      },
+      { rootMargin: ARM_MARGIN }
+    );
+    observer.observe(deck);
 
     return () => {
       cancelled = true;
-      /* revert() kills the trigger, unwraps the pin spacer and puts every
-         inline style GSAP wrote back, so a mode flip or a route change leaves
-         the plain markup behind rather than eight cards frozen mid-deal. */
-      ctx.revert();
-      /* revert() puts back every inline style GSAP wrote, but data-front is
-         ours. It only means anything under [data-deck="pinned"], so a stale
-         one is inert - removed anyway, because a leftover attribute that
-         happens not to matter is the kind of thing that starts mattering. */
-      deck.querySelectorAll("[data-front]").forEach((panel) => {
-        delete panel.dataset.front;
-      });
-      delete deck.dataset.deck;
-      deck.style.removeProperty("--deck-vh");
-      deck.style.removeProperty("--deck-step");
+      observer.disconnect();
+      if (teardown) teardown();
     };
   }, [dealt]);
 
