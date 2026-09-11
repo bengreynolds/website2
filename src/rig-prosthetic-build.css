@@ -54,6 +54,14 @@
       }
     }
   }
+
+  /* There is deliberately no @supports not (...) fallback here. main carried
+     one for a while, adding the sheet and a paused animation back for engines
+     without a view() timeline. It was solving the same bug from the other end,
+     and keeping both would attach the sheet twice and then let the fallback -
+     0,4,0 on [data-scrub], against 0,3,0 above - win and hold every sequence
+     paused on frame 0 in exactly the browsers the fix was for. The block above
+     is unconditional, so nothing needs adding back. */
 }
 
 @keyframes rig-prosthetic-build {

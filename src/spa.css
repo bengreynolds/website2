@@ -1499,6 +1499,19 @@ summary {
   color: var(--text-subtle);
 }
 
+/* The buildup figure's sheet, grid and keyframes are NOT here. They live in
+   src/rig-buildup.css, which the generator writes whole, exactly as
+   src/rig-prosthetic-build.css already did.
+
+   Both branches fixed the same bug a day apart - assembly sequences never
+   animated in Firefox or Safari, because the sheet and the animation-name sat
+   inside @supports (animation-timeline: view()). main patched it here with an
+   added @supports not (...) block for this one figure; design/site-e fixed it
+   at the source by moving the whole block into the generated file and leaving
+   only the view() timeline binding conditional, which repaired every rig-*.css
+   rather than buildup alone. This merge keeps that one and drops the patch,
+   because carrying both would have declared the same figure twice from two
+   files with the generated one importing later and silently winning. */
 /* Both figures share one grid column; the prose keeps the other. Without this
    wrapper the grid auto-places three children and the text drops to a second
    row underneath. */
@@ -1767,23 +1780,40 @@ summary {
      print straight through the panel edge. "Autonomous" at --step-2 is wider
      than the column a plate-left tile leaves. */
   overflow-wrap: break-word;
-}
-
-.tile-link {
-  color: inherit;
   transition: color var(--dur-fast) var(--ease);
 }
 
-.tile:hover .tile-link {
-  color: var(--accent);
-}
-
 /* Stretched hit area, so the whole panel is clickable while exactly one
-   thing in it is focusable. */
-.tile-link::after {
-  content: "";
+   thing in it is focusable.
+
+   It is a real <a> sized to the tile, not a pseudo-element raised from
+   inside the heading, and it has to be a child of .tile to stay that way.
+   grid-depth.css puts transform-style: preserve-3d on .tile-read and a
+   translateZ on its children; each of those establishes a containing block
+   for absolutely positioned descendants, so an inset: 0 overlay grown from
+   the title resolves against the title and collapses to the width of the
+   text. Anchoring the link to .tile keeps it out of that 3D subtree. The
+   heading names it through aria-labelledby, so it still announces as the
+   project title. */
+.tile-link {
   position: absolute;
   inset: 0;
+}
+
+/* Nothing inside the tile takes the pointer. Under the tilt the plate, the
+   number and the title each sit at their own translateZ, which puts them in
+   front of the link in hit-test order - without this, clicking the plate or
+   the number lands on a div and navigates nowhere. Unconditional rather than
+   inside grid-depth.css's query so hit-testing does not differ by pointer
+   type; the tile text was never drag-selectable anyway, because the old
+   stretched overlay covered it too. */
+.tile-plate,
+.tile-read {
+  pointer-events: none;
+}
+
+.tile:hover .tile-title {
+  color: var(--accent);
 }
 
 .tile-tools {

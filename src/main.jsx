@@ -36,6 +36,11 @@ import "./demo-lickrevolver-trial-close.css";
 import "./demo-lickrevolver-ui.css";
 import "./demo-reach-single.css";
 import "./demo-reach-session.css";
+/* The demo sheets, sprite then live-DOM. Both branches appended here, so the
+   order is: site-e's new sprite demos with the rest of the sprite demos, then
+   the two DOM demos, then main's navigation-depth chrome, which is page
+   furniture rather than a demo and stays last as it was. pipeline-demo.css
+   arrived on both sides and is imported once. */
 import "./demo-lickdetect-build.css";
 import "./demo-lickdetect-reward.css";
 import "./demo-lickreward-port.css";
@@ -43,6 +48,10 @@ import "./demo-hypoxia-loop.css";
 import "./demo-hypoxia-door.css";
 import "./pipeline-demo.css";
 import "./report-demo.css";
+import "./rail-depth.css";
+import "./nav-swap.css";
+import "./grid-depth.css";
+import "./view-transition.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

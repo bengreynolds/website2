@@ -1,0 +1,90 @@
+/* Tile tilt and panel lighting.
+
+   A tilt, not a lift: AGENTS.md prefers hover states that change colour or
+   outline over large translations, and 3 degrees about the tile's own centre
+   moves no edge more than a couple of pixels while still reading as a solid
+   object turning.
+
+   perspective is per tile, in the transform, not shared on .work-grid. The
+   grid carries .reveal, which animates transform on a view() timeline, and a
+   shared vanishing point would make edge tiles skew rather than tilt.
+
+   .tile-plate is not touched here beyond translateZ. Its aspect-ratio is
+   load-bearing: the generated sprite CSS computes background-size as a
+   percentage of a square cell. translateZ changes the projection, never the
+   layout box, so the ratio survives - but nothing in this file may set
+   width, height or aspect-ratio on it.
+
+   Every rule below establishes a containing block for absolutely positioned
+   descendants - transform does, and so does transform-style: preserve-3d.
+   That is why .tile-link is a child of .tile and not of the heading: an
+   inset: 0 overlay inside this subtree sizes itself to the nearest
+   transformed ancestor, which once shrank the tile's click target from
+   386x557 to 281x124. Two invariants follow, and both live in spa.css: the
+   link is anchored to .tile, and .tile-plate and .tile-read are
+   pointer-events: none so the raised elements do not take the hit in front
+   of it. Add depth to another element inside the tile and it must be
+   pointer-transparent too. */
+
+@media (hover: hover) and (pointer: fine) {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (transform-style: preserve-3d) {
+      .tile {
+        transform-style: preserve-3d;
+        transform:
+          perspective(900px)
+          rotateX(calc(var(--py, 0) * -3deg))
+          rotateY(calc(var(--px, 0) * 3deg));
+        transition:
+          border-color var(--dur-fast) var(--ease),
+          transform var(--dur-med) var(--ease),
+          box-shadow var(--dur-med) var(--ease);
+      }
+
+      /* One virtual light, up and to the left, fixed for every tile so the
+         grid reads as nine objects under one lamp rather than nine
+         independently lit cards. The pointer shifts the cast slightly, which
+         is what sells the tilt as rotation rather than as a skew. */
+      /* Two cast shadows and one inset highlight on the lit edges.
+
+         The highlight is inset rather than a border-colour change on purpose.
+         spa.css already sets .tile:hover { border-color: var(--accent) },
+         this file loads after it, and tinting two edges grey would half-erase
+         the one hover affordance the grid has - accent means interactive, and
+         weakening it to imply lighting trades a signal for a decoration. An
+         inset shadow sits inside the border and leaves it entirely alone. */
+      .tile:hover {
+        box-shadow:
+          calc(var(--px, 0) * 10px - 2px) calc(var(--py, 0) * 10px + 6px) 22px
+            -12px rgba(22, 24, 28, 0.28),
+          calc(var(--px, 0) * 4px - 1px) calc(var(--py, 0) * 4px + 2px) 6px -4px
+            rgba(22, 24, 28, 0.18),
+          inset 1px 1px 0 0 rgba(255, 254, 252, 0.5);
+      }
+
+      .tile-plate {
+        transform: translateZ(26px);
+      }
+
+      /* .tile-read is a grid, and a grid's default transform-style is flat:
+         it flattens its children's 3D transforms into its own 2D plane
+         before that plane composites into .tile's 3D space. A pure
+         translateZ has no x/y component, so once flattened it renders
+         identically to translateZ(0) - .tile-num and .tile-title would
+         rotate flush with the tile instead of separating from it. This is
+         the only thing that makes their translateZ below do anything. */
+      .tile-read {
+        transform-style: preserve-3d;
+      }
+
+      .tile-num {
+        display: inline-block;
+        transform: translateZ(40px);
+      }
+
+      .tile-title {
+        transform: translateZ(14px);
+      }
+    }
+  }
+}
