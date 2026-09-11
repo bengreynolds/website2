@@ -1250,6 +1250,30 @@ summary {
       }
     }
   }
+
+  /* Firefox and Safari have no view() timeline, so everything above is
+     skipped - and because the sheet AND the animation-name both live in
+     there, those browsers got no animation at all. SequencePanel's Play
+     button then advanced its frame counter over a frozen poster, which is
+     how the assembly sequences shipped broken in every engine but Chromium.
+
+     These figures are button-driven now, so a scroll timeline is not what
+     they need; they need an animation for rig-scrub.css to retime. Gated on
+     [data-scrub] rather than .is-live so the poster still holds until a
+     control is pressed, and paused at frame 0 until one is - the play and
+     step rules in rig-scrub.css are 0,4,0 and imported later, so they win.
+     SequencePanel preloads the sheet before it sets the attribute, so the
+     swap is a cache hit rather than a flash.
+
+     background-size is not repeated here: rig-buildup.css declares it
+     outside any @supports, so it already applies. */
+  @supports not (animation-timeline: view()) {
+    .rig-figure[data-figure="buildup"].is-live[data-scrub] {
+      background-image: url("/rig/buildup.webp");
+      background-position: 0% 0%;
+      animation: rig-buildup var(--play-dur, 7s) step-end 1 both paused;
+    }
+  }
 }
 
 /* Both figures share one grid column; the prose keeps the other. Without this
