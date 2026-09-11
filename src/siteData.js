@@ -1768,7 +1768,11 @@ function indexShot(project) {
     };
   }
 
-  const demo = project.demos && project.demos.find((entry) => entry.kind !== "walkthrough");
+  /* Only a sprite demo has a poster to show, and a sprite demo is the one with
+     no kind at all. Testing for "not a walkthrough" was the same thing until a
+     second self-rendering kind arrived, and then it handed the tile a report
+     and asked for /rig/<report-id>-poster.webp, which does not exist. */
+  const demo = project.demos && project.demos.find((entry) => !entry.kind);
   if (demo) {
     const id = (demo.ids && demo.ids[0]) || demo.id;
     return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
