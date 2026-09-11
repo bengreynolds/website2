@@ -202,9 +202,12 @@ export default function App() {
     const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
-    /* The skills are closed by default, so jumping to one has to open it.
-       Landing on a collapsed heading looks like the link did nothing. */
-    if (target.tagName === "DETAILS") target.open = true;
+    /* #skill-<id> is not always the panel. With the deck pinned, all eight
+       panels occupy the same box and the id is on a zero-width scroll mark
+       standing at the point on the track where that panel is the front card;
+       the mark carries a scroll-margin-top that re-aims this call. In the
+       flow stack the id is on the panel itself. Either way this is one
+       scrollIntoView and the geometry lives in src/deck.css. */
     target.scrollIntoView({ block: "start" });
   }, []);
 

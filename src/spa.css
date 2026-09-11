@@ -338,7 +338,7 @@ summary {
    one expression rather than a number guessed per element. */
 .section,
 .work-entry,
-.stage-track {
+.deck-panel {
   scroll-margin-top: calc(var(--header-h) + var(--rail-h) + 1rem);
 }
 
@@ -372,20 +372,22 @@ summary {
 
    .rise        hierarchy - a staggered entrance orders the hero at first paint.
    .reveal      sequence  - a 14px settle says a new block has arrived.
-   .stage-body  sequence  - the same settle, driven by the stage's own track so
-                            it still runs while the frame is pinned.
-   sticky stage sequence  - one stage holds the frame at a time, in order.
+   skills deck  sequence  - eight panels dealt off a pinned stage, GSAP
+                            ScrollTrigger, five viewports for the lot.
+                            src/Skills.jsx and src/deck.css.
    sprite scrub content   - scroll position IS the frame index of the assembly.
-   wheel step   feedback  - one wheel notch is exactly one frame (rig-scrub.css).
    demo buttons state     - a mechanism runs because someone asked it to.
    hover/focus  feedback  - 140ms colour and border changes, no lifts.
 
    Nothing else. No parallax, no infinite loops, no blur.
 
    Two hard rules, both learned the expensive way:
-   - Never animate opacity on a scroll-driven timeline. The timeline holds an
-     element at its start state whenever it cannot advance, so a faded
-     keyframe can leave text permanently invisible. Transform only.
+   - Never animate opacity on a scroll-driven CSS timeline. The timeline holds
+     an element at its start state whenever it cannot advance, so a faded
+     keyframe can leave text permanently invisible. Transform only. This is
+     specific to animation-timeline: view(); the deck fades its cards from a
+     GSAP scrub, which writes a value on every scroll and every refresh and is
+     removed entirely when the context reverts.
    - Declare animation-delay only inside prefers-reduced-motion:
      no-preference. Section 17 crushes every duration but leaves delay alone.
    -------------------------------------------------------------------------- */
@@ -986,88 +988,20 @@ summary {
 }
 
 /* --------------------------------------------------------------------------
-   9. Skills - eight stages, stacked
+   9. Skills - eight panels
    --------------------------------------------------------------------------
-   Eight competences, one per stage, in ordinary document flow. The pinned
-   version this replaced held each stage still while its track scrolled past;
-   it read well and it took three viewports of scroll per skill, which made
-   eight of them a very long page and gave a reader no way to move through
-   them at their own pace.
+   The layout of one skill: number and terms, title, lede, readout rows, and
+   a sourced still. Where those eight panels go is src/deck.css, which has two
+   answers - a pinned deck of cards on a roomy desktop, an ordinary stack
+   everywhere else and under reduced motion.
 
-   Nothing here is scroll-driven any more. The copy uses the ordinary .reveal
-   entrance every other section uses, which means no view-timeline name, no
-   track taller than its content, and no fallback to reason about: the
-   stacked layout IS the layout.
+   This section held the eight <details> accordions before that, and a pinned
+   version before those. The accordion's rules are gone; what is left here is
+   the part neither layout changes, which is everything inside a panel.
    -------------------------------------------------------------------------- */
 
 .section--stage {
   background: var(--stage-bg);
-}
-
-.spine {
-  display: grid;
-}
-
-.stage-track {
-  position: relative;
-  border-top: 1px solid var(--rule);
-}
-
-.stage-track:first-child {
-  border-top: 0;
-}
-
-/* ---- the collapsed line ------------------------------------------------
-   Eight of these is the whole section until something is opened, so the row
-   carries the number, the title and the four terms and still has to read as
-   one line rather than as a paragraph. */
-
-.stage-summary {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 0.5rem clamp(0.9rem, 2vw, 1.75rem);
-  align-items: baseline;
-  width: 100%;
-  max-width: var(--content-max);
-  margin-inline: auto;
-  padding: clamp(1.35rem, 3vh, 2.25rem) var(--gutter);
-  cursor: pointer;
-  list-style: none;
-}
-
-/* The default triangle is replaced by the sign at the end of the row, and it
-   needs suppressing in both the standard and the WebKit-prefixed form. */
-.stage-summary::-webkit-details-marker {
-  display: none;
-}
-
-.stage-summary::marker {
-  content: "";
-}
-
-.stage-summary:hover .stage-title,
-.stage-track[open] .stage-summary .stage-title {
-  color: var(--accent);
-}
-
-.stage-summary:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
-}
-
-.stage-heading {
-  display: grid;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-/* Title and terms on one line where there is room for both. */
-@media (min-width: 56rem) {
-  .stage-heading {
-    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    align-items: baseline;
-    gap: clamp(0.9rem, 2vw, 1.75rem);
-  }
 }
 
 .stage-terms {
@@ -1085,114 +1019,6 @@ summary {
   content: "|";
   margin-left: 0.55rem;
   color: var(--decor);
-}
-
-.stage-toggle {
-  font-family: var(--font-mono);
-  font-size: var(--step-1);
-  line-height: 1;
-  color: var(--text-subtle);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .stage-toggle {
-    transition: transform var(--dur-med) var(--ease);
-  }
-}
-
-.stage-track[open] .stage-toggle {
-  transform: rotate(45deg);
-}
-
-/* The open body. No top padding: the summary above it already has its own. */
-.stage-frame {
-  padding-block: 0 clamp(2.5rem, 7vh, 5rem);
-}
-
-/* Warm wash behind an open stage. Static gradient, no animation: it exists so
-   the image plates read as lit objects against the ground. */
-.stage-frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    120% 85% at 50% 0%,
-    var(--stage-glow),
-    transparent 68%
-  );
-  pointer-events: none;
-}
-
-.stage-grid {
-  position: relative;
-  display: grid;
-  gap: clamp(1.5rem, 3.5vw, 3rem);
-  align-items: start;
-}
-
-/* ---- asymmetry ---------------------------------------------------------
-   Eight stages in one column is eight chances to look like a template, so
-   nothing repeats on consecutive stages: the figure changes side, the column
-   ratio flips with it, the plate's proportion cycles through three shapes,
-   and every other pair drops its figure below the text it sits beside.
-
-   The outer edge of each figure eats the container's own gutter, so a plate
-   runs to the edge of the text column's margin rather than lining up with
-   it. Exactly the gutter and no more: that padding belongs to the container,
-   so consuming it cannot push anything past the viewport, which a bleed
-   measured against 100vw would do the moment a scrollbar appeared. */
-
-@media (min-width: 64rem) {
-  .stage-track:nth-child(odd) .stage-grid {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  }
-
-  .stage-track:nth-child(odd) .stage-figure {
-    margin-inline-end: calc(-1 * var(--gutter));
-  }
-
-  .stage-track:nth-child(even) .stage-grid {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-
-  /* Source order stays text-then-figure, so the reading and tab order are
-     the same on every stage regardless of which side the picture is on. */
-  .stage-track:nth-child(even) .stage-body {
-    order: 2;
-  }
-
-  .stage-track:nth-child(even) .stage-figure {
-    order: 1;
-    margin-inline-start: calc(-1 * var(--gutter));
-  }
-
-  .stage-track:nth-child(4n + 2) .stage-figure,
-  .stage-track:nth-child(4n + 3) .stage-figure {
-    margin-top: clamp(1.5rem, 4vh, 3.5rem);
-  }
-
-  .stage-track:nth-child(3n) .skill-shot,
-  .stage-track:nth-child(3n) .skill-plate--empty {
-    aspect-ratio: 5 / 4;
-  }
-
-  .stage-track:nth-child(3n + 1) .skill-shot,
-  .stage-track:nth-child(3n + 1) .skill-plate--empty {
-    aspect-ratio: 16 / 10;
-  }
-
-  .stage-track:nth-child(3n + 2) .skill-shot,
-  .stage-track:nth-child(3n + 2) .skill-plate--empty {
-    aspect-ratio: 3 / 2;
-  }
-
-  /* Nothing to offset any more: the number is part of the summary row, and a
-     summary starting at a different indent per stage would make the collapsed
-     list look ragged rather than asymmetric. */
-}
-
-.stage-body {
-  min-width: 0;
 }
 
 /* Not accent. AGENTS.md reserves accent for interactive things, and a stage
@@ -2446,8 +2272,7 @@ summary {
     scroll-behavior: auto !important;
   }
 
-  .reveal,
-  .stage-body {
+  .reveal {
     opacity: 1 !important;
     transform: none !important;
   }
@@ -2459,21 +2284,8 @@ summary {
     display: none !important;
   }
 
-  /* Belt and braces: the pin is already gated behind no-preference, but a
-     stray min-height would still leave 175vh of blank track per stage. */
-  .stage-track {
-    min-height: 0;
-  }
-
-  .stage-frame {
-    position: relative;
-    padding-block: clamp(2rem, 5vh, 3.5rem);
-  }
-
-  /* The glow is what says "pinned stage". Stacked sections do not need it. */
-  .stage-frame::before {
-    display: none;
-  }
+  /* The skills deck's own reduce rules are in src/deck.css, next to the
+     geometry they undo. */
 }
 
 /* --------------------------------------------------------------------------
@@ -2515,21 +2327,6 @@ summary {
     break-inside: avoid;
   }
 
-  .stage-track {
-    min-height: 0 !important;
-  }
-
-  .stage-frame {
-    position: static !important;
-    min-height: 0 !important;
-    padding-block: 1rem;
-    break-inside: avoid;
-  }
-
-  .stage-frame::before {
-    display: none !important;
-  }
-
   .case[open] .case-body,
   .case-body {
     display: block !important;
@@ -2553,8 +2350,7 @@ summary {
     color: #555555;
   }
 
-  .reveal,
-  .stage-body {
+  .reveal {
     opacity: 1 !important;
     transform: none !important;
   }
