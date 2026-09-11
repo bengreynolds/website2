@@ -6,6 +6,8 @@
    each choice is the way it is, which is the reason they travelled with it.
    -------------------------------------------------------------------------- */
 
+import { asset } from "./assetPath";
+
 /* --------------------------------------------------------------------------
    Sprite warm-up
    -------------------------------------------------------------------------- */
@@ -24,8 +26,11 @@
    until the visitor asks for a demo, or hovers a button and all but says so. */
 
 /* Convention from scripts/build_demo_sprite.py: data-demo="<id>" is served
-   /rig/<id>.webp by the generated CSS. */
-export const spriteUrl = (id) => `/rig/${id}.webp`;
+   /rig/<id>.webp by the generated CSS. asset() is what keeps this in step
+   with that stylesheet when the site is served from a sub-path: Vite rebases
+   the url() in the CSS, and this rebases the one the warm-up fetches, so the
+   decode is still a cache hit for the swap rather than a second download. */
+export const spriteUrl = (id) => asset(`/rig/${id}.webp`);
 
 const spriteReady = new Set();
 const spriteLoading = new Map();

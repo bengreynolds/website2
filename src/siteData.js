@@ -1,3 +1,5 @@
+import { asset } from "./assetPath";
+
 /* Section order is the page order. "skills" is the one new anchor. The
    others are load-bearing permalinks and must not change - except
    "capabilities", which is gone: that section repeated the skills inventory
@@ -10,7 +12,7 @@ export const navigation = [
   { id: "contact", label: "Contact" },
 ];
 
-export const resumeHref = "/Benjamin_Reynolds_Resume.pdf";
+export const resumeHref = asset("/Benjamin_Reynolds_Resume.pdf");
 
 /* Positioning. "R&D Engineer" is the plain description of the work; the
    employed title lives in heroFacts and in the experience entry so the site

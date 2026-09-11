@@ -16,6 +16,13 @@
       "autoPort": true
     },
     {
+      "name": "pages-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--base", "/website2/", "--port", "5190", "--strictPort"],
+      "port": 5190,
+      "url": "http://localhost:5190"
+    },
+    {
       "name": "compare-main",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "preview", "--outDir", "output/compare/main", "--port", "5180", "--strictPort"],

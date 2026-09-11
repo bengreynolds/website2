@@ -4,6 +4,7 @@ import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink, armPlateMorph, isPlainClick, morphAvailable } from "./router";
 import { aimShutter } from "./shutter";
 import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./plateFX";
+import { asset } from "./assetPath";
 
 /* --------------------------------------------------------------------------
    Work grid
@@ -120,7 +121,7 @@ const Tile = memo(function Tile({ entry }) {
           ) : (
             <img
               className="tile-shot"
-              src={shot.src}
+              src={asset(shot.src)}
               alt={project.figureLabel || project.title}
               loading="lazy"
               decoding="async"
