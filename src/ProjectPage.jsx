@@ -78,7 +78,19 @@ export default function ProjectPage({ project }) {
             Mechanism
           </h2>
           {project.figure ? <SequencePanel project={project} /> : null}
-          {demos.length ? <SpriteStage demos={demos} className="project-demo" /> : null}
+          {/* The other half of the tile-plate morph. The clicked tile's plate
+              carries this name out of the grid and this element claims it on
+              arrival, so entering a project reads as moving into the tile
+              rather than as one page replacing another. Only the tile-click
+              navigation runs that transition; see src/router.jsx. A project
+              with no demos claims nothing and gets the plain root crossfade,
+              which is the honest answer when there is nothing here that the
+              tile was showing. */}
+          {demos.length ? (
+            <div style={{ viewTransitionName: "project-plate" }}>
+              <SpriteStage demos={demos} className="project-demo" />
+            </div>
+          ) : null}
         </section>
       ) : null}
 

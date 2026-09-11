@@ -36,7 +36,10 @@ import "./grid-depth.css";
 import "./tile-gl.css";
 import "./deck.css";
 import "./pipeline-demo.css";
+/* Both route transitions. One runs per navigation, never two - the choice is
+   made in src/router.jsx. */
 import "./shutter.css";
+import "./view-transition.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

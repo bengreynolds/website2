@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
-import { AppLink, isPlainClick } from "./router";
+import { AppLink, armPlateMorph, isPlainClick, morphAvailable } from "./router";
 import { aimShutter } from "./shutter";
 import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./plateFX";
 
@@ -42,6 +42,18 @@ const Tile = memo(function Tile({ entry }) {
      and the poster stays up until it resolves. */
   const [runs, setRuns] = useState(0);
 
+  /* Only the tile being entered is named, and only while it is being entered.
+     Two elements sharing a view-transition-name aborts the transition, so
+     naming all nine up front would break every navigation.
+
+     Nothing resets this, and that is only safe because HomePage unmounts on
+     navigate, which takes the name with it. If the grid is ever kept mounted
+     across a route change - a cached home, a modal route, a transition that
+     animates home out rather than replacing it - the name is stranded here,
+     the project page's figure claims the same name, and every later
+     transition aborts. Whoever makes that change owns resetting this. */
+  const [leaving, setLeaving] = useState(false);
+
   const play = () => {
     if (!playable || prefersReducedMotion()) return;
     const wait = loadSprite(playable);
@@ -73,7 +85,10 @@ const Tile = memo(function Tile({ entry }) {
       onPointerLeave={(event) => sleepPlate(event.currentTarget)}
     >
       {shot ? (
-        <div className="tile-plate">
+        <div
+          className="tile-plate"
+          style={leaving ? { viewTransitionName: "project-plate" } : undefined}
+        >
           {playable ? (
             <div
               key={runs}
@@ -129,10 +144,28 @@ const Tile = memo(function Tile({ entry }) {
              deliberate. */
           if (!isPlainClick(event)) return;
           const tile = event.currentTarget.closest(".tile");
+
+          /* The fork, and it is here rather than in the router because the
+             two paths need different preparation and only one of them may
+             be prepared. A morph carries this plate into the project page's
+             figure, so the plate has to survive the click intact - no bloom,
+             no aperture. A wipe has nothing to carry, so the plate dissolves
+             and the aperture closes on where it was.
+
+             setLeaving is batched, and that is fine: startViewTransition
+             captures the old state at the next rendering opportunity, which
+             is after React has flushed this handler, so the name is on the
+             plate before it is photographed. */
+          if (morphAvailable()) {
+            setLeaving(true);
+            armPlateMorph();
+            return;
+          }
+
           bloomPlate(tile);
           /* The aperture closes on the tile that was clicked and, at the
-             seam, opens on the project page's figure. That is the shared
-             element morph this replaced, expressed as a wipe. */
+             seam, opens on the project page's figure - the morph's intent
+             expressed as a wipe, for the browsers that cannot morph. */
           const box = tile.getBoundingClientRect();
           aimShutter(box.left + box.width / 2, box.top + box.height / 2);
         }}
