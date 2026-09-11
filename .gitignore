@@ -12,3 +12,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .claude/worktrees/
+
+# Written by scripts/uicapture: the capture window's position and size on
+# whichever monitor ran the capture. Machine-specific, so it would place the
+# window off-screen on any other display.
+scripts/uicapture/window-geometry.json
