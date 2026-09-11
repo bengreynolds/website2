@@ -52,10 +52,15 @@ once per press, and the shutter has a deadline.
   result of an interaction.
 - Prefer hover states that change color/outline over large lifts. The tile
   plate's refraction is about 4px of displacement, which is a lens, not a lift.
-- Everything must be readable with JS disabled, with WebGL unavailable, and
-  under `prefers-reduced-motion: reduce`. Every feature on this site has a
-  fallback that is the plain DOM, and every one of them is exercised by a
-  real reader on some machine.
+- Everything must be readable with WebGL unavailable, with the deck or sprite
+  chunk failing to load, and under `prefers-reduced-motion: reduce`. Every
+  feature on this site has a fallback that is the plain DOM, and every one of
+  them is exercised by a real reader on some machine.
+- This is *not* true of JS disabled, and the checklist should not pretend
+  otherwise: `index.html` ships an empty `#root` with no `<noscript>`, so with
+  scripting off the page is blank. That is a real gap rather than a decision -
+  worth closing with a `<noscript>` carrying the name, the summary and the
+  resume link, so a crawler or a scripting-off reader gets something.
 
 ## Information Flow
 - Home page: brief narrative + clear CTAs + quick navigation tiles.
@@ -265,8 +270,10 @@ Every item here is something a build passes and a reader does not.
 
 - Is each moving thing on screen doing one of the jobs in the budget table,
   and is anything that overlaps another one part of the same gesture?
-- Does the page still read with JS disabled, with WebGL refused, and under
-  `prefers-reduced-motion: reduce`? Check all three; they fail differently.
+- Does the page still read with WebGL refused, with the deck chunk failing to
+  load, and under `prefers-reduced-motion: reduce`? Check all three; they fail
+  differently. (JS disabled is not on this list because it does not currently
+  pass - see the note in the guidelines above.)
 - **Can Ctrl-F find every word on the page?** Anything sequenced by hiding
   elements fails this, and it fails silently.
 - Does the whole work tile still take the click? `main` fixed a regression

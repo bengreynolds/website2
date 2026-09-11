@@ -327,14 +327,22 @@ is `none`, `getAnimations()` is empty, and `background-position` stays at
 `50% 50%`. Pressing Play sets `data-scrub="play"` and the frame counter
 advances to `2 / 100`, `3 / 100` — **and the picture never changes.**
 
-I did not fix it. It is outside these six tasks, the files involved are
-byte-identical to `main`, and it is not a one-line fix: moving the `animation`
-declaration out of the `@supports` would give every `.is-live` figure a
-default-duration animation that snaps to the last frame on load in exactly the
-browsers being fixed. It needs its own change, with the button path's
-`animation-timeline: auto` taken into account — which is the point, because
-the `@supports` guard was written when scroll was the only driver and the
-buttons made it unnecessary.
+I did not fix it in these six tasks. It was outside them, the files involved
+were byte-identical to `main`, and it is not a one-line fix: moving the
+`animation` declaration out of the `@supports` would give every `.is-live`
+figure a default-duration animation that snaps to the last frame on load in
+exactly the browsers being fixed. It needed its own change, with the button
+path's `animation-timeline: auto` taken into account — which is the point,
+because the `@supports` guard was written when scroll was the only driver and
+the buttons made it unnecessary.
+
+**Fixed since, in `c93c44e`** (cherry-picked from `main`'s `f04bf52`). The
+answer was a `@supports not (animation-timeline: view())` block gated on
+`[data-scrub]` rather than `.is-live`, which is what avoids the snap-to-last-
+frame problem described above: no control pressed, no animation, poster holds.
+Verified in Firefox 155 against this branch's own stylesheet — a figure with
+no `data-scrub` renders the poster, and `buildup` and `prosthetic-build`
+seeked to `--scrub 0.5` render distinct mid-sequence frames.
 
 Chromium, same probe: 10 distinct background-positions over 10 samples during
 Play, and the step buttons move both the counter and the picture.

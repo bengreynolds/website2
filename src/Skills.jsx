@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useSyncExternalStore } from "react";
+import { memo, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
 import { JUMP_AT, MARK_LEAD } from "./deckGeometry";
@@ -218,7 +218,14 @@ const DeckPanel = memo(function DeckPanel({ skill, dealt }) {
 export default function Skills() {
   const reduced = useMedia(REDUCE_QUERY);
   const roomy = useMedia(ROOM_QUERY);
-  const dealt = roomy && !reduced;
+  /* A deck chunk that will not load has to put the section back into flow,
+     not just stop trying. While `dealt` is true the panels hand their id and
+     data-stage-id to the scroll marks, and the marks are 0px tall at the top
+     of the deck until buildDeck's first onRefresh - so without this every
+     #skill-<id> anchor in the rail resolves to the same point and App.jsx's
+     stage observer can no longer tell which skill the reader is in. */
+  const [failed, setFailed] = useState(false);
+  const dealt = roomy && !reduced && !failed;
 
   const deckRef = useRef(null);
   const stageRef = useRef(null);
@@ -249,11 +256,14 @@ export default function Skills() {
           teardown = buildDeck(deck, stage);
         })
         .catch(() => {
-          /* A chunk that will not load leaves the markup exactly as it is:
-             eight panels in document flow, which is the same layout reduced
-             motion and a narrow window get, and is readable. data-deck is
-             set inside buildDeck for precisely this reason. */
+          /* A chunk that will not load falls back to the flow layout - the
+             same one reduced motion and a narrow window get. Setting `failed`
+             rather than only disarming is what actually gets there: it hands
+             the id and data-stage-id back to the panels, so the rail's anchors
+             and the stage observer keep working. Disarming alone left the
+             panels readable but the rail pointing eight links at one spot. */
           armed = false;
+          if (!cancelled) setFailed(true);
         });
     };
 

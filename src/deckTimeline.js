@@ -59,10 +59,31 @@ export function buildDeck(deck, stage) {
     const count = panels.length;
     if (!count) return;
 
+    /* Focus follows pointer-events, for the same reason and one step further.
+       The cards behind the front one are at opacity 0 but still laid out, so
+       they keep their place in the tab order - and .deck-stage is position:
+       fixed while pinned, so focusing a link on one does not scroll and shows
+       no ring anywhere. Measured: scrollY 975 before and after. A keyboard
+       reader tabs through fourteen invisible links and can activate an
+       external URL they cannot see.
+
+       tabindex="-1", not inert and not aria-hidden. Those would take the card
+       out of find-in-page and out of the accessibility tree, which is exactly
+       what the opacity-not-autoAlpha choice above exists to prevent. This
+       removes the card from the tab order while leaving its text findable and
+       announced. */
+    const setFocusable = (panel, on) => {
+      panel.querySelectorAll("a[href]").forEach((link) => {
+        if (on) link.removeAttribute("tabindex");
+        else link.setAttribute("tabindex", "-1");
+      });
+    };
+
     /* The card the reader is looking at. Held here so onUpdate writes to the
        DOM only when it changes rather than on every scroll frame. */
     let front = 0;
     panels[0].dataset.front = "1";
+    panels.forEach((panel, i) => setFocusable(panel, i === 0));
 
     /* opacity, NOT autoAlpha, and this is the whole of the find-in-page fix.
        autoAlpha is opacity plus visibility, and it sets visibility: hidden
@@ -150,6 +171,7 @@ export function buildDeck(deck, stage) {
         panels.forEach((panel, i) => {
           if (i === seen) panel.dataset.front = "1";
           else delete panel.dataset.front;
+          setFocusable(panel, i === seen);
         });
       },
     });
@@ -177,6 +199,13 @@ export function buildDeck(deck, stage) {
        not to matter is the kind of thing that starts mattering. */
     deck.querySelectorAll("[data-front]").forEach((panel) => {
       delete panel.dataset.front;
+    });
+    /* Same for the tab order. A leftover tabindex="-1" would survive into the
+       flow layout, where every card is visible and all sixteen links should
+       be reachable again - so this one is not merely tidy, it is the
+       difference between a resize leaving fourteen dead links behind and not. */
+    deck.querySelectorAll('.deck-panel a[tabindex="-1"]').forEach((link) => {
+      link.removeAttribute("tabindex");
     });
     delete deck.dataset.deck;
     deck.style.removeProperty("--deck-vh");
