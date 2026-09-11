@@ -546,12 +546,21 @@ summary {
   height: var(--header-h);
 }
 
+/* The name is a flex item that would not shrink and does not wrap, so at 16px
+   it measured 242px against the 214px a 375px phone can spare beside the two
+   controls: the row overflowed by 28px and pushed the menu button's right
+   edge off the screen rather than the name's. It scales down on a phone so
+   the row fits outright, and min-width/ellipsis are the failure mode below
+   that - a clipped name is recoverable, a half-visible menu button is not. */
 .wordmark {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: clamp(0.8125rem, 3.4vw, 1rem);
   font-weight: 800;
   letter-spacing: -0.01em;
   margin-right: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
