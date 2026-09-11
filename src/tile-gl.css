@@ -1,0 +1,42 @@
+/* The WebGL layer over a work tile's plate. src/tileGL.js owns everything
+   else about it; this is the two rules that let the canvas sit where the
+   image is.
+
+   The canvas is only ever appended to a plate that holds an <img>, and the
+   <img> stays underneath it for as long as it exists. Nothing here hides the
+   image: if the context is lost, the import fails, or the visitor is on a
+   coarse pointer or reduced motion, there is no canvas at all and these rules
+   match nothing. */
+
+/* .tile-plate already clips (overflow: hidden) and already keeps its
+   aspect-ratio, which the generated sprite CSS depends on. This adds a
+   containing block and nothing else - in particular no width, height or
+   aspect-ratio, which grid-depth.css's note forbids on this element. */
+.tile-plate {
+  position: relative;
+}
+
+/* No width or height here on purpose: the renderer sets both as inline
+   styles from the plate's own measured box, so a rule that fought it would
+   stretch the texture the first time a plate was not square. */
+.tile-gl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  /* Belt and braces. .tile-plate is already pointer-events: none so the
+     stretched .tile-link keeps the whole panel clickable, but a canvas that
+     ever escaped that subtree would silently eat the click target - and on
+     click one of them deliberately does escape it. */
+  pointer-events: none;
+}
+
+/* The clicked plate, lifted onto the body so it outlives the tile React is
+   about to remove. Fixed rather than absolute because the page under it
+   scrolls to the top during the route change and the bloom has to stay where
+   the visitor clicked. Below the route shutter's 9999 on purpose: the shutter
+   closes over the bloom, it does not sit behind it. */
+.tile-gl--free {
+  position: fixed;
+  z-index: 9000;
+}

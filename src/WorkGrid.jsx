@@ -1,7 +1,8 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink, isPlainClick } from "./router";
+import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./tileGL";
 
 /* --------------------------------------------------------------------------
    Work grid
@@ -68,7 +69,18 @@ const Tile = memo(function Tile({ entry }) {
       className="tile"
       data-art={shot ? shot.kind : "none"}
       data-placement={placement || undefined}
-      onPointerEnter={play}
+      /* Two things happen on intent, and they are mutually exclusive by
+         construction: a demo tile fetches its sprite sheet, an image tile
+         builds a WebGL plate. wakePlate returns immediately on a tile with no
+         .tile-shot, which is every demo tile and every typographic one. */
+      onPointerEnter={(event) => {
+        play();
+        wakePlate(event.currentTarget, event.clientX, event.clientY);
+      }}
+      /* Per tile, not on the grid: a pointer crossing from one tile to the
+         next never leaves the grid, and a plate left running because the
+         pointer moved sideways holds a WebGL context for nothing. */
+      onPointerLeave={(event) => sleepPlate(event.currentTarget)}
     >
       {shot ? (
         <div
@@ -124,8 +136,11 @@ const Tile = memo(function Tile({ entry }) {
         onClick={(event) => {
           /* A modifier-click opens a new tab without unmounting this grid,
              so naming the plate on one would strand the name and abort every
-             later transition. */
-          if (isPlainClick(event)) setLeaving(true);
+             later transition. The bloom is on the same condition for the same
+             reason: a tile that is staying put should not dissolve. */
+          if (!isPlainClick(event)) return;
+          setLeaving(true);
+          bloomPlate(event.currentTarget.closest(".tile"));
         }}
       />
     </article>
@@ -150,6 +165,10 @@ export default function WorkGrid() {
     const box = tile.getBoundingClientRect();
     tile.style.setProperty("--px", ((event.clientX - box.left) / box.width - 0.5).toFixed(3));
     tile.style.setProperty("--py", ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
+    /* The same event, and the same one listener, feeds the plate's shader.
+       aimPlate is a no-op on a tile with no live WebGL plate, which is most
+       of them most of the time. */
+    aimPlate(tile, event.clientX, event.clientY);
   };
 
   /* Clearing on leave lets tiles fall back to their resting transform rather
@@ -166,6 +185,14 @@ export default function WorkGrid() {
       tile.style.removeProperty("--py");
     });
   };
+
+  /* Navigating away unmounts this grid, and a bloomed plate is mid-tween when
+     that happens. Nothing here is React's to clean up - the canvases were
+     appended by tileGL.js and the contexts belong to the driver - so the grid
+     hands them all back on the way out. Without it a visitor who paged
+     through several projects would accumulate dead contexts until the browser
+     started evicting live ones. */
+  useEffect(() => sleepAll, []);
 
   return (
     <section id="projects" className="section section--tinted">
