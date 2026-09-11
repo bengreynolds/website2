@@ -1000,8 +1000,44 @@ summary {
    stacked layout IS the layout.
    -------------------------------------------------------------------------- */
 
+/* position and isolation are both here for the ambient backdrop below: the
+   first gives the absolute canvas something to resolve against, the second
+   keeps the stacking context local, so the z-index the backdrop needs cannot
+   compete with the masthead or the rail, which are positioned too and are
+   meant to win. */
 .section--stage {
+  position: relative;
+  isolation: isolate;
   background: var(--stage-bg);
+}
+
+/* ---- the ambient backdrop ---------------------------------------------
+   The WebGL field from src/SkillsBackdrop.jsx. Absolute and behind
+   everything, so the section's own layout is untouched and removing the
+   element - which is what reduced motion, a missing WebGL context and a
+   failed chunk all do - changes nothing about the page. */
+
+.stage-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stage-backdrop canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Everything the reader is actually here for sits above the field. The stage
+   tracks have no ground of their own, so this is what keeps the wave behind
+   the headings rather than through them. */
+.section--stage > .container,
+.section--stage > .spine {
+  position: relative;
+  z-index: 1;
 }
 
 .spine {
@@ -1263,6 +1299,92 @@ summary {
   text-wrap: pretty;
 }
 
+/* ---- brand marks ------------------------------------------------------
+   The tools a stage or a project is worked in, gathered into one array beside
+   the text instead of threaded through it, and reused by the project stack in
+   section 14. Shapes, brand hexes and licences are generated into
+   src/logoCredits.js by scripts/logos/fetch-logos.mjs.
+
+   Beside, not inline. Marks set in front of each word turned a readout into a
+   run of coloured interruptions and moved the line box wherever one landed.
+   As a block they are one object, which a reader can take in or skip whole.
+
+   Decoration, and marked as such in the markup: every tool here is named in
+   the text alongside, so the array is aria-hidden and carries no second copy
+   of the list. A stage whose readout names no products renders no array at
+   all rather than an empty frame.
+
+   Accent is untouched on purpose. These are brand colours on static content,
+   and this sheet reserves --accent for what can be interacted with. */
+.logo-array {
+  /* A fixed column count, not flex-wrap. Wrapping let the marks spread to
+     whatever the column was wide - in the figure column that was fifteen of
+     them in a single 660px line, which is a strip, not an array. Counting
+     columns instead makes the block the same shape wherever it is used and
+     keeps it reading as one object. */
+  /* Declared here rather than in section 1: the cell size is local to this
+     block and the children inherit it, so the column track and the cell can
+     never drift apart. The cell is now exactly the mark - there is no plate
+     behind it - so this one value is the only size to tune. */
+  --logo-cell: 1.75rem;
+  --logo-cols: 6;
+
+  display: grid;
+  grid-template-columns: repeat(var(--logo-cols), var(--logo-cell));
+  gap: clamp(0.85rem, 1.6vw, 1.25rem);
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  justify-content: start;
+}
+
+/* No plate, no border. A bordered cell behind each mark turned the array into
+   a sheet of buttons, which read as interactive on a page where this sheet
+   reserves that reading for things that are. The marks sit on the page ground
+   and the grid alone holds the alignment. */
+.logo-cell {
+  display: grid;
+  place-items: center;
+  width: var(--logo-cell);
+  height: var(--logo-cell);
+}
+
+.mark {
+  width: 100%;
+  height: 100%;
+}
+
+/* The fallback chain is the whole mechanism. --mark-light and --mark-dark are
+   emitted only onto the marks whose brand hex misses contrast on that
+   particular ground, so every other mark resolves through to --mark and ships
+   the exact colour its owner published, in both themes. */
+.mark[data-tone="mono"] {
+  fill: var(--mark-light, var(--mark));
+}
+
+:root[data-theme="dark"] .mark[data-tone="mono"] {
+  fill: var(--mark-dark, var(--mark));
+}
+
+/* Multi-colour marks carry their own fills and are left alone. Nothing may
+   recolour them: the colour relationships inside the drawing are the mark. */
+
+/* On a stage the array hangs under the plate, in the figure column, so it
+   picks up whichever side that stage's asymmetry rules put the figure on. */
+.stage-figure .logo-array {
+  margin-top: clamp(0.75rem, 2vh, 1.25rem);
+}
+
+/* Ten to a row once there is width for it, so the array spans the figure
+   column rather than huddling at one end of it. Six below that: ten marks at
+   this size overflow a phone, and the array must never be the thing that
+   makes the page scroll sideways. */
+@media (min-width: 42rem) {
+  .stage-figure .logo-array {
+    --logo-cols: 10;
+  }
+}
+
 /* ---- the skill plate --------------------------------------------------
    A sourced still, or a labelled slot saying which one is missing. The
    section ships before every image is found, and an empty plate that names
@@ -1361,12 +1483,12 @@ summary {
   background-size: contain;
 }
 
-/* Per-figure sprite, poster, grid and keyframes are GENERATED into
-   src/rig-<id>.css and scoped to [data-figure="<id>"], so more than one
-   scroll figure can coexist. */
-.rig-figure[data-figure="buildup"] {
-  background-image: url("/rig/buildup-poster.webp");
-}
+/* Per-figure sprite, poster, grid, keyframes and animation range are all
+   GENERATED into src/rig-<id>.css and scoped to [data-figure="<id>"], so more
+   than one figure can coexist and nothing about a sheet lives here. buildup
+   used to be the exception - its attach sat in this file while only
+   background-size was generated - and that split is what let a stylesheet
+   change scale the poster by 1000%. Do not reintroduce it. */
 
 .rig-figure-caption {
   margin-top: 0.6rem;
@@ -1377,74 +1499,19 @@ summary {
   color: var(--text-subtle);
 }
 
-/* The buildup sheet is attached here rather than in src/rig-buildup.css
-   because that file predates the generator that now writes the whole block
-   (compare src/rig-prosthetic-build.css, which carries its own). Do not move
-   it into the generated file; do not change the animation name or the
-   background-size, which lives there so a re-capture cannot desync it.
+/* The buildup figure's sheet, grid and keyframes are NOT here. They live in
+   src/rig-buildup.css, which the generator writes whole, exactly as
+   src/rig-prosthetic-build.css already did.
 
-   The 3MB grid is gated behind .is-live, which React adds when the case study
-   is opened or when the reader loads the sequence on stage 01. A closed
-   <details> does NOT prevent a background fetch, so this gating is what makes
-   it opt-in. Until then only the 46KB poster loads.
-
-   Both ranges below are overridden by src/rig-scrub.css, which widens the
-   travel and, for a figure inside a pinned stage, re-binds the timeline to
-   the stage track. They stay so this block matches what the generator writes
-   and so the figure still works outside a stage. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .rig-figure[data-figure="buildup"].is-live {
-      background-image: url("/rig/buildup.webp");
-      background-position: 0% 0%;
-      animation: rig-buildup step-end both;
-      animation-timeline: view();
-      /* Not "entry 100%": that completes the instant the figure is fully in
-         view, which for a figure revealed by opening a disclosure is
-         immediately, leaving nothing to scrub. Not plain "cover" either:
-         cover spans the figure's whole travel, so the opening frames advance
-         while it is still below the fold. contain is the window where the
-         figure is wholly on screen, inset at both ends so the first and last
-         frames get a beat of stillness. */
-      animation-range: contain 8% contain 92%;
-    }
-
-    /* Where the square figure cannot fit inside the viewport, contain has no
-       range and the scrub would hold on frame 0. Fall back to the middle of
-       cover, which is the part of the travel with the most of the figure on
-       screen. */
-    @media (max-height: 45rem) {
-      .rig-figure[data-figure="buildup"].is-live {
-        animation-range: cover 32% cover 68%;
-      }
-    }
-  }
-
-  /* Firefox and Safari have no view() timeline, so everything above is
-     skipped - and because the sheet AND the animation-name both live in
-     there, those browsers got no animation at all. SequencePanel's Play
-     button then advanced its frame counter over a frozen poster, which is
-     how the assembly sequences shipped broken in every engine but Chromium.
-
-     These figures are button-driven now, so a scroll timeline is not what
-     they need; they need an animation for rig-scrub.css to retime. Gated on
-     [data-scrub] rather than .is-live so the poster still holds until a
-     control is pressed, and paused at frame 0 until one is - the play and
-     step rules in rig-scrub.css are 0,4,0 and imported later, so they win.
-     SequencePanel preloads the sheet before it sets the attribute, so the
-     swap is a cache hit rather than a flash.
-
-     background-size is not repeated here: rig-buildup.css declares it
-     outside any @supports, so it already applies. */
-  @supports not (animation-timeline: view()) {
-    .rig-figure[data-figure="buildup"].is-live[data-scrub] {
-      background-image: url("/rig/buildup.webp");
-      background-position: 0% 0%;
-      animation: rig-buildup var(--play-dur, 7s) step-end 1 both paused;
-    }
-  }
-}
-
+   Both branches fixed the same bug a day apart - assembly sequences never
+   animated in Firefox or Safari, because the sheet and the animation-name sat
+   inside @supports (animation-timeline: view()). main patched it here with an
+   added @supports not (...) block for this one figure; design/site-e fixed it
+   at the source by moving the whole block into the generated file and leaving
+   only the view() timeline binding conditional, which repaired every rig-*.css
+   rather than buildup alone. This merge keeps that one and drops the patch,
+   because carrying both would have declared the same figure twice from two
+   files with the generated one importing later and silently winning. */
 /* Both figures share one grid column; the prose keeps the other. Without this
    wrapper the grid auto-places three children and the text drops to a second
    row underneath. */
@@ -2086,6 +2153,29 @@ summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.1rem, 2.5vw, 1.75rem) clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* The stack and its marks. One column until there is width for two, then the
+   array becomes a fixed rail on the right and the layers take what is left -
+   auto rather than a fraction, so the rail is exactly as wide as the marks
+   need and the layer grid never loses a column to it. */
+.project-stack-wrap {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+}
+
+@media (min-width: 62rem) {
+  .project-stack-wrap {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  /* Three to a row keeps the rail narrow and holds its width steady from
+     project to project, however many tools the stack happens to name. */
+  .logo-array--rail {
+    --logo-cols: 4;
+    margin-top: 0;
+  }
 }
 
 @media (min-width: 42rem) {

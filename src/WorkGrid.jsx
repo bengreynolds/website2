@@ -28,11 +28,13 @@ import { AppLink, isPlainClick } from "./router";
 const Tile = memo(function Tile({ entry }) {
   const { project, n, shot } = entry;
   const placement = tilePlacements[project.id];
-  /* Only a demo sprite can play in a tile. A figure sprite is scrubbed by a
-     scroll timeline and would sit on its poster however long you hovered it,
-     so its tile shows the poster as an image and its animation lives on the
-     project page. */
-  const playable = shot && shot.kind === "demo" ? shot.id : null;
+  /* Both sprite kinds play in a tile now. A figure used to be scrubbed by a
+     view() timeline, so it sat on its poster however long you hovered it and
+     the tile fell back to a still; since the sequences moved onto the document
+     timeline it plays here the same way it does on the project page, driven by
+     data-scrub="play" out of rig-scrub.css. Only a captured screenshot ("shot")
+     is still a plain <img>. */
+  const playable = shot && (shot.kind === "demo" || shot.kind === "figure") ? shot.id : null;
   const titleId = `tile-title-${project.id}`;
 
   /* Bumping runs remounts the plate, which is the reliable way to restart a
@@ -71,11 +73,29 @@ const Tile = memo(function Tile({ entry }) {
       onPointerEnter={play}
     >
       {shot ? (
+        /* Two independent things meet on this element and both are kept: the
+           view-transition name, which morphs the clicked tile's plate into the
+           project figure, and the figure branch below, which is what lets a
+           sequence sprite play in the tile at all. They were written on
+           different branches and do not interact - one names the box, the
+           other decides what goes in it. */
         <div
           className="tile-plate"
           style={leaving ? { viewTransitionName: "project-plate" } : undefined}
         >
-          {playable ? (
+          {playable && shot.kind === "figure" ? (
+            /* The sequence sprite. .is-live is what attaches the sheet, and
+               data-scrub="play" is what puts it on the document timeline; both
+               together are the project page's Play button, minus the button. */
+            <div
+              key={runs}
+              className={`tile-figure rig-figure ${runs > 0 ? "is-live" : ""}`}
+              data-figure={playable}
+              data-scrub={runs > 0 ? "play" : undefined}
+              role="img"
+              aria-label={project.figureLabel || project.title}
+            />
+          ) : playable ? (
             <div
               key={runs}
               className={`tile-figure demo-figure ${runs > 0 ? "is-playing" : ""}`}

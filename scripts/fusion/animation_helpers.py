@@ -69,7 +69,12 @@ MOTION_PALETTE = {
     "stage_b": "Plastic - Glossy (Green)",
     "stage_c": "Plastic - Glossy (Blue)",
     "rotor": "Plastic - Glossy (Yellow)",
-    "second_rotor": "Smooth - Light Orange",
+    # Was "Smooth - Light Orange", which is NOT in the Fusion Appearance
+    # Library of the current build - verified by enumerating all 172 of its
+    # appearances, and there is no orange in it at all. It would have raised on
+    # the next capture that touched a second rotor. Substitution is unreviewed:
+    # pick a different one if white reads badly against the plate.
+    "second_rotor": "Plastic - Glossy (White)",
     "vessel": "Plastic - Translucent Matte (Gray)",
     "pcb": "Plastic - Matte (Green)",
 }
@@ -85,7 +90,9 @@ MATERIAL_PALETTE = {
     "magnet": "Nickel - Polished",
     "bearing": "Stainless Steel - Polished",
     "switch": "Plastic - Matte (Black)",
-    "clip": "Rubber - Black",
+    # Was "Rubber - Black", also absent from the current library. Same caveat as
+    # second_rotor above: this substitution has not been looked at in a render.
+    "clip": "Plastic - Matte (Black)",
     "pcb": "Plastic - Matte (Green)",
     "cots": "Plastic - Matte (Gray)",
 }
@@ -94,6 +101,45 @@ COTS_BY_PREFIX = {
     "50919": "servo", "50901": "magnet", "50798": "bearing", "50799": "switch",
     "50800": "switch", "50908": "clip",
 }
+
+
+def resolve_appearance(app, des, name):
+    """Design appearance for `name`, copied in from the library on first use.
+
+    Two traps this exists for, both hit for real:
+
+    - `Appearances.itemByName` RAISES `RuntimeError: 3 : invalid name` for a
+      name that is not present. It does not return None, so the usual
+      `x = coll.itemByName(n) or fallback` shape silently becomes a crash.
+    - A palette can name an appearance the installed library does not have.
+      Two entries in the tables above did. Failing with the list of near
+      matches beats failing inside a capture loop on frame 40.
+    """
+    def get(coll, n):
+        try:
+            return coll.itemByName(n)
+        except RuntimeError:
+            return None
+
+    found = get(des.appearances, name)
+    if found:
+        return found
+    for i in range(app.materialLibraries.count):
+        lib = app.materialLibraries.item(i)
+        src = get(lib.appearances, name)
+        if src:
+            return des.appearances.addByCopy(src, name)
+
+    near = []
+    key = name.split("(")[0].strip().lower()
+    for i in range(app.materialLibraries.count):
+        lib = app.materialLibraries.item(i)
+        for j in range(lib.appearances.count):
+            n = lib.appearances.item(j).name
+            if key and key in n.lower():
+                near.append(n)
+    raise RuntimeError("no appearance %r in any library. Near matches: %s"
+                       % (name, sorted(set(near))[:12] or "none"))
 
 
 def material_family(name):
@@ -145,18 +191,37 @@ def visible_leaves(root, path_prefix=None):
 # --- camera -----------------------------------------------------------------
 
 
-def camera_basis(az_deg, el_deg):
-    """(view direction target->eye, screen right, screen up) for Y-up.
+UP_AXIS_INDEX = {"y": 1, "z": 2}
 
-    az is measured from +Z toward +X. Do NOT use ViewOrientations presets: they
-    are Z-up, so on this Y-up model IsoTopRight resolves to 35.3 degrees BELOW
-    the horizon. Do not try to fix that by scaling the preset's dy either - it
-    is negative, so a larger factor tilts further underneath.
+
+def camera_basis(az_deg, el_deg, up="y"):
+    """(view direction target->eye, screen right, screen up).
+
+    Y-up (the default, and what both rigs in the playbook are): az is measured
+    from +Z toward +X. Do NOT use ViewOrientations presets: they are Z-up, so on
+    a Y-up model IsoTopRight resolves to 35.3 degrees BELOW the horizon. Do not
+    try to fix that by scaling the preset's dy either - it is negative, so a
+    larger factor tilts further underneath.
+
+    Z-up (up="z"): az is measured from +Y toward +X. Inventor defaults to Z-up
+    and so does anything round-tripped through it, which is why this parameter
+    exists - LickDetect_2Port_FULL reports upVector (0,0,1). Passing a Z-up
+    model through the Y-up branch is the same class of error as the preset
+    above, just from the other side: elevation goes into the wrong component and
+    the assertion in fit_orthographic guards the wrong axis. Read
+    viewport.camera.upVector and pass it; never assume.
     """
+    if up not in UP_AXIS_INDEX:
+        raise ValueError('up must be "y" or "z", got %r' % (up,))
     ar, er = math.radians(az_deg), math.radians(el_deg)
-    dv = (math.cos(er) * math.sin(ar), math.sin(er), math.cos(er) * math.cos(ar))
-    rn = math.hypot(dv[2], dv[0])
-    right = (dv[2] / rn, 0.0, -dv[0] / rn)
+    if up == "y":
+        dv = (math.cos(er) * math.sin(ar), math.sin(er), math.cos(er) * math.cos(ar))
+        rn = math.hypot(dv[2], dv[0])
+        right = (dv[2] / rn, 0.0, -dv[0] / rn)
+    else:
+        dv = (math.cos(er) * math.sin(ar), math.cos(er) * math.cos(ar), math.sin(er))
+        rn = math.hypot(dv[1], dv[0])
+        right = (-dv[1] / rn, dv[0] / rn, 0.0)
     ux = dv[1] * right[2] - dv[2] * right[1]
     uy = dv[2] * right[0] - dv[0] * right[2]
     uz = dv[0] * right[1] - dv[1] * right[0]
@@ -164,7 +229,7 @@ def camera_basis(az_deg, el_deg):
     return dv, right, (ux / un, uy / un, uz / un)
 
 
-def fit_orthographic(vp, adsk, corners, az_deg, el_deg, margin=1.05):
+def fit_orthographic(vp, adsk, corners, az_deg, el_deg, margin=1.05, up="y"):
     """Lock an orthographic camera that contains every given corner.
 
     viewExtents is the FULL WIDTH of a square frame. Fitting on the largest
@@ -173,10 +238,14 @@ def fit_orthographic(vp, adsk, corners, az_deg, el_deg, margin=1.05):
     sample the timeline and transform each moving part's 8 bbox corners - not
     one pose's bbox.
 
+    `up` must match the model ("y" default, "z" for anything from Inventor).
+    It sets both the camera's upVector and which axis the final
+    above-the-horizon assertion checks.
+
     Returns the locked camera; re-apply it each frame and never call fit() in
     the loop.
     """
-    dv, r, u = camera_basis(az_deg, el_deg)
+    dv, r, u = camera_basis(az_deg, el_deg, up=up)
     us = [q[0] * r[0] + q[1] * r[1] + q[2] * r[2] for q in corners]
     vs = [q[0] * u[0] + q[1] * u[1] + q[2] * u[2] for q in corners]
     ws = [q[0] * dv[0] + q[1] * dv[1] + q[2] * dv[2] for q in corners]
@@ -194,7 +263,8 @@ def fit_orthographic(vp, adsk, corners, az_deg, el_deg, margin=1.05):
     cam.eye = adsk.core.Point3D.create(
         tgt[0] + dv[0] * 100.0, tgt[1] + dv[1] * 100.0, tgt[2] + dv[2] * 100.0
     )
-    cam.upVector = adsk.core.Vector3D.create(0, 1, 0)
+    cam.upVector = adsk.core.Vector3D.create(*(1 if i == UP_AXIS_INDEX[up] else 0
+                                               for i in range(3)))
     cam.isSmoothTransition = False       # mandatory: else frames land mid-move
     cam.isFitView = False                # mandatory: else the model rescales
     cam.viewExtents = radius * margin * 2.0
@@ -204,7 +274,9 @@ def fit_orthographic(vp, adsk, corners, az_deg, el_deg, margin=1.05):
     locked = vp.camera
     locked.isFitView = False
     locked.isSmoothTransition = False
-    assert locked.eye.y > locked.target.y, "camera is below the target"
+    eye_up = (locked.eye.y, locked.eye.z)[UP_AXIS_INDEX[up] - 1]
+    tgt_up = (locked.target.y, locked.target.z)[UP_AXIS_INDEX[up] - 1]
+    assert eye_up > tgt_up, "camera is below the target (up=%s)" % up
     return locked
 
 

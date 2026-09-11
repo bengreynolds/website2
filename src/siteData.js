@@ -403,6 +403,195 @@ export const projects = [
   },
   {
     id: "reachaq-acquisition-platform",
+    demos: [
+    {
+      "kind": "report",
+      "id": "reachaq-install-report",
+      "label": "Install report",
+      "caption": "The installer's own report, from a real re-run on the christielab10 workstation. The point of the script is in its header comment: \"Do not enable set -e: every step must be attempted independently and the complete pass/fail/skip report must be printed at the end.\" It attempted all twenty-seven steps and printed a line for each rather than stopping at the first failure, which is what makes a second rig reproducible without the original builder standing over it. This run was deliberately constrained - it went to a throwaway conda environment so the one other people use was untouched, and it ran non-interactively, so sudo could not prompt and every root step failed along with everything downstream of them. Fifteen failures is therefore a property of how it was run, not of the machine or the script; a supervised run on a fresh host is the one that passes. The hardware-specific pieces - Spinnaker, NI-DAQ and PXI, PEAK CAN, NVIDIA kernel drivers - are excluded by design and the script says so.",
+      "views": [
+        {
+          "id": "install",
+          "type": "steps",
+          "label": "Install report",
+          "command": "REACHAQ_INSTALL_ENV=reachaq-capture-tmp bash tools/install/reachaq-linux-install.sh",
+          "meta": [
+            {
+              "label": "Host",
+              "value": "christielab10 · Ubuntu 22.04.5 · x86_64"
+            },
+            {
+              "label": "Repository",
+              "value": "~/suite_repo"
+            },
+            {
+              "label": "Environment",
+              "value": "reachaq-capture-tmp · Python 3.8"
+            },
+            {
+              "label": "Result",
+              "value": "PASS 12 · FAIL 15 · SKIP 0"
+            }
+          ],
+          "rows": [
+            {
+              "status": "PASS",
+              "group": "Preflight",
+              "label": "Validate repository checkout"
+            },
+            {
+              "status": "PASS",
+              "group": "Preflight",
+              "label": "Create runtime directories"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable Ubuntu packages",
+              "label": "Update apt metadata",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable Ubuntu packages",
+              "label": "Install base packages",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable Ubuntu packages",
+              "label": "Configure RFID serial permissions"
+            },
+            {
+              "status": "FAIL",
+              "group": "Closed-loop latency tuning",
+              "label": "Grant real-time priority to the stim loop",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Closed-loop latency tuning",
+              "label": "Install CPU governor unit",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Locate conda",
+              "detail": "(/home/christielab10/anaconda3/bin/conda)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Create conda environment"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Upgrade Python packaging tools"
+            },
+            {
+              "status": "FAIL",
+              "group": "Conda runtime",
+              "label": "Install Python requirements",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Conda runtime",
+              "label": "Install reachAQ editable package",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Install reachAQ desktop launcher"
+            },
+            {
+              "status": "FAIL",
+              "group": "TensorFlow GPU runtime",
+              "label": "Install compatible CUDA user-space runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "TensorFlow GPU runtime",
+              "label": "Verify TensorFlow GPU preflight",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Git LFS",
+              "label": "Locate Git LFS",
+              "detail": "(git-lfs/3.0.2 (GitHub; linux amd64; go 1.18.1))"
+            },
+            {
+              "status": "FAIL",
+              "group": "Git LFS",
+              "label": "Initialize Git LFS",
+              "detail": "(exit 128)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Git LFS",
+              "label": "Pull Git LFS assets",
+              "detail": "(exit 128)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify Python version"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify Python dependencies"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify generic imports",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify SoftMouse runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify RFID runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify GUI CLI"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify headless CLI",
+              "detail": "(exit 127)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify SoftMouse systemd units"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Run focused non-hardware tests",
+              "detail": "(exit 1)"
+            }
+          ],
+          "summary": "Completed with failures. Review every FAIL entry above. Hardware-specific kernel drivers/configuration are not installed by this script."
+        }
+      ]
+    }
+    ],
     title: "reachAQ Acquisition Platform",
     category: "software",
     tags: ["software", "data", "automation"],
@@ -608,6 +797,359 @@ export const projects = [
   },
   {
     id: "application-deployment-support-toolkit",
+    demos: [
+    {
+      "kind": "walkthrough",
+      "id": "reachx-tools-walkthrough",
+      "label": "Toolkit walkthrough",
+      "app": "ReachX Tools",
+      "session": "updater v1.0.0 · cam-align on session003 · converter across 19 sessions",
+      "dwell": 4600,
+      "caption": "Three of the toolkit's five utilities, each captured running rather than described. The updater performed a real update; the alignment tool was driven end to end on a copied session so nothing in the archive was at risk; the converter is shown against a live workspace. Every number beside these frames came out of those runs. The Git Monitor is verified working - hooks installed, 28,146 commands logged - but it is a console tool and a console window could not be photographed where these captures were made, so it is not shown here. The offset of 12 frames in the alignment steps is a demonstration value, not a correction this session needed.",
+      "steps": [
+        {
+          "id": "update",
+          "label": "Update",
+          "shot": "/app/reachx-update.webp",
+          "alt": "The ReachX Updater window reporting installed version 1.0.0, latest v1.0.0, and update complete.",
+          "headline": "A real update, run to completion",
+          "note": "The updater checks the installed wheel against the latest release, downloads it, verifies, and reinstalls by force when verification fails rather than leaving a half-updated environment. This run took the machine from 0.7.1 to 1.0.0. The window is small because the tool is: it is meant for someone who is not a developer, and it says the version, the target and whether it worked.",
+          "facts": [
+            {
+              "label": "Installed before",
+              "value": "0.7.1"
+            },
+            {
+              "label": "Latest release",
+              "value": "v1.0.0"
+            },
+            {
+              "label": "Asset",
+              "value": "reachx-1.0.0-py3-none-any.whl"
+            },
+            {
+              "label": "Recovery",
+              "value": "forced reinstall after verify failed",
+              "state": "review"
+            },
+            {
+              "label": "Result",
+              "value": "Update complete",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "open",
+          "label": "Open",
+          "shot": "/app/camalign-open.webp",
+          "alt": "cam-align on launch, with empty master, secondary raw and secondary preview panels.",
+          "headline": "Three panels, nothing assumed",
+          "note": "The window opens with the comparison it exists to make already laid out: master, secondary raw, secondary preview. No folder is chosen and no camera role is guessed.",
+          "facts": [
+            {
+              "label": "Session",
+              "value": "none"
+            },
+            {
+              "label": "Master",
+              "value": "—"
+            },
+            {
+              "label": "Actions",
+              "value": "4 available"
+            },
+            {
+              "label": "State",
+              "value": "Awaiting folder",
+              "state": "blocked"
+            }
+          ]
+        },
+        {
+          "id": "inspect",
+          "label": "Inspect",
+          "shot": "/app/camalign-inspect.webp",
+          "alt": "The session loaded, all three panels showing frames, and the log listing the alignment, length, error and timestamp rules.",
+          "headline": "Inspects on open, and says what it will and will not do",
+          "note": "Pointing it at a folder is the whole interaction. It reads systemdata, picks the master the session itself nominated, and prints the four rules it will hold to — including the one that makes it stop rather than guess.",
+          "facts": [
+            {
+              "label": "Master",
+              "value": "sideCam"
+            },
+            {
+              "label": "Secondary",
+              "value": "frontCam"
+            },
+            {
+              "label": "Frames",
+              "value": "136,147 at 30 fps"
+            },
+            {
+              "label": "Pellet epochs",
+              "value": "32 from events.txt"
+            },
+            {
+              "label": "Stop rule",
+              "value": "mismatch > 100 frames",
+              "state": "review"
+            }
+          ]
+        },
+        {
+          "id": "offset",
+          "label": "Preview",
+          "shot": "/app/camalign-offset.webp",
+          "alt": "An offset of 12 entered, with the secondary preview panel now showing a different frame from the secondary raw panel.",
+          "headline": "The correction is visible before it is real",
+          "note": "With an offset entered, the third panel diverges from the second. Nothing has been written — this is the compensated frame the edit would produce, shown next to the frame it would replace.",
+          "facts": [
+            {
+              "label": "Offset",
+              "value": "12 frames"
+            },
+            {
+              "label": "Convention",
+              "value": "compensated[t] = raw[t + offset]"
+            },
+            {
+              "label": "Files touched",
+              "value": "0"
+            },
+            {
+              "label": "State",
+              "value": "Preview only",
+              "state": "review"
+            }
+          ]
+        },
+        {
+          "id": "dryrun",
+          "label": "Dry run",
+          "shot": "/app/camalign-dryrun.webp",
+          "alt": "The dry-run summary listing four rewrites, two invalidations, one regeneration and ten skips.",
+          "headline": "The plan, itemised, before the edit",
+          "note": "Dry run names every file it would touch and what it would do to each. The two trajectory files are marked invalidate rather than rewrite, because a shifted video makes them wrong rather than stale — they are regenerated from the scorer instead.",
+          "facts": [
+            {
+              "label": "Rewrite",
+              "value": "4 files"
+            },
+            {
+              "label": "Invalidate",
+              "value": "2 files"
+            },
+            {
+              "label": "Regenerate",
+              "value": "1 scorer"
+            },
+            {
+              "label": "Skip",
+              "value": "10 files"
+            },
+            {
+              "label": "Written",
+              "value": "Nothing yet",
+              "state": "blocked"
+            }
+          ]
+        },
+        {
+          "id": "apply",
+          "label": "Apply",
+          "shot": "/app/camalign-apply.webp",
+          "alt": "The compensation applied, with backup, rewrite, invalidate and regenerate lines and a completed transaction id.",
+          "headline": "Backs up first, then edits, as one transaction",
+          "note": "Every original is copied out before anything is overwritten, the edit runs, the invalidated trajectories are regenerated from the scorer, and the whole thing closes under a transaction id with a manifest written beside the backup.",
+          "facts": [
+            {
+              "label": "Backed up",
+              "value": "6 originals"
+            },
+            {
+              "label": "Rewrote",
+              "value": "video, timestamps, 2 npy"
+            },
+            {
+              "label": "Regenerated",
+              "value": "hand.npy, pellet.npy"
+            },
+            {
+              "label": "Transaction",
+              "value": "txn-20260911-115020"
+            },
+            {
+              "label": "State",
+              "value": "Applied",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "undo",
+          "label": "Undo",
+          "shot": "/app/camalign-undo.webp",
+          "alt": "The undo restoring all six files and re-running the inspection, which reports the original frame counts again.",
+          "headline": "Every file back, and the inspection re-run",
+          "note": "Undo restores the six originals from the transaction, updates the manifest, and then re-inspects rather than claiming success — the session is described again from disk, and reads exactly as it did before the edit.",
+          "facts": [
+            {
+              "label": "Restored",
+              "value": "6 files"
+            },
+            {
+              "label": "Elapsed",
+              "value": "10 s"
+            },
+            {
+              "label": "Re-inspected",
+              "value": "136,147 frames"
+            },
+            {
+              "label": "State",
+              "value": "Back to original",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "convert",
+          "label": "Convert",
+          "shot": "/app/reachx-convert.webp",
+          "alt": "The CNN Model Format Converter with four workflow modes and an analysis conversion configured against nineteen sessions.",
+          "headline": "Four workflows, one schema",
+          "note": "The converter moves models and analysis products between ReachX and DeepLabCut or reach-training. Four workflows share one window — convert a model, export pre-training assets, regenerate annotations in place, or map curations and inference results into ReachX sessions — and it names the source and target format rather than leaving the direction implicit.",
+          "facts": [
+            {
+              "label": "Workflows",
+              "value": "4"
+            },
+            {
+              "label": "Source",
+              "value": "reach-training curation/inference"
+            },
+            {
+              "label": "Target",
+              "value": "ReachX session outputs"
+            },
+            {
+              "label": "Discovered",
+              "value": "19 sessions in 1 root"
+            },
+            {
+              "label": "State",
+              "value": "Ready to run",
+              "state": "review"
+            }
+          ]
+        }
+      ]
+    }
+    ,
+    {
+      "kind": "report",
+      "id": "git-monitor-report",
+      "label": "Git Monitor",
+      "caption": "The activity logger, shown as text because it is a console tool and because a terminal screenshot of it would be unreadable at this width. Both views are real output. The status view is what git-monitor status printed; the capture view is five git commands run in a throwaway repository and the five lines the logger wrote for them, unprompted, while they ran. The log it appends to already holds 28,146 commands across every repository on this machine. Note what is not in a line: the tool records the command and where it ran, and sanitises values before writing, which is why a log this size can be shared across machines at all. Repository paths are shortened here for the page; the tool writes them in full.",
+      "views": [
+        {
+          "id": "status",
+          "type": "steps",
+          "label": "Status",
+          "command": "git-monitor status",
+          "meta": [
+            {
+              "label": "Version",
+              "value": "git-monitor 0.1.0"
+            },
+            {
+              "label": "Mechanism",
+              "value": "shell hook, not a daemon"
+            },
+            {
+              "label": "Log",
+              "value": "4.88 MB · 28,146 commands"
+            }
+          ],
+          "rows": [
+            {
+              "status": "PASS",
+              "group": "Interception",
+              "label": "enabled"
+            },
+            {
+              "status": "SKIP",
+              "group": "Process monitor",
+              "label": "stopped",
+              "detail": "(hook-based interception is the shipped path)"
+            },
+            {
+              "status": "PASS",
+              "group": "powershell",
+              "label": "hook installed",
+              "detail": "(Microsoft.PowerShell_profile.ps1)"
+            },
+            {
+              "status": "PASS",
+              "group": "pwsh",
+              "label": "hook installed",
+              "detail": "(Microsoft.PowerShell_profile.ps1)"
+            }
+          ],
+          "summary": "Interception is a per-user shell hook installed into both PowerShell profiles, so it follows the operator rather than running as a service."
+        },
+        {
+          "id": "capture",
+          "type": "log",
+          "label": "Live capture",
+          "command": "git init · add · commit · status · log   (in a sandbox repository)",
+          "meta": [
+            {
+              "label": "Commands run",
+              "value": "5"
+            },
+            {
+              "label": "Lines captured",
+              "value": "5"
+            },
+            {
+              "label": "Log grew",
+              "value": "28,156 → 28,161"
+            }
+          ],
+          "rows": [
+            {
+              "at": "2026-09-11 13:21:27",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git init -q"
+            },
+            {
+              "at": "2026-09-11 13:21:28",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git add README.md"
+            },
+            {
+              "at": "2026-09-11 13:21:29",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git -c user.email=demo@example.invalid -c user.name=demo commit -q -m \"first commit\""
+            },
+            {
+              "at": "2026-09-11 13:21:29",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git status --short"
+            },
+            {
+              "at": "2026-09-11 13:21:30",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git log --oneline"
+            }
+          ],
+          "summary": "Five commands, five records, written while the commands ran and without being asked."
+        }
+      ]
+    }
+    ],
     title: "Research Application Deployment and Support Toolkit",
     category: "software",
     tags: ["software", "hardware", "automation"],
@@ -851,6 +1393,36 @@ export const projects = [
     title: "Lick Port and Reward Delivery Hardware",
     category: "hardware",
     tags: ["hardware"],
+    /* The reward assembly leads, so it is what the work-grid tile previews.
+       The two-port detect box is the project's other build and sits in the
+       switcher below as a timed demo. */
+    figure: "lickreward-build",
+    /* Must match the grid in src/rig-lickreward-build.css. SequencePanel
+       divides by it for --scrub and --scrub-steps, so a stale value seeks the
+       wrong cell while the counter still reads correctly. */
+    figureFrames: 49,
+    figureLabel:
+      "Assembly sequence of the lick reward rig, built up from the floor panel and its four feet through the four box panels and their captive screws, then the reward port carried on the front panel: the water cone and electronics mount, the spout clamp with the dropper and its valve, the breadboard and power jack, and last the 10 mL syringe on its holder with the solenoid that gates it.",
+    demos: [
+      {
+        id: "lickreward-port",
+        label: "Reward port, part by part",
+        caption:
+          "The reward port on the front panel, naming its pieces in the order they were drawn: the water cone the animal meets, the electronics mount behind it, the spout clamp, the valve, then the 10 mL syringe on its holder. The last two beats split the assembly rather than adding to it - first the wetted path alone, syringe through valve and clamp, then the structure alone, cone and mount - because which parts touch liquid is the distinction that governs how the thing is cleaned between sessions. The water cone here is a revision of a colleague's original geometry, not a shape drawn from scratch; the mount, clamp and the assembly around them are the contribution. Nothing moves in the CAD, so the sequence colours the parts rather than actuating them.",
+      },
+      {
+        id: "lickdetect-build",
+        label: "Two-port detect box",
+        caption:
+          "The project's other build: the two-port lick detection box, assembled from the aluminium floor and its four feet through the polycarbonate side and end walls, then the hardware carried on the end plate - electronics mount and spout clamp, the MKR Zero, breadboard, real-time clock and pin headers, the two syringe holders and their 10 mL syringes, and last the two solenoid valves with the dropper tubes that take each channel through the plate into the chamber. It plays straight through here rather than stepping, because the reward assembly holds the sequence panel above.",
+      },
+      {
+        id: "lickdetect-reward",
+        label: "Reward path",
+        caption:
+          "The end plate seen from outside, with the chain lit in the order a reward travels it: 10 mL syringe, holder, solenoid valve, then the dropper tube that carries the line through the plate to a spout inside the chamber. Both ports light at each station rather than one after the other, which is the honest way to draw it - the two channels are the same parts twice over, mirrored across the plate, and nothing is shared between them. The last two beats pick up the detection side, the real-time clock and the MKR Zero that stamps and logs each contact, then leave it lit on its own. Nothing here moves in the CAD: the solenoid has no modelled internals and the syringe no separate plunger, so the sequence colours the path rather than pretending to actuate it.",
+      },
+    ],
     summary:
       "The reward port and detection hardware behind lick-based behavior rigs: an operant box designed to a colleague's protocol, and a build package that made an existing detection board deployable.",
     challenge:
@@ -893,6 +1465,25 @@ export const projects = [
     title: "Neonatal Hypoxia Chamber",
     category: "hardware",
     tags: ["hardware"],
+    figure: "hypoxia-build",
+    /* Must match the grid in src/rig-hypoxia-build.css. */
+    figureFrames: 49,
+    figureLabel:
+      "Assembly sequence of the hypoxia chamber, built up from the back and side walls and their four feet, then the lid, the door on its external strap hinges with the magnetic latches and stabilisers, the gas manifold carrying the two face-mount solenoids, the mixing fan on its nylon spacers, the oxygen sensor with the control board, display and covers, and last the motor controller and its wire keep.",
+    demos: [
+      {
+        id: "hypoxia-loop",
+        label: "Gas and control loop",
+        caption:
+          "The chamber opened up, lighting the loop in the order it runs: nitrogen and air on the two Lee face-mount solenoids, through the manifold and quick-turn coupling into the volume, the tachometer fan mixing it, the oxygen sensor reading the result, and the board and its LCD holding the number the operator works to. The last beat drops the gas path and leaves the monitoring side lit on its own, which is the part that keeps running between adjustments. The lid and near wall are hidden for the view - they are clear polycarbonate, and a highlight seen through two translucent sheets washes out to nothing.",
+      },
+      {
+        id: "hypoxia-door",
+        label: "Door and seal",
+        caption:
+          "The door swinging on its two external strap hinges and back onto the magnetic latches. The axis is the hinge pin itself, measured off the bore at x -19.667, z 102.685 rather than guessed from the part's extents, and the opening direction is the one that clears the chamber - rotating the other way drives the door through the volume it is supposed to close. This is the external-hinge iteration; the sealing face it shuts against carries the O-ring groove.",
+      },
+    ],
     summary:
       "A sealed chamber for controlled-atmosphere work on neonatal rodents, with a calibrated oxygen monitor and bench controls designed alongside it.",
     challenge:
@@ -1023,10 +1614,10 @@ export const skills = [
     image: "03-cad",
     lede: "Enclosures, mechanisms and mounts, designed toward the constraints that actually decide the part: how it is cut, how it seals, whether a cable reaches its connector, and whether a person can service it afterwards. Printed parts for iteration, machined and waterjet panels for anything that has to hold.",
     readout: [
-      { label: "CAD", value: "Fusion 360, Inventor, SolidWorks" },
+      { label: "CAD", value: "Fusion 360, Inventor, SolidWorks, Blender" },
       { label: "Modeling", value: "parametric solids, assemblies and mates, sheet metal, weldments, motion studies" },
       { label: "Design for manufacture", value: "tolerancing, press and clearance fits, O-ring seals, fastener stacks, cable routing" },
-      { label: "Fabrication", value: "FDM, SLA, CNC machining, laser cutting, waterjet, extruded aluminium framing" },
+      { label: "Fabrication", value: "FDM, SLA, Bambu Lab, CNC machining, laser cutting, waterjet, extruded aluminium framing" },
       { label: "Release", value: "2D drawings, STEP, DXF, STL, BOM, cut files" },
     ],
   },
@@ -1158,24 +1749,33 @@ export function resolveShot(ref) {
    render as typographic tiles instead, which is what makes the grid
    asymmetric rather than nine equal cards. */
 function indexShot(project) {
-  /* A demo sprite first, deliberately. A project's scroll figure and its
-     demos are two different mechanisms: a demo is time-based and plays once
-     from .is-playing, while a scroll figure is scrubbed by a view() timeline
-     and does nothing on hover. The tile wants the one that moves when it is
-     pointed at, so a project with demos uses a demo even when it also has a
-     figure, and the figure keeps the project page where scrolling drives it. */
-  const demo = project.demos && project.demos.find((entry) => entry.kind !== "walkthrough");
-  if (demo) {
-    const id = (demo.ids && demo.ids[0]) || demo.id;
-    return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
-  }
+  /* The assembly sequence first. This used to prefer a demo, because a figure
+     was scrubbed by a view() timeline and so sat on its poster however long you
+     hovered it - the tile wanted whichever sprite actually moved. That reason
+     is gone: figures run from SequencePanel on the document timeline now, and
+     WorkGrid drives one on hover with the same data-scrub="play" the project
+     page uses. With both able to play, the build is the better tile: it says
+     what the thing IS, where a mechanism demo shows one detail of it out of
+     context. Project 02 was showing the pellet scoop rather than the rig.
 
+     A project with a figure therefore uses it even when it also has demos; the
+     demos keep the project page. */
   if (project.figure) {
     return {
       kind: "figure",
       id: project.figure,
       src: `/rig/${project.figure}-poster.webp`,
     };
+  }
+
+  /* Only a sprite demo has a poster to show, and a sprite demo is the one with
+     no kind at all. Testing for "not a walkthrough" was the same thing until a
+     second self-rendering kind arrived, and then it handed the tile a report
+     and asked for /rig/<report-id>-poster.webp, which does not exist. */
+  const demo = project.demos && project.demos.find((entry) => !entry.kind);
+  if (demo) {
+    const id = (demo.ids && demo.ids[0]) || demo.id;
+    return { kind: "demo", id, src: `/rig/${id}-poster.webp` };
   }
 
   /* A walkthrough has no sprite at all, only captured frames of the real

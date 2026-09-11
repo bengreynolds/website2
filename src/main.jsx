@@ -18,6 +18,12 @@ import App from "./App";
 import "./spa.css";
 import "./rig-buildup.css";
 import "./rig-prosthetic-build.css";
+import "./rig-lickreward-build.css";
+import "./rig-hypoxia-build.css";
+/* rig-scrub.css must stay LAST of the rig sheets. Its animation-range override
+   is .rig-figure[data-figure].is-live, the same 0,3,0 specificity as the range
+   each generated file declares, so source order is the only thing that decides
+   between them. */
 import "./rig-scrub.css";
 import "./demo-pellet.css";
 import "./demo-pellet-close.css";
@@ -30,10 +36,21 @@ import "./demo-lickrevolver-trial-close.css";
 import "./demo-lickrevolver-ui.css";
 import "./demo-reach-single.css";
 import "./demo-reach-session.css";
+/* The demo sheets, sprite then live-DOM. Both branches appended here, so the
+   order is: site-e's new sprite demos with the rest of the sprite demos, then
+   the two DOM demos, then main's navigation-depth chrome, which is page
+   furniture rather than a demo and stays last as it was. pipeline-demo.css
+   arrived on both sides and is imported once. */
+import "./demo-lickdetect-build.css";
+import "./demo-lickdetect-reward.css";
+import "./demo-lickreward-port.css";
+import "./demo-hypoxia-loop.css";
+import "./demo-hypoxia-door.css";
+import "./pipeline-demo.css";
+import "./report-demo.css";
 import "./rail-depth.css";
 import "./nav-swap.css";
 import "./grid-depth.css";
-import "./pipeline-demo.css";
 import "./view-transition.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

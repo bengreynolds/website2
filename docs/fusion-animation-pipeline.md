@@ -27,8 +27,8 @@ in this file came from doing one of these out of sequence, or skipping step 7.
 | 5 | Choose the camera | Project the corners over the whole path. Never trust a view preset. |
 | 6 | Choose the colours | Colour by what moves for a mechanism; by material for an assembly. |
 | 7 | **Preview** | Render stills, look at them, send them to the owner. Never capture blind. |
-| 8 | Capture | Lock the camera, apply an explicit colour base, restore at the end. |
-| 9 | Ship | Generate sheet, poster and CSS together. Gate the payload. |
+| 8 | Capture | Spend the pixel budget on cell size before frame count. Lock the camera, apply an explicit colour base, restore at the end. |
+| 9 | Ship | Generate sheet, poster and CSS together, name the poster frame, and gate the payload. A re-capture is never a one-file change. |
 | 10 | Verify | Check the files against each other, and look at the result at display size. |
 
 ---
@@ -642,17 +642,115 @@ up. The scoop looked static in a 420 px grid cell and was obviously turning at
 ### Frame budget and grid
 
 Sheets must be square-celled and the frame count a perfect square, so the grid
-is unambiguous. **GPU texture limit is 16384 px** on the long edge.
+is unambiguous. **WebP's hard limit is 16383 px** on a side. That is not a GPU
+texture limit and it is not 16384: libwebp raises `encoding error 5` at exactly
+16384, which the guard in `build_demo_sprite.py` used to let through.
 
-| animation | frames | grid | cell | sheet | size | duration |
-|---|---|---|---|---|---|---|
-| buildup | 100 | 10×10 | 660 | 6600² | 2.9 MB | scroll-driven |
-| pellet (wide) | 81 | 9×9 | 540 | 4860² | 1.46 MB | 4.2 s |
-| pellet-close | 81 | 9×9 | 540 | 4860² | 1.43 MB | 4.2 s |
-| tunnel | 64 | 8×8 | 520 | 4160² | 839 KB | 3.6 s |
-| pcb | 64 | 8×8 | 520 | 4160² | 1.1 MB | 3.6 s |
-| prosthetic-build | 100 | 10×10 | 660 | 6600² | 1.82 MB | 6.0 s |
-| prosthetic-function | 121 | 11×11 | 540 | 5940² | 1.08 MB | 6.0 s |
+#### The budget is `frames × cell²`, and it is memory
+
+Bytes are the forgiving half. Measured on the `pellet` sheet, re-encoded at
+five resolutions: **file size scales as roughly pixels^0.74**, so doubling the
+pixel count costs about 1.67× the bytes.
+
+| sheet side | MPix | WebP q82 |
+|---|---|---|
+| 2700 | 7.3 | 617 KB |
+| 3240 | 10.5 | 843 KB |
+| 3780 | 14.3 | 1078 KB |
+| 4320 | 18.7 | 1304 KB |
+| 4860 | 23.6 | 1468 KB |
+
+The decoded bitmap is the unforgiving half, and it is **linear**: RGBA is
+4 bytes a pixel, so `buildup` at 6600² is 43.6 MPix and **174 MB of decoded
+image** that the browser holds for as long as the figure is live. That, not
+download size and not the 16383 cap, is what actually limits a sheet. All
+thirteen shipped sheets together are 305 MPix — 1.2 GB if they were ever
+resident at once, which is why nothing is fetched until a control is pressed.
+
+**Treat ~6400 px a side (≈41 MPix, ≈164 MB) as the ceiling for one sheet**, and
+spend it on cell size before frame count. `buildup` already spends 6600 on 100
+frames at cell 660; the same sheet as 64 frames at 825, or 49 at 940, is
+visibly sharper on the page and no heavier. A 2× tier is *not* available at
+high frame counts — `pellet` at cell 1080 would be 94 MPix and 378 MB.
+
+The exception is a cyclic mechanism, where frame rate is the content. `pellet`
+runs 81 frames in 4.2 s (19 fps); cutting it to 49 frames to buy resolution
+would drop it to 12 fps and read as choppy. **Assembly sequences give up frames
+cheaply — the reader steps them one press at a time. Cycles do not.**
+
+#### Size the cell against the slot it lands in
+
+Measured widths of the live containers, at DPR 1:
+
+| slot | selector | width |
+|---|---|---|
+| project page, sequence | `.rig-figure` | `min(100%, 82vh)` — 590 at a 720-tall viewport, **738 at 900**, 886 at 1080, 1181 at 1440; 335 on a 375 px phone |
+| project page, one demo | `.demo-figure` | 640 (capped by `.demo-stage` at 40rem) |
+| project page, paired demos | `.demo-figure` | 617 at a 1440 viewport, 662 at 2560, **162 at 375** |
+| project page, trio's third | `.demo-stage--trio > :nth-child(3)` | 544 |
+| home tile | `.tile-plate` | 355 at a 1440 viewport |
+
+Note the span: one sheet serves 162 px to 1181 px, a factor of seven. It cannot
+be right at both ends, and the project page is the end that matters — the home
+tile is a hover flourish, the project page is where the figure is the subject.
+
+The number to check is **source pixels per CSS pixel** at the largest common
+slot. The screenshot pipeline in `docs/software-animation-patterns.md` targets
+1.85 and is sharp on a retina panel. Every CAD sheet currently shipped is
+between 0.54 and 0.89, so all of them are upscaled 2.2–3.7× at DPR 2:
+
+| sheet | frames | grid | cell | sheet | size | duration | shown at | src px / CSS px |
+|---|---|---|---|---|---|---|---|---|
+| buildup | 100 | 10×10 | 660 | 6600² | 2.88 MB | play, 7 s | 738 | 0.89 |
+| pellet (wide) | 81 | 9×9 | 540 | 4860² | 1.43 MB | 4.2 s | 617 | 0.88 |
+| pellet-close | 81 | 9×9 | 540 | 4860² | 1.40 MB | 4.2 s | 617 | 0.88 |
+| tunnel | 64 | 8×8 | 520 | 4160² | 839 KB | 3.6 s | 640 | 0.81 |
+| pcb | 64 | 8×8 | 520 | 4160² | 1.07 MB | 3.6 s | 640 | 0.81 |
+| lickrevolver-build | 81 | 9×9 | 540 | 4860² | 543 KB | 10 s | 640 | 0.84 |
+| lickrevolver-trial | 81 | 9×9 | 540 | 4860² | 591 KB | 13 s | 617 | 0.88 |
+| lickrevolver-trial-close | 81 | 9×9 | 540 | 4860² | 874 KB | 13 s | 617 | 0.88 |
+| lickrevolver-ui | 81 | 9×9 | 540 | 4860² | 1.33 MB | 13 s | 544 | 0.99 |
+| reach-single | 49 | 7×7 | 540 | 3780² | 472 KB | 4 s | 640 | 0.84 |
+| reach-session | 81 | 9×9 | 540 | 4860² | 820 KB | 5 s | 640 | 0.84 |
+| prosthetic-build | 144 | 12×12 | **400** | 4800² | 1.16 MB | play, 7 s | 738 | **0.54** |
+| prosthetic-function | 169 | 13×13 | **380** | 4940² | 840 KB | 10.5 s | 640 | **0.59** |
+
+The two `prosthetic` sheets are the outliers and they show what the trade costs
+in practice: both were cut for a smaller container, both spent their whole
+budget on frames, and the project-page rewrite then grew their slot without a
+re-capture. At 144 and 169 frames they are the two sheets that cannot be
+re-tiered, only re-shot.
+
+**An earlier version of this table was wrong about both of them** — it recorded
+`prosthetic-build` as 100 frames at cell 660 and `prosthetic-function` as 121 at
+540. Read the generated `src/rig-*.css` and `src/demo-*.css` headers, which the
+build step writes from the frames it actually composed, rather than this table.
+
+#### Check the fit before blaming the cell
+
+Cell size is not the only place resolution leaks. The subject's union alpha
+bbox across every frame, measured on the shipped sheets:
+
+| sheet | swept subject | share of cell |
+|---|---|---|
+| pellet | 365 × 384 | **71%** |
+| pellet-close | 427 × 326 | 79% |
+| buildup | 561 × 545 | 85% |
+| lickrevolver-build | 474 × 271 | 88% |
+| tunnel | 461 × 331 | 89% |
+| pcb | 494 × 359 | 95% |
+| prosthetic-build | 386 × 312 | 96% |
+
+`lickrevolver-ui`, `reach-single` and `reach-session` are absent because they
+are RGB with no alpha channel, so there is no bbox to measure. They are screen
+content rather than CAD renders; the fit has to be judged by eye there.
+
+`pellet` throws away 29% of its linear resolution to empty margin — worth 1.37×
+for free, at no cost in pixels, bytes or frames. Tighten the fit before
+enlarging the cell. The counter-pressure is mistake 7 (blanket-padding a swept
+path lost 30% of subject size) and mistake 4 (fitting on `maxAxisSpan` clipped
+all four edges), so project the corners over the whole path, then inset — do not
+pad a static bbox and do not crop the frames afterwards, which is mistake 9.
 
 **Ship the uncropped square render canvas.** Cropping frames to a union alpha
 bbox produced a 614 × 618 cell against a declared `aspect-ratio: 1/1`; a few
@@ -739,6 +837,101 @@ animations (columns with an iteration count, rows over the full range) is more
 compact but drifts: `steps(5, jump-none)` changes rows at fifths of *four*
 intervals while columns wrap at fifths of *five*. For a single-axis strip,
 `steps(N, jump-none)` is correct — plain `steps(N)` never reaches the last frame.
+
+### Re-capturing a figure that already ships
+
+Regenerating a sheet is not a one-file change, and the generator cannot do any
+of the following for you. Work the list before you re-shoot anything, because
+several of these fail silently.
+
+**1. Name the poster frame. It is not a placeholder.** `--poster-frame`
+defaults to `first`, and the generated CSS attaches the sheet only inside
+`prefers-reduced-motion: no-preference` — so under reduce the poster is the
+*entire, permanent* rendering of the figure. An accumulating sequence that
+takes the default ships a pile of loose parts as its picture.
+
+Nothing recorded which frame each shipped poster came from, so it was recovered
+by matching every poster against every cell of its own sheet:
+
+| sheet | `--poster-frame` | evidence |
+|---|---|---|
+| buildup | `last` (99) | byte-identical to cell 99 — re-cut with `reposter_from_sheet.py` |
+| lickrevolver-build | `last` (80) | byte-identical to cell 80 |
+| prosthetic-build | `last` (143) | closest cell, 2× margin over the runner-up |
+| reach-single | `last` (48) | closest cell, 2× margin |
+| reach-session | `last` (80) | closest cell, 0.98 vs 1.43 |
+| prosthetic-function | `first` (0) | closest cell, 0.54 vs 1.09 |
+| pcb | `first` (0) | closest cell, 1.49 vs 1.75 |
+| lickrevolver-trial | `first` (0) | closest cell |
+| lickrevolver-trial-close | `first` (0) | closest cell |
+| pellet | `first` (0) | cycle returns to its start; frames 0–2 tie |
+| pellet-close | `first` (0) | same |
+| tunnel | `first` (0) | same |
+| lickrevolver-ui | **~33, mid-sequence** | frames 31–37 all tie near 1.00 against a worst cell of 18.7 — the interface dwells there. Neither first nor last; re-derive before trusting the index. |
+
+The pattern to carry forward: **an accumulating sequence wants `last`, a cycle
+wants `first`.** Only `lickrevolver-ui` is neither, because it is an interface
+holding still mid-trial rather than a mechanism.
+
+Only the two `last` posters that were re-cut from the sheet match byte for
+byte. The rest were encoded from the original PNGs, so a cell re-encoded out of
+the already-lossy sheet only ever gets close — the minimum is still the answer,
+but the margin is compressed. Compare pixels, not bytes, when re-deriving one.
+
+**2. Update `figureFrames` in `src/siteData.js` if the count changed.**
+`SequencePanel` divides by it to write `--scrub` and `--scrub-steps`. A stale
+value seeks the wrong cell while the counter reads correctly, which is the
+hardest version of this bug to see.
+
+**3. Import the new file in `src/main.jsx` *before* `rig-scrub.css`.** This is
+load-bearing and was confirmed in the browser rather than reasoned: the
+generated range rule and the override in `rig-scrub.css` are both `(0,3,0)`, so
+source order alone decides between them. Enumerating the live CSSOM on the
+prosthetic page returns the generated `contain 8% contain 92%` first and
+`rig-scrub.css`'s `cover 22% cover 78%` after it, which is the only reason the
+override wins. The `[data-scrub]` rules are `(0,4,0)` and are safe either way —
+the comment in `rig-scrub.css` claiming order does not matter is true of those
+and **not** of the bare range.
+
+**4. `buildup` is a special case: half of its rules live in `src/spa.css`.**
+It predates the generator, so `src/rig-buildup.css` carries `background-size`
+and the keyframes and nothing else, while the poster attach, the sheet attach,
+the timeline and the `max-height` fallback are hand-written in `spa.css` — the
+poster attach at `:1367`, the rest in the `no-preference` block opening at
+`:1395`. `rig-prosthetic-build.css`, written by the current generator, carries
+all of it in one file.
+
+Running `build_demo_sprite.py --scroll buildup …` therefore writes a
+*self-contained* file and leaves the `spa.css` block behind as a duplicate
+definition of the same selector — including a stale `animation-range` and a
+hardcoded sheet URL. Delete the `spa.css` block in the same commit, and delete
+the comment there that says not to move it into the generated file. That
+instruction was right while the split existed and becomes wrong the moment the
+figure is regenerated.
+
+**5. `--duration` is silently ignored with `--scroll`.** The scroll template
+has no duration slot; a played sequence gets its timing from
+`--play-dur` (default `7s`) in `rig-scrub.css`, not from the generated file.
+The CLI accepts the flag either way and the printed summary says
+`scroll-scrubbed` rather than a duration, which is the only hint.
+
+**6. The `--scroll` template still describes a UX the site no longer has.** It
+emits `animation-timeline: view()` and a `contain`/`cover` range, from when
+figures were scrubbed by the page. Nothing on the site scrolls a figure now —
+`SequencePanel` drives them from Play and frame buttons — so that block
+survives only as the fallback beneath `rig-scrub.css`'s overrides. It still has
+to be correct, because it is what a coarse pointer and a browser without
+`animation-timeline` fall back to, but do not read it as the intended
+behaviour.
+
+**7. Switching a sprite between timed and scroll leaves both files behind.**
+`--scroll` writes `src/rig-<id>.css` and the default writes
+`src/demo-<id>.css`; neither removes the other, and the generator does not warn.
+Verified by running both modes over one id — two stylesheets, both claiming the
+same sprite, no complaint. `reposter_from_sheet.py` is the only thing that
+catches it (`two stylesheets claim <id>: … Delete the stale one first`), and it
+only catches it the next time somebody re-cuts a poster. Delete the old file
+yourself, and remove its `main.jsx` import in the same edit.
 
 ### Timeline and range
 
@@ -924,3 +1117,30 @@ Each of these shipped or nearly shipped. Kept short, as a pre-flight list.
 29. **Believing a timing measurement from a hidden browser pane** — the
     timeline is frozen.
 30. **Treating an MCP timeout as a failure** — the run had completed.
+31. **Spending the whole pixel budget on frames.** `prosthetic-build` (144) and
+    `prosthetic-function` (169) bought frame rate with cell size, at 400 and
+    380 px. They were then re-homed onto a project page whose figure slot is
+    738 px, so both render at ~0.55 source pixels per CSS pixel and are the
+    softest things on the site. Frames and resolution come out of one budget;
+    decide the split against the slot the figure will actually ship into, not
+    against the one it is being cut for today.
+32. **Letting the sheet inventory in this file drift from the files.** It
+    recorded `prosthetic-build` as 100 frames at cell 660 and
+    `prosthetic-function` as 121 at 540; on disk they are 144 at 400 and 169 at
+    380. A table written by hand at capture time and never re-derived is a
+    table that will be wrong. The generated `src/rig-*.css` and
+    `src/demo-*.css` headers are written from the frames actually composed and
+    are the source of truth.
+33. **Not recording which frame each poster came from.** `--poster-frame` is a
+    deliberate choice per sheet and nothing wrote it down, so thirteen posters
+    had to be reverse-engineered by matching each one against every cell of its
+    own sheet. Three were only resolvable because a cycle returns to its start;
+    `lickrevolver-ui` still is not, beyond "somewhere in the 31–37 dwell". The
+    manifest is now in section 9 — keep it current, because the poster is the
+    whole figure under reduced motion.
+34. **Attributing the size cap to the GPU.** `MAX_TEXTURE = 16384` guarded the
+    wrong number for the wrong reason: WebP's own limit is 16383, so a sheet at
+    exactly 16384 passed the guard and then failed inside libwebp with
+    `encoding error 5`. The cap that actually binds is neither — it is the
+    decoded RGBA bitmap, four bytes a pixel, held for as long as the figure is
+    live.

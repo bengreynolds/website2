@@ -1,5 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import PipelineDemo from "./PipelineDemo";
+import ConsoleReport from "./ConsoleReport";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 
 /* --------------------------------------------------------------------------
@@ -47,11 +48,33 @@ export const SpriteStage = memo(function SpriteStage({ demos, className = "" }) 
 
   const active = demos.find((demo) => demo.id === play.id) || demos[0];
 
-  /* The walkthrough brings its own stepper, so it does not use the shared
-     sprite stage or its button row. A project mixing both kinds would lose the
-     switcher; no project does. */
-  if (active.kind === "walkthrough") {
-    return <PipelineDemo demo={active} />;
+  /* The demo switcher, built once. A self-rendering demo owns its whole
+     <figure> including the figcaption, so it cannot be wrapped - it is handed
+     the switcher instead and puts it in its own caption. Before this, any
+     self-rendering demo returned early and the switcher never rendered, which
+     silently stranded every demo after the first one on the same project. */
+  const switcher = demos.length > 1 ? (
+    <div className="demo-switch">
+      {demos.map((demo) => (
+        <button
+          key={demo.id}
+          type="button"
+          className={`btn btn--quiet demo-button ${demo.id === active.id ? "is-active" : ""}`}
+          aria-pressed={demo.id === active.id}
+          onPointerEnter={() => warmSprites(demo.ids || [demo.id])}
+          onFocus={() => warmSprites(demo.ids || [demo.id])}
+          onClick={() => runDemo(demo.id, demo.ids || [demo.id])}
+        >
+          {demo.label}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  /* Kinds that draw themselves. A demo with no kind is a sprite. */
+  const SelfRendering = { walkthrough: PipelineDemo, report: ConsoleReport }[active.kind];
+  if (SelfRendering) {
+    return <SelfRendering demo={active} switcher={switcher} />;
   }
 
   const ids = active.ids || [active.id];

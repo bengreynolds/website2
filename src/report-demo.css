@@ -1,0 +1,207 @@
+/* HAND-WRITTEN. Not generated - src/demo-*.css is the namespace
+   scripts/build_demo_sprite.py writes into, so this is named subject-first to
+   stay out of it.
+
+   Styling for ConsoleReport: a console tool's own output shown as text.
+
+   Three rules from the playbook shape everything here.
+
+   States are told apart by weight and border, not by hue. PASS, FAIL and SKIP
+   share one type size and one ground; what changes is the left rule and the
+   weight of the status word. That survives both themes and colour blindness,
+   and it means a report of fifteen failures does not read as an alarm.
+
+   --accent means interactive, so no static row uses it. The only accented
+   things in this figure are the buttons, which come from the shared
+   .demo-button rules.
+
+   Every animation delay sits inside prefers-reduced-motion: no-preference.
+   Section 14 of spa.css crushes duration globally but leaves delay alone, so a
+   delay declared outside that query lands late under reduce - worse than no
+   animation. .rise at spa.css:355 is the pattern this copies. */
+
+.creport {
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.creport-head {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.creport-cmdline {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.creport-prompt {
+  color: var(--text-subtle);
+}
+
+.creport-meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+}
+
+.creport-meta div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.creport-meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.creport-meta dd {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--text);
+}
+
+/* The report body scrolls on its own rather than stretching the page: a
+   twenty-seven step report is longer than the figures beside it. */
+.creport-body {
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
+  padding: 0.6rem 0.75rem;
+  max-height: 26rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.creport-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.creport-row {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, auto) minmax(0, 1fr);
+  gap: 0.5rem 0.9rem;
+  align-items: baseline;
+  padding: 0.22rem 0.3rem;
+  border-left: 2px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Weight and rule strength carry the state. No hue. */
+.creport-row[data-state="pass"] {
+  border-left-color: var(--rule);
+}
+
+.creport-row[data-state="skip"] {
+  border-left-color: var(--rule);
+  opacity: 0.72;
+}
+
+.creport-row[data-state="fail"] {
+  border-left-color: var(--rule-strong);
+  background: var(--surface);
+}
+
+.creport-status {
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-subtle);
+}
+
+.creport-row[data-state="fail"] .creport-status {
+  color: var(--text);
+}
+
+.creport-group {
+  color: var(--text-subtle);
+}
+
+.creport-label {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.creport-row[data-state="fail"] .creport-label {
+  font-weight: 500;
+}
+
+.creport-detail {
+  color: var(--text-subtle);
+}
+
+/* The log shape: timestamp, repo, command. Wraps to two lines on a phone
+   rather than scrolling sideways. */
+.creport-row--log {
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  grid-template-areas:
+    "time repo"
+    "cmd  cmd";
+  border-left-color: var(--rule);
+}
+
+.creport-time {
+  grid-area: time;
+  color: var(--text-subtle);
+}
+
+.creport-repo {
+  grid-area: repo;
+  color: var(--text-subtle);
+  overflow-wrap: anywhere;
+}
+
+.creport-cmd {
+  grid-area: cmd;
+  font-family: var(--font-mono);
+  font-size: inherit;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 46rem) {
+  .creport-row--log {
+    grid-template-columns: 10.5rem minmax(0, 1fr);
+    grid-template-areas:
+      "time cmd"
+      "repo cmd";
+  }
+}
+
+.creport-summary {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  color: var(--text);
+}
+
+/* Rows settle in on arrival. Transform only, and the stagger is a custom
+   property rather than a literal so no motion constant is inlined here -
+   AGENTS.md centralises those. */
+@media (prefers-reduced-motion: no-preference) {
+  .creport-body .creport-row {
+    --creport-stagger: 18ms;
+    animation: creport-settle var(--dur-fast) var(--ease) both;
+    animation-delay: calc(var(--i, 0) * var(--creport-stagger));
+  }
+}
+
+@keyframes creport-settle {
+  from {
+    transform: translateY(calc(var(--reveal-shift) * 0.25));
+  }
+}

@@ -14,7 +14,7 @@ import { useState } from "react";
 
    React owns one number - the step index. Everything else reads off it. */
 
-export default function PipelineDemo({ demo }) {
+export default function PipelineDemo({ demo, switcher = null }) {
   const steps = demo.steps;
   const last = steps.length - 1;
   const [step, setStep] = useState(0);
@@ -85,6 +85,10 @@ export default function PipelineDemo({ demo }) {
       </div>
 
       <figcaption className="demo-caption">
+        {/* The project's demo switcher, when the project has more than one.
+            It arrives as a prop because this component owns the whole figure,
+            caption included, and cannot be wrapped by the stage. */}
+        {switcher}
         <div className="demo-switch">
           {/* Arrows carry no text, so the accessible name is on the button and
               the glyph is hidden - a screen reader should hear "Previous step",
