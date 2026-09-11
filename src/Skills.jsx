@@ -3,6 +3,7 @@ import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
 import { JUMP_AT, MARK_LEAD } from "./deckGeometry";
 import { LogoArray } from "./Logos";
+import { asset } from "./assetPath";
 
 /* --------------------------------------------------------------------------
    Skills - eight panels dealt off a pinned deck
@@ -140,7 +141,7 @@ const SkillFigure = memo(function SkillFigure({ skill }) {
     <figure className="skill-plate">
       <img
         className="skill-shot"
-        src={credit.file}
+        src={asset(credit.file)}
         alt={credit.alt || credit.title}
         loading="lazy"
         decoding="async"

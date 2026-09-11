@@ -7,6 +7,7 @@ import {
   parseRoute,
   routeTitle,
   useRouter,
+  withBase,
 } from "./router";
 import HomePage from "./HomePage";
 import ProjectPage from "./ProjectPage";
@@ -241,7 +242,7 @@ export default function App() {
                   className={`nav-link ${
                     route.name === "home" && activeSection === item.id ? "is-current" : ""
                   }`}
-                  href={`/#${item.id}`}
+                  href={withBase(`/#${item.id}`)}
                   aria-current={
                     route.name === "home" && activeSection === item.id
                       ? "location"

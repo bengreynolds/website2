@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { asset } from "./assetPath";
 
 /* A walkthrough of the real desktop application, not a diagram of it.
 
@@ -61,7 +62,7 @@ export default function PipelineDemo({ demo, switcher = null }) {
           <img
             key={current.id}
             className="shot-img"
-            src={current.shot}
+            src={asset(current.shot)}
             alt={current.alt}
             loading="lazy"
             decoding="async"

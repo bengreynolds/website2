@@ -30,6 +30,45 @@ export function isPlainClick(event) {
   );
 }
 
+/* --------------------------------------------------------------------------
+   Base path
+   Two spellings of the same place. The ROUTE is what this file parses and
+   what every link table is written in ("/work/<id>", "/#projects"). The URL
+   is what the address bar, an <a href> and pushState have to carry, and on a
+   GitHub Pages project site that is the route with "/website2" in front of
+   it, because Pages serves a project repo from /<repo>/ rather than from the
+   origin root.
+
+   Vite hands the prefix over as BASE_URL, which is "/" whenever the site is
+   served from a root - Vercel, a custom domain, `npm run dev`. The two
+   spellings collapse there and both functions below are the identity, which
+   is what keeps this from being a second code path that only CI exercises.
+   -------------------------------------------------------------------------- */
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/* Route -> URL. Only a rooted route takes the prefix; "#skill-x" and
+   "mailto:" are not routes and must pass through untouched. */
+export function withBase(href) {
+  return BASE && href.startsWith("/") ? `${BASE}${href}` : href;
+}
+
+/* URL -> route. The base alone ("/website2", with or without the trailing
+   slash) is home; anything that is not under the base is returned as it
+   stands, so a stray path still reaches parseRoute and still renders home
+   with its URL left alone. */
+export function stripBase(pathname) {
+  if (!BASE) return pathname;
+  if (pathname === BASE) return "/";
+  if (pathname.startsWith(`${BASE}/`)) return pathname.slice(BASE.length);
+  return pathname;
+}
+
+/* The current route, never the raw pathname. */
+function currentRoutePath() {
+  return stripBase(window.location.pathname);
+}
+
 /* Two routes: the single-page home, and one page per project. Everything the
    old exploration branch put on /about and /contact is a section of home, so
    those paths are not routes here - they resolve to home, and the in-page
@@ -169,7 +208,7 @@ export function useNavigate() {
 }
 
 export function useRouter() {
-  const [path, setPath] = useState(() => window.location.pathname);
+  const [path, setPath] = useState(currentRoutePath);
   /* A hash the caller asked for that the target has not rendered yet. Held
      rather than acted on, because "/#projects" from a project page has to
      mount home before there is a #projects to scroll to. */
@@ -187,7 +226,7 @@ export function useRouter() {
        did not navigate must not leave it armed for whatever comes next. */
     const onPopState = () => {
       takeMorph();
-      withShutter(() => setPath(window.location.pathname));
+      withShutter(() => setPath(currentRoutePath()));
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -202,7 +241,11 @@ export function useRouter() {
      The href is split because the route is the path alone. Storing the raw
      "/#projects" would send parseRoute a single "#projects" segment, which
      resolves to home by accident rather than on purpose, and would then
-     disagree with window.location.pathname forever after. */
+     disagree with window.location.pathname forever after.
+
+     href arrives in route spelling and stays that way through setPath; only
+     pushState is handed the URL spelling, and only the comparison reads the
+     address bar, which is why it strips the base before comparing. */
   const navigate = useCallback((href) => {
     /* Read and cleared first thing, before any early return: a click that
        armed the morph and then turned out to be a no-op must not leave it
@@ -213,9 +256,9 @@ export function useRouter() {
     const nextPath = (hashAt === -1 ? href : href.slice(0, hashAt)) || "/";
     const hash = hashAt === -1 ? null : href.slice(hashAt + 1) || null;
 
-    if (nextPath === window.location.pathname && !hash) return;
+    if (nextPath === currentRoutePath() && !hash) return;
 
-    window.history.pushState(null, "", href);
+    window.history.pushState(null, "", withBase(href));
     const apply = () => {
       setPath(nextPath);
       setPendingHash(hash);
@@ -251,7 +294,7 @@ export function AppLink({ href, children, onClick, ...rest }) {
   return (
     <a
       {...rest}
-      href={href}
+      href={withBase(href)}
       onClick={(event) => {
         onClick?.(event);
         if (!isPlainClick(event)) return;
