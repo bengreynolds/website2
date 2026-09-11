@@ -19,6 +19,7 @@ import "./spa.css";
 import "./rig-buildup.css";
 import "./rig-prosthetic-build.css";
 import "./rig-lickdetect-build.css";
+import "./rig-hypoxia-build.css";
 /* rig-scrub.css must stay LAST of the rig sheets. Its animation-range override
    is .rig-figure[data-figure].is-live, the same 0,3,0 specificity as the range
    each generated file declares, so source order is the only thing that decides
@@ -36,6 +37,8 @@ import "./demo-lickrevolver-ui.css";
 import "./demo-reach-single.css";
 import "./demo-reach-session.css";
 import "./demo-lickdetect-reward.css";
+import "./demo-hypoxia-loop.css";
+import "./demo-hypoxia-door.css";
 import "./pipeline-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

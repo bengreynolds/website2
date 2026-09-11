@@ -911,6 +911,25 @@ export const projects = [
     title: "Neonatal Hypoxia Chamber",
     category: "hardware",
     tags: ["hardware"],
+    figure: "hypoxia-build",
+    /* Must match the grid in src/rig-hypoxia-build.css. */
+    figureFrames: 49,
+    figureLabel:
+      "Assembly sequence of the hypoxia chamber, built up from the back and side walls and their four feet, then the lid, the door on its external strap hinges with the magnetic latches and stabilisers, the gas manifold carrying the two face-mount solenoids, the mixing fan on its nylon spacers, the oxygen sensor with the control board, display and covers, and last the motor controller and its wire keep.",
+    demos: [
+      {
+        id: "hypoxia-loop",
+        label: "Gas and control loop",
+        caption:
+          "The chamber opened up, lighting the loop in the order it runs: nitrogen and air on the two Lee face-mount solenoids, through the manifold and quick-turn coupling into the volume, the tachometer fan mixing it, the oxygen sensor reading the result, and the board and its LCD holding the number the operator works to. The last beat drops the gas path and leaves the monitoring side lit on its own, which is the part that keeps running between adjustments. The lid and near wall are hidden for the view - they are clear polycarbonate, and a highlight seen through two translucent sheets washes out to nothing.",
+      },
+      {
+        id: "hypoxia-door",
+        label: "Door and seal",
+        caption:
+          "The door swinging on its two external strap hinges and back onto the magnetic latches. The axis is the hinge pin itself, measured off the bore at x -19.667, z 102.685 rather than guessed from the part's extents, and the opening direction is the one that clears the chamber - rotating the other way drives the door through the volume it is supposed to close. This is the external-hinge iteration; the sealing face it shuts against carries the O-ring groove.",
+      },
+    ],
     summary:
       "A sealed chamber for controlled-atmosphere work on neonatal rodents, with a calibrated oxygen monitor and bench controls designed alongside it.",
     challenge:
