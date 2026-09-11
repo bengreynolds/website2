@@ -278,8 +278,23 @@ export default function Skills() {
       const count = panels.length;
       if (!count) return;
 
-      gsap.set(panels[0], { ...FRONT, autoAlpha: 1 });
-      gsap.set(panels.slice(1), { ...BELOW, autoAlpha: 0 });
+      /* The card the reader is looking at. Held here so onUpdate writes to
+         the DOM only when it changes rather than on every scroll frame. */
+      let front = 0;
+      panels[0].dataset.front = "1";
+
+      /* opacity, NOT autoAlpha, and this is the whole of the find-in-page
+         fix. autoAlpha is opacity plus visibility, and it sets
+         visibility: hidden the moment alpha reaches 0 - which takes seven of
+         the eight cards out of find-in-page and out of the accessibility
+         tree. Ctrl-F for any skill but the one on screen found nothing,
+         measured at 1 of 8, and that was a straight regression against the
+         <details> version this replaced, where all eight were always
+         findable. Plain opacity leaves the text rendered, so it is found,
+         announced and selectable-by-search while still being invisible.
+         content-visibility: hidden would have the same problem. */
+      gsap.set(panels[0], { ...FRONT, opacity: 1 });
+      gsap.set(panels.slice(1), { ...BELOW, opacity: 0 });
 
       /* An empty tween sets the length so the timeline is exactly one unit
          per panel: panel i is the front card over [i, i+1). Everything below
@@ -301,14 +316,14 @@ export default function Skills() {
 
         tl.fromTo(
           next,
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: HANDOVER * FADE_IN, ease: "power2.out" },
+          { opacity: 0 },
+          { opacity: 1, duration: HANDOVER * FADE_IN, ease: "power2.out" },
           at
         );
         tl.fromTo(
           out,
-          { autoAlpha: 1 },
-          { autoAlpha: 0, duration: HANDOVER * FADE_OUT, ease: "power1.in" },
+          { opacity: 1 },
+          { opacity: 0, duration: HANDOVER * FADE_OUT, ease: "power1.in" },
           at + HANDOVER * FADE_OUT_FROM
         );
       }
@@ -335,6 +350,28 @@ export default function Skills() {
           deck.style.setProperty("--deck-vh", `${window.innerHeight}px`);
           deck.style.setProperty("--deck-step", `${span / count}px`);
         },
+        /* Which card the reader is looking at, out to CSS as data-front, and
+           the only thing CSS uses it for is pointer-events.
+
+           That became necessary with the line above. While the cards were
+           visibility: hidden they were not hit targets; at opacity 0 they
+           are, and seven full-viewport cards stacked on the one being read
+           would swallow every click and every drag-select in the section.
+
+           Same arithmetic as the scroll marks in deck.css, deliberately: the
+           card a reader sees changes at unit i + HANDOVER_SEEN, which is
+           floor(t + MARK_LEAD). Two places agreeing by construction rather
+           than by coincidence. */
+        onUpdate: (self) => {
+          const t = self.progress * count;
+          const seen = Math.min(count - 1, Math.max(0, Math.floor(t + MARK_LEAD)));
+          if (seen === front) return;
+          front = seen;
+          panels.forEach((panel, i) => {
+            if (i === seen) panel.dataset.front = "1";
+            else delete panel.dataset.front;
+          });
+        },
       });
     }, deck);
 
@@ -354,6 +391,13 @@ export default function Skills() {
          inline style GSAP wrote back, so a mode flip or a route change leaves
          the plain markup behind rather than eight cards frozen mid-deal. */
       ctx.revert();
+      /* revert() puts back every inline style GSAP wrote, but data-front is
+         ours. It only means anything under [data-deck="pinned"], so a stale
+         one is inert - removed anyway, because a leftover attribute that
+         happens not to matter is the kind of thing that starts mattering. */
+      deck.querySelectorAll("[data-front]").forEach((panel) => {
+        delete panel.dataset.front;
+      });
       delete deck.dataset.deck;
       deck.style.removeProperty("--deck-vh");
       deck.style.removeProperty("--deck-step");

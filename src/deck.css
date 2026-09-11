@@ -12,7 +12,14 @@
    scroll timeline, where a stalled timeline pins the element at its start
    state and can leave text permanently invisible. A ScrollTrigger scrub
    writes the value on every scroll event and on every refresh, and reverting
-   the context removes the inline style entirely. */
+   the context removes the inline style entirely.
+
+   It is opacity and only opacity. The first build used GSAP's autoAlpha,
+   which adds visibility: hidden at zero, and that took seven of the eight
+   cards out of find-in-page and out of the accessibility tree - Ctrl-F for a
+   skill that was not the one on screen found nothing, against a <details>
+   version where all eight were always findable. An invisible card here is
+   still laid out, still rendered, still searchable. */
 
 .deck {
   position: relative;
@@ -115,6 +122,17 @@
      backface-visibility is the cheap insurance: a card rotated past 90deg
      while a scrub overshoots should disappear rather than flash inside out. */
   backface-visibility: hidden;
+  /* The price of keeping every card findable. Seven invisible full-viewport
+     cards are still hit targets at opacity 0, so they would take every click
+     and every drag-select meant for the card being read. Skills.jsx writes
+     data-front onto whichever card that is; this is the only thing it is
+     used for. A card with no data-front is still in the accessibility tree
+     and still found by Ctrl-F - pointer-events does not change either. */
+  pointer-events: none;
+}
+
+.deck[data-deck="pinned"] .deck-panel[data-front="1"] {
+  pointer-events: auto;
 }
 
 /* The card is an opaque plate, and that is load-bearing rather than
