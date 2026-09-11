@@ -611,13 +611,45 @@ export const projects = [
     demos: [
     {
       "kind": "walkthrough",
-      "id": "camalign-walkthrough",
-      "label": "Camera alignment walkthrough",
-      "app": "cam-align",
-      "session": "session003 · sideCam master · frontCam secondary · 136,147 frames",
+      "id": "reachx-tools-walkthrough",
+      "label": "Toolkit walkthrough",
+      "app": "ReachX Tools",
+      "session": "updater v1.0.0 · cam-align on session003 · converter across 19 sessions",
       "dwell": 4600,
-      "caption": "The alignment tool driven end to end on a real two-camera session, on a copy so nothing in the archive was at risk. It inspects on open and states its own rules, previews the compensated frame beside the raw one, plans the edit before making it, applies it as a transaction with a manifest, and puts every file back on undo. The offset of 12 frames here is a demonstration value, not a measured correction for this session.",
+      "caption": "Three of the toolkit's five utilities, each captured running rather than described. The updater performed a real update; the alignment tool was driven end to end on a copied session so nothing in the archive was at risk; the converter is shown against a live workspace. Every number beside these frames came out of those runs. The Git Monitor is verified working - hooks installed, 28,146 commands logged - but it is a console tool and a console window could not be photographed where these captures were made, so it is not shown here. The offset of 12 frames in the alignment steps is a demonstration value, not a correction this session needed.",
       "steps": [
+        {
+          "id": "update",
+          "label": "Update",
+          "shot": "/app/reachx-update.webp",
+          "alt": "The ReachX Updater window reporting installed version 1.0.0, latest v1.0.0, and update complete.",
+          "headline": "A real update, run to completion",
+          "note": "The updater checks the installed wheel against the latest release, downloads it, verifies, and reinstalls by force when verification fails rather than leaving a half-updated environment. This run took the machine from 0.7.1 to 1.0.0. The window is small because the tool is: it is meant for someone who is not a developer, and it says the version, the target and whether it worked.",
+          "facts": [
+            {
+              "label": "Installed before",
+              "value": "0.7.1"
+            },
+            {
+              "label": "Latest release",
+              "value": "v1.0.0"
+            },
+            {
+              "label": "Asset",
+              "value": "reachx-1.0.0-py3-none-any.whl"
+            },
+            {
+              "label": "Recovery",
+              "value": "forced reinstall after verify failed",
+              "state": "review"
+            },
+            {
+              "label": "Result",
+              "value": "Update complete",
+              "state": "done"
+            }
+          ]
+        },
         {
           "id": "open",
           "label": "Open",
@@ -789,6 +821,37 @@ export const projects = [
               "label": "State",
               "value": "Back to original",
               "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "convert",
+          "label": "Convert",
+          "shot": "/app/reachx-convert.webp",
+          "alt": "The CNN Model Format Converter with four workflow modes and an analysis conversion configured against nineteen sessions.",
+          "headline": "Four workflows, one schema",
+          "note": "The converter moves models and analysis products between ReachX and DeepLabCut or reach-training. Four workflows share one window — convert a model, export pre-training assets, regenerate annotations in place, or map curations and inference results into ReachX sessions — and it names the source and target format rather than leaving the direction implicit.",
+          "facts": [
+            {
+              "label": "Workflows",
+              "value": "4"
+            },
+            {
+              "label": "Source",
+              "value": "reach-training curation/inference"
+            },
+            {
+              "label": "Target",
+              "value": "ReachX session outputs"
+            },
+            {
+              "label": "Discovered",
+              "value": "19 sessions in 1 root"
+            },
+            {
+              "label": "State",
+              "value": "Ready to run",
+              "state": "review"
             }
           ]
         }
