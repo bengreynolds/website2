@@ -2,11 +2,17 @@
    else about it; this is the two rules that let the canvas sit where the
    image is.
 
-   The canvas is only ever appended to a plate that holds an <img>, and the
-   <img> stays underneath it for as long as it exists. Nothing here hides the
-   image: if the context is lost, the import fails, or the visitor is on a
-   coarse pointer or reduced motion, there is no canvas at all and these rules
-   match nothing. */
+   The canvas is only ever appended to a plate that holds art - the one
+   screenshot <img> or one of the four sprite figures - and that art stays
+   underneath it for as long as it exists. Nothing here hides it: if the
+   context is lost, the import fails, or the visitor is on a coarse pointer or
+   reduced motion, there is no canvas at all and these rules match nothing.
+
+   In particular nothing here touches the sprite figure's visibility. Its
+   alpha is written by src/tileGL.js, as the complement of the canvas's, and
+   it is alpha rather than display or visibility because the figure's CSS
+   animation is the clock the shader steps its frames from. Hide the figure
+   and the sprite freezes. */
 
 /* .tile-plate already clips (overflow: hidden) and already keeps its
    aspect-ratio, which the generated sprite CSS depends on. This adds a

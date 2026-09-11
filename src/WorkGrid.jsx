@@ -3,7 +3,7 @@ import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink, isPlainClick } from "./router";
 import { aimShutter } from "./shutter";
-import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./tileGL";
+import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./plateFX";
 
 /* --------------------------------------------------------------------------
    Work grid
@@ -58,10 +58,11 @@ const Tile = memo(function Tile({ entry }) {
       className="tile"
       data-art={shot ? shot.kind : "none"}
       data-placement={placement || undefined}
-      /* Two things happen on intent, and they are mutually exclusive by
-         construction: a demo tile fetches its sprite sheet, an image tile
-         builds a WebGL plate. wakePlate returns immediately on a tile with no
-         .tile-shot, which is every demo tile and every typographic one. */
+      /* Two things happen on intent, and on a demo tile they are the same
+         thing twice: play() fetches the sprite sheet the CSS animation needs,
+         and wakePlate builds a WebGL plate that reads its frames off that
+         same animation. wakePlate returns immediately on a tile with no
+         plate at all, which is the four typographic ones. */
       onPointerEnter={(event) => {
         play();
         wakePlate(event.currentTarget, event.clientX, event.clientY);
