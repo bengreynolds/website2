@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
+import { ToolList } from "./Logos";
 
 /* --------------------------------------------------------------------------
    Skills
@@ -112,7 +113,14 @@ const SkillStage = memo(function SkillStage({ skill }) {
               {skill.readout.map((row) => (
                 <div className="stage-readout-row" key={row.label}>
                   <dt>{row.label}</dt>
-                  <dd>{row.value}</dd>
+                  {/* The row's value is still one authored string in
+                      siteData.js; ToolList only splits it on its own commas
+                      to hang a mark off the tokens that name a tool, and
+                      rejoins with the same ", ". The rendered text is what it
+                      was before the marks existed. */}
+                  <dd>
+                    <ToolList value={row.value} />
+                  </dd>
                 </div>
               ))}
             </dl>

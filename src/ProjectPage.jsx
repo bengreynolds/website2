@@ -2,6 +2,7 @@ import { workNeighbours } from "./siteData";
 import { AppLink } from "./router";
 import { SpriteStage } from "./Figures";
 import SequencePanel from "./SequencePanel";
+import { Tool } from "./Logos";
 
 /* --------------------------------------------------------------------------
    Project page
@@ -34,9 +35,15 @@ function StackPanel({ stack }) {
       {stack.map((layer) => (
         <div className="project-layer" key={layer.group}>
           <h3 className="project-layer-name">{layer.group}</h3>
+          {/* A stack item is already a whole token, so it goes to Tool
+              directly rather than through ToolList. Most items here are
+              counts and parts rather than products - "215-part enclosure",
+              "nine custom drivers" - and those render exactly as written. */}
           <ul className="project-layer-items">
             {layer.items.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>
+                <Tool name={item} />
+              </li>
             ))}
           </ul>
         </div>

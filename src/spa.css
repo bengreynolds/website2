@@ -1263,6 +1263,50 @@ summary {
   text-wrap: pretty;
 }
 
+/* ---- brand marks ------------------------------------------------------
+   A tool's own logo beside its name, in the readouts here and in the project
+   stack panels in section 14. Shapes, brand hexes and licences are generated
+   into src/logoCredits.js by scripts/logos/fetch-logos.mjs.
+
+   Decoration, not information. The tool is named in text immediately beside
+   its mark, so the marks are aria-hidden and a reader who never sees one has
+   lost nothing. A tool with no mark is the normal case, not a gap: most of
+   the strings in these lists name a practice rather than a product.
+
+   Sized in em so a mark tracks whatever text it sits in and no call site has
+   to pass a size. Accent is untouched here on purpose - these are brand
+   colours on static text, and this sheet reserves --accent for things that
+   can be interacted with. */
+.tool {
+  white-space: nowrap;
+}
+
+.mark {
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 0.32em;
+  /* Optically centred on a mono line rather than sat on the baseline, which
+     left every mark reading half a step low against lowercase text. */
+  vertical-align: -0.17em;
+  flex: none;
+}
+
+/* The fallback chain is the whole mechanism. --mark-light and --mark-dark are
+   emitted only onto the marks whose brand hex misses contrast on that
+   particular ground, so every other mark resolves straight through to --mark
+   and ships the exact colour its owner published, in both themes. */
+.mark[data-tone="mono"] {
+  fill: var(--mark-light, var(--mark));
+}
+
+:root[data-theme="dark"] .mark[data-tone="mono"] {
+  fill: var(--mark-dark, var(--mark));
+}
+
+/* Multi-colour marks carry their own fills and are left alone. Nothing here
+   may recolour them: the colour relationships inside the drawing are the
+   mark. */
+
 /* ---- the skill plate --------------------------------------------------
    A sourced still, or a labelled slot saying which one is missing. The
    section ships before every image is found, and an empty plate that names
