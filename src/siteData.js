@@ -403,6 +403,195 @@ export const projects = [
   },
   {
     id: "reachaq-acquisition-platform",
+    demos: [
+    {
+      "kind": "report",
+      "id": "reachaq-install-report",
+      "label": "Install report",
+      "caption": "The installer's own report, from a real re-run on the christielab10 workstation. The point of the script is in its header comment: \"Do not enable set -e: every step must be attempted independently and the complete pass/fail/skip report must be printed at the end.\" It attempted all twenty-seven steps and printed a line for each rather than stopping at the first failure, which is what makes a second rig reproducible without the original builder standing over it. This run was deliberately constrained - it went to a throwaway conda environment so the one other people use was untouched, and it ran non-interactively, so sudo could not prompt and every root step failed along with everything downstream of them. Fifteen failures is therefore a property of how it was run, not of the machine or the script; a supervised run on a fresh host is the one that passes. The hardware-specific pieces - Spinnaker, NI-DAQ and PXI, PEAK CAN, NVIDIA kernel drivers - are excluded by design and the script says so.",
+      "views": [
+        {
+          "id": "install",
+          "type": "steps",
+          "label": "Install report",
+          "command": "REACHAQ_INSTALL_ENV=reachaq-capture-tmp bash tools/install/reachaq-linux-install.sh",
+          "meta": [
+            {
+              "label": "Host",
+              "value": "christielab10 · Ubuntu 22.04.5 · x86_64"
+            },
+            {
+              "label": "Repository",
+              "value": "~/suite_repo"
+            },
+            {
+              "label": "Environment",
+              "value": "reachaq-capture-tmp · Python 3.8"
+            },
+            {
+              "label": "Result",
+              "value": "PASS 12 · FAIL 15 · SKIP 0"
+            }
+          ],
+          "rows": [
+            {
+              "status": "PASS",
+              "group": "Preflight",
+              "label": "Validate repository checkout"
+            },
+            {
+              "status": "PASS",
+              "group": "Preflight",
+              "label": "Create runtime directories"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable Ubuntu packages",
+              "label": "Update apt metadata",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable Ubuntu packages",
+              "label": "Install base packages",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable Ubuntu packages",
+              "label": "Configure RFID serial permissions"
+            },
+            {
+              "status": "FAIL",
+              "group": "Closed-loop latency tuning",
+              "label": "Grant real-time priority to the stim loop",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Closed-loop latency tuning",
+              "label": "Install CPU governor unit",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Locate conda",
+              "detail": "(/home/christielab10/anaconda3/bin/conda)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Create conda environment"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Upgrade Python packaging tools"
+            },
+            {
+              "status": "FAIL",
+              "group": "Conda runtime",
+              "label": "Install Python requirements",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Conda runtime",
+              "label": "Install reachAQ editable package",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Conda runtime",
+              "label": "Install reachAQ desktop launcher"
+            },
+            {
+              "status": "FAIL",
+              "group": "TensorFlow GPU runtime",
+              "label": "Install compatible CUDA user-space runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "TensorFlow GPU runtime",
+              "label": "Verify TensorFlow GPU preflight",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Git LFS",
+              "label": "Locate Git LFS",
+              "detail": "(git-lfs/3.0.2 (GitHub; linux amd64; go 1.18.1))"
+            },
+            {
+              "status": "FAIL",
+              "group": "Git LFS",
+              "label": "Initialize Git LFS",
+              "detail": "(exit 128)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Git LFS",
+              "label": "Pull Git LFS assets",
+              "detail": "(exit 128)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify Python version"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify Python dependencies"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify generic imports",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify SoftMouse runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify RFID runtime",
+              "detail": "(exit 1)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify GUI CLI"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Verify headless CLI",
+              "detail": "(exit 127)"
+            },
+            {
+              "status": "PASS",
+              "group": "Portable verification",
+              "label": "Verify SoftMouse systemd units"
+            },
+            {
+              "status": "FAIL",
+              "group": "Portable verification",
+              "label": "Run focused non-hardware tests",
+              "detail": "(exit 1)"
+            }
+          ],
+          "summary": "Completed with failures. Review every FAIL entry above. Hardware-specific kernel drivers/configuration are not installed by this script."
+        }
+      ]
+    }
+    ],
     title: "reachAQ Acquisition Platform",
     category: "software",
     tags: ["software", "data", "automation"],
@@ -854,6 +1043,109 @@ export const projects = [
               "state": "review"
             }
           ]
+        }
+      ]
+    }
+    ,
+    {
+      "kind": "report",
+      "id": "git-monitor-report",
+      "label": "Git Monitor",
+      "caption": "The activity logger, shown as text because it is a console tool and because a terminal screenshot of it would be unreadable at this width. Both views are real output. The status view is what git-monitor status printed; the capture view is five git commands run in a throwaway repository and the five lines the logger wrote for them, unprompted, while they ran. The log it appends to already holds 28,146 commands across every repository on this machine. Note what is not in a line: the tool records the command and where it ran, and sanitises values before writing, which is why a log this size can be shared across machines at all. Repository paths are shortened here for the page; the tool writes them in full.",
+      "views": [
+        {
+          "id": "status",
+          "type": "steps",
+          "label": "Status",
+          "command": "git-monitor status",
+          "meta": [
+            {
+              "label": "Version",
+              "value": "git-monitor 0.1.0"
+            },
+            {
+              "label": "Mechanism",
+              "value": "shell hook, not a daemon"
+            },
+            {
+              "label": "Log",
+              "value": "4.88 MB · 28,146 commands"
+            }
+          ],
+          "rows": [
+            {
+              "status": "PASS",
+              "group": "Interception",
+              "label": "enabled"
+            },
+            {
+              "status": "SKIP",
+              "group": "Process monitor",
+              "label": "stopped",
+              "detail": "(hook-based interception is the shipped path)"
+            },
+            {
+              "status": "PASS",
+              "group": "powershell",
+              "label": "hook installed",
+              "detail": "(Microsoft.PowerShell_profile.ps1)"
+            },
+            {
+              "status": "PASS",
+              "group": "pwsh",
+              "label": "hook installed",
+              "detail": "(Microsoft.PowerShell_profile.ps1)"
+            }
+          ],
+          "summary": "Interception is a per-user shell hook installed into both PowerShell profiles, so it follows the operator rather than running as a service."
+        },
+        {
+          "id": "capture",
+          "type": "log",
+          "label": "Live capture",
+          "command": "git init · add · commit · status · log   (in a sandbox repository)",
+          "meta": [
+            {
+              "label": "Commands run",
+              "value": "5"
+            },
+            {
+              "label": "Lines captured",
+              "value": "5"
+            },
+            {
+              "label": "Log grew",
+              "value": "28,156 → 28,161"
+            }
+          ],
+          "rows": [
+            {
+              "at": "2026-09-11 13:21:27",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git init -q"
+            },
+            {
+              "at": "2026-09-11 13:21:28",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git add README.md"
+            },
+            {
+              "at": "2026-09-11 13:21:29",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git -c user.email=demo@example.invalid -c user.name=demo commit -q -m \"first commit\""
+            },
+            {
+              "at": "2026-09-11 13:21:29",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git status --short"
+            },
+            {
+              "at": "2026-09-11 13:21:30",
+              "repo": "…/scratchpad/gitmon/sandbox-repo",
+              "command": "git log --oneline"
+            }
+          ],
+          "summary": "Five commands, five records, written while the commands ran and without being asked."
         }
       ]
     }

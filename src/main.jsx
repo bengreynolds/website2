@@ -42,6 +42,7 @@ import "./demo-lickreward-port.css";
 import "./demo-hypoxia-loop.css";
 import "./demo-hypoxia-door.css";
 import "./pipeline-demo.css";
+import "./report-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
