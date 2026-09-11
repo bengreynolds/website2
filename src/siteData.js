@@ -861,6 +861,14 @@ export const projects = [
        the reward port and the mounts are. */
     figureLabel:
       "Assembly sequence of the two-port lick box, built up from the aluminium floor and its four feet through the polycarbonate side walls and end walls, then the reward-port hardware carried on the end plate: the electronics mount and spout clamp, the MKR Zero, breadboard, real-time clock and pin headers, the two syringe holders and their 10 mL syringes, and last the two solenoid valves with the dropper tubes that take each channel through the plate into the chamber.",
+    demos: [
+      {
+        id: "lickdetect-reward",
+        label: "Reward path",
+        caption:
+          "The end plate seen from outside, with the chain lit in the order a reward travels it: 10 mL syringe, holder, solenoid valve, then the dropper tube that carries the line through the plate to a spout inside the chamber. Both ports light at each station rather than one after the other, which is the honest way to draw it - the two channels are the same parts twice over, mirrored across the plate, and nothing is shared between them. The last two beats pick up the detection side, the real-time clock and the MKR Zero that stamps and logs each contact, then leave it lit on its own. Nothing here moves in the CAD: the solenoid has no modelled internals and the syringe no separate plunger, so the sequence colours the path rather than pretending to actuate it.",
+      },
+    ],
     summary:
       "The reward port and detection hardware behind lick-based behavior rigs: an operant box designed to a colleague's protocol, and a build package that made an existing detection board deployable.",
     challenge:

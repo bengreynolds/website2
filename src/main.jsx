@@ -35,6 +35,7 @@ import "./demo-lickrevolver-trial-close.css";
 import "./demo-lickrevolver-ui.css";
 import "./demo-reach-single.css";
 import "./demo-reach-session.css";
+import "./demo-lickdetect-reward.css";
 import "./pipeline-demo.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
