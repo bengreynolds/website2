@@ -377,6 +377,11 @@ summary {
                             src/Skills.jsx and src/deck.css.
    sprite scrub content   - scroll position IS the frame index of the assembly.
    demo buttons state     - a mechanism runs because someone asked it to.
+   tile lens    feedback  - a refraction under the pointer on a work tile's
+                            plate, on the GPU. src/tileGL.js. Renders only
+                            while something is changing; nothing loops.
+   route shutter sequence - an aperture closes on what was clicked and opens
+                            on what was arrived at, 400ms. src/shutter.js.
    hover/focus  feedback  - 140ms colour and border changes, no lifts.
 
    Nothing else. No parallax, no infinite loops, no blur.

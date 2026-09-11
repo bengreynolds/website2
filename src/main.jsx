@@ -36,7 +36,7 @@ import "./grid-depth.css";
 import "./tile-gl.css";
 import "./deck.css";
 import "./pipeline-demo.css";
-import "./view-transition.css";
+import "./shutter.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

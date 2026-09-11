@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { tilePlacements, workIndex } from "./siteData";
 import { loadSprite, prefersReducedMotion, warmSprites } from "./sprites";
 import { AppLink, isPlainClick } from "./router";
+import { aimShutter } from "./shutter";
 import { aimPlate, bloomPlate, sleepAll, sleepPlate, wakePlate } from "./tileGL";
 
 /* --------------------------------------------------------------------------
@@ -41,18 +42,6 @@ const Tile = memo(function Tile({ entry }) {
      and the poster stays up until it resolves. */
   const [runs, setRuns] = useState(0);
 
-  /* Only the tile being entered is named, and only while it is being entered.
-     Two elements sharing a view-transition-name aborts the transition, so
-     naming all nine up front would break every navigation.
-
-     Nothing resets this, and that is only safe because HomePage unmounts on
-     navigate, which takes the name with it. If the grid is ever kept mounted
-     across a route change - a cached home, a modal route, a transition that
-     animates home out rather than replacing it - the name is stranded here,
-     the project page's figure claims the same name, and every later
-     transition aborts. Whoever makes that change owns resetting this. */
-  const [leaving, setLeaving] = useState(false);
-
   const play = () => {
     if (!playable || prefersReducedMotion()) return;
     const wait = loadSprite(playable);
@@ -83,10 +72,7 @@ const Tile = memo(function Tile({ entry }) {
       onPointerLeave={(event) => sleepPlate(event.currentTarget)}
     >
       {shot ? (
-        <div
-          className="tile-plate"
-          style={leaving ? { viewTransitionName: "project-plate" } : undefined}
-        >
+        <div className="tile-plate">
           {playable ? (
             <div
               key={runs}
@@ -134,13 +120,20 @@ const Tile = memo(function Tile({ entry }) {
         aria-labelledby={titleId}
         onFocus={() => playable && warmSprites([playable])}
         onClick={(event) => {
-          /* A modifier-click opens a new tab without unmounting this grid,
-             so naming the plate on one would strand the name and abort every
-             later transition. The bloom is on the same condition for the same
-             reason: a tile that is staying put should not dissolve. */
+          /* Only an unmodified left click. A Ctrl/Cmd/Shift-click opens a new
+             tab and this grid stays exactly where it is, so a tile that is
+             not going anywhere must not dissolve and the shutter must not
+             close over a page nobody is leaving. Gated here rather than in
+             AppLink, whose contract of handing callers every click is
+             deliberate. */
           if (!isPlainClick(event)) return;
-          setLeaving(true);
-          bloomPlate(event.currentTarget.closest(".tile"));
+          const tile = event.currentTarget.closest(".tile");
+          bloomPlate(tile);
+          /* The aperture closes on the tile that was clicked and, at the
+             seam, opens on the project page's figure. That is the shared
+             element morph this replaced, expressed as a wipe. */
+          const box = tile.getBoundingClientRect();
+          aimShutter(box.left + box.width / 2, box.top + box.height / 2);
         }}
       />
     </article>

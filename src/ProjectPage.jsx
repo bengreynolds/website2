@@ -78,11 +78,7 @@ export default function ProjectPage({ project }) {
             Mechanism
           </h2>
           {project.figure ? <SequencePanel project={project} /> : null}
-          {demos.length ? (
-            <div style={{ viewTransitionName: "project-plate" }}>
-              <SpriteStage demos={demos} className="project-demo" />
-            </div>
-          ) : null}
+          {demos.length ? <SpriteStage demos={demos} className="project-demo" /> : null}
         </section>
       ) : null}
 

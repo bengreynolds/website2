@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { findProject } from "./siteData";
+import { runShutter } from "./shutter";
 
 /* --------------------------------------------------------------------------
    Router
@@ -56,25 +57,55 @@ export function routeTitle(route) {
   return "Benjamin Reynolds | R&D Engineer";
 }
 
-/* Runs a route change inside a view transition when the browser has one.
+/* Where the aperture should open once the new route is on screen.
 
-   flushSync is not optional. startViewTransition snapshots the old DOM, calls
-   this callback, then snapshots the new one - and React 18 batches state
-   updates, so without flushSync the callback returns before React has
-   committed and both snapshots are identical. The transition then plays
-   correctly and shows nothing.
+   The shared-element morph this replaced carried the clicked tile's plate
+   into the project page's figure; this is the same intent expressed through a
+   wipe - the aperture shuts on what was clicked and opens on what was
+   arrived at. Called at the seam, after the swap, so it measures the route
+   that just rendered.
 
-   Reduced motion skips the whole thing rather than shortening it: a
-   cross-document morph has no honest short version. */
-function withViewTransition(apply) {
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced || typeof document.startViewTransition !== "function") {
-    apply();
-    return;
+   In priority order, and each candidate has to actually be on screen: the
+   route change scrolls to the top, and on most project pages the Mechanism
+   figure is a screen and a half down, so opening on it would open the
+   aperture on something nobody can see. That is why the page's own head is in
+   this list and not only the figure - measured on the first build, which
+   found the figure every time, rejected it every time, and always fell back
+   to the middle of the screen. */
+const OPEN_TARGETS = [
+  ".project-figure",
+  ".demo-stage",
+  ".rig-figure",
+  ".project-head",
+  ".hero",
+];
+
+function openPoint() {
+  for (const selector of OPEN_TARGETS) {
+    const el = document.querySelector(selector);
+    if (!el) continue;
+    const box = el.getBoundingClientRect();
+    if (!box.width || !box.height) continue;
+    if (box.top > window.innerHeight || box.bottom < 0) continue;
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
   }
-  document.startViewTransition(() => {
-    flushSync(apply);
-  });
+  return null;
+}
+
+/* Every route change goes through the shutter, including popstate.
+
+   flushSync survives the switch away from View Transitions, for a different
+   reason. It used to be there because startViewTransition needs React to have
+   committed between its two snapshots. Here it is because openPoint has to
+   measure the route that was just swapped in, and React 18 batches: without
+   it, the callback returns before the commit, openPoint measures the page
+   being left, and the aperture always fell back to the middle of the screen -
+   which is exactly what the first build did, measured.
+
+   shutter.js is deliberately kept free of React, so the wrapping happens on
+   this side of the call rather than inside it. */
+function withShutter(apply) {
+  runShutter(() => flushSync(apply), openPoint);
 }
 
 const NavigateContext = createContext(null);
@@ -91,7 +122,18 @@ export function useRouter() {
   const [pendingHash, setPendingHash] = useState(null);
 
   useEffect(() => {
-    const onPopState = () => setPath(window.location.pathname);
+    /* Back and Forward get the shutter too. The URL has already changed by
+       the time this fires, so the aperture closes a beat after the address
+       bar rather than before it - which nobody can see, and is the price of
+       covering a navigation the page did not initiate. It closes on the
+       middle of the screen because a Back press has no position on the page.
+
+       The original View Transitions path could not do this honestly at all:
+       its snapshot is taken when startViewTransition is called, which here is
+       after the browser has already restored the scroll position for the
+       entry being returned to. */
+    const onPopState = () =>
+      withShutter(() => setPath(window.location.pathname));
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
@@ -114,7 +156,7 @@ export function useRouter() {
     if (nextPath === window.location.pathname && !hash) return;
 
     window.history.pushState(null, "", href);
-    withViewTransition(() => {
+    withShutter(() => {
       setPath(nextPath);
       setPendingHash(hash);
     });
@@ -132,8 +174,9 @@ export function NavigateProvider({ navigate, children }) {
 /* An <a> that happens to be intercepted. href is spread-proof: it is applied
    after {...rest}, so a caller cannot override it. onClick is not part of
    rest at all - it is destructured out and composed instead, so a caller's
-   handler (e.g. WorkGrid naming its tile before it leaves) runs first and
-   the interception below always runs after it, unconditionally. That gives a
+   handler (e.g. WorkGrid blooming its plate and aiming the shutter at the
+   tile) runs first and the interception below always runs after it,
+   unconditionally. That gives a
    caller every click, but not a veto: it can still interfere by calling
    event.preventDefault() (killing the browser's own new-tab default on a
    modifier-click) or by throwing (aborting before navigate() runs, which
