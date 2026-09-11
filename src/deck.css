@@ -1,0 +1,282 @@
+/* The skills deck.
+
+   Two layouts for one set of markup. Without [data-deck="pinned"] the eight
+   panels are an ordinary stack in document flow - that is the reduced-motion
+   layout, the small-viewport layout, and the layout you get if Skills.jsx
+   never runs. With it, they are eight cards on top of each other in a pinned
+   100vh stage and GSAP owns their transforms.
+
+   Nothing in this file animates. Every transform on a panel is written by
+   GSAP from a scrubbed timeline, which is the whole reason the opacity ban in
+   AGENTS.md does not apply here: the ban is on animating opacity from a CSS
+   scroll timeline, where a stalled timeline pins the element at its start
+   state and can leave text permanently invisible. A ScrollTrigger scrub
+   writes the value on every scroll event and on every refresh, and reverting
+   the context removes the inline style entirely.
+
+   It is opacity and only opacity. The first build used GSAP's autoAlpha,
+   which adds visibility: hidden at zero, and that took seven of the eight
+   cards out of find-in-page and out of the accessibility tree - Ctrl-F for a
+   skill that was not the one on screen found nothing, against a <details>
+   version where all eight were always findable. An invisible card here is
+   still laid out, still rendered, still searchable. */
+
+.deck {
+  position: relative;
+}
+
+/* ---- flow stack ---------------------------------------------------------
+   The default, and the fallback. Eight panels, hairline between, nothing
+   stacked and nothing pinned. */
+
+.deck-stage {
+  display: grid;
+}
+
+.deck-panel {
+  padding-block: clamp(2.25rem, 6vh, 4rem);
+  border-top: 1px solid var(--rule);
+}
+
+.deck-panel:first-child {
+  border-top: 0;
+}
+
+.deck-panel-inner {
+  display: grid;
+  gap: clamp(1.5rem, 3.5vw, 3rem);
+  align-items: start;
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@media (min-width: 64rem) {
+  .deck-panel-inner {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  /* Eight identical two-column blocks in a row reads as a template, so the
+     figure changes side on alternate panels. Source order stays copy then
+     figure on every one, so the reading and tab order do not alternate with
+     the picture. Only in flow: in the deck a reader sees one panel at a time
+     and an alternation nobody can compare is just an inconsistency. */
+  .deck:not([data-deck="pinned"]) .deck-panel:nth-child(even) .deck-copy {
+    order: 2;
+  }
+
+  .deck:not([data-deck="pinned"]) .deck-panel:nth-child(even) .deck-figure {
+    order: 1;
+  }
+}
+
+.deck-copy {
+  min-width: 0;
+}
+
+.deck-figure {
+  min-width: 0;
+}
+
+/* Number and terms on one line above the title. */
+.deck-slug {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem clamp(0.9rem, 2vw, 1.75rem);
+  margin-bottom: 0.65rem;
+}
+
+.deck-panel .stage-title {
+  margin-bottom: 0.9rem;
+}
+
+/* ---- the deck -----------------------------------------------------------
+   One box, eight cards in it. */
+
+.deck[data-deck="pinned"] .deck-stage {
+  position: relative;
+  /* 100vh, not 100dvh: ScrollTrigger's pin distance is measured against
+     window.innerHeight, and a stage that disagrees with it by the height of a
+     mobile URL bar puts every mark out by that much. The deck only runs at
+     >=78rem anyway, where the two are the same number. */
+  height: 100vh;
+  /* Seen slightly from above: the vanishing point sits well up the stage, so
+     a card that recedes also drops down the screen the way the far end of a
+     deck on a table does. */
+  perspective: 1400px;
+  perspective-origin: 50% 22%;
+  transform-style: preserve-3d;
+}
+
+.deck[data-deck="pinned"] .deck-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  padding: calc(var(--header-h) + clamp(0.75rem, 2vh, 1.5rem)) var(--gutter)
+    clamp(1rem, 3vh, 2rem);
+  border-top: 0;
+  /* Painting order inside a preserve-3d parent follows z, and GSAP gives
+     every card a z, so the front card is on top without a single z-index.
+     backface-visibility is the cheap insurance: a card rotated past 90deg
+     while a scrub overshoots should disappear rather than flash inside out. */
+  backface-visibility: hidden;
+  /* The price of keeping every card findable. Seven invisible full-viewport
+     cards are still hit targets at opacity 0, so they would take every click
+     and every drag-select meant for the card being read. Skills.jsx writes
+     data-front onto whichever card that is; this is the only thing it is
+     used for. A card with no data-front is still in the accessibility tree
+     and still found by Ctrl-F - pointer-events does not change either. */
+  pointer-events: none;
+}
+
+.deck[data-deck="pinned"] .deck-panel[data-front="1"] {
+  pointer-events: auto;
+}
+
+/* The card is an opaque plate, and that is load-bearing rather than
+   decorative. The first build left the panels transparent, so a handover put
+   two full ledes on top of each other - measured at 0.51 and 0.74 opacity in
+   the middle of a transition, which is unreadable. An opaque card means the
+   incoming one covers the outgoing one instead of being blended with it, and
+   the timeline in Skills.jsx is written on that assumption.
+
+   --surface, not --plate: --plate is the light sheet CAD renders sit on and
+   fails contrast under body text in dark mode. */
+.deck[data-deck="pinned"] .deck-panel-inner {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-content: center;
+  align-items: center;
+  height: 100%;
+  padding: clamp(1.5rem, 4vh, 2.75rem) clamp(1.5rem, 3vw, 3rem);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  /* One light, up and to the left, the same one grid-depth.css lights the
+     work tiles with, so a card and a tile read as objects on one set. */
+  box-shadow: 2px 14px 44px -26px rgba(22, 24, 28, 0.5);
+}
+
+/* A card is the subject of the whole viewport, so the number and the title
+   step up a size from the flow stack. --step-3 is the section-title size and
+   the number is deliberately bigger than it: the number is the deck's
+   position indicator and has to read from across the card. */
+.deck[data-deck="pinned"] .stage-num {
+  font-size: clamp(2.75rem, 4.5vw, 4.25rem);
+}
+
+.deck[data-deck="pinned"] .stage-title {
+  font-size: var(--step-3);
+}
+
+.deck[data-deck="pinned"] .stage-lede {
+  font-size: var(--step-1);
+  max-width: 46ch;
+}
+
+/* The card is a plate on the stage ground, not another sheet of page: a
+   hairline and a shadow are enough to say "object", and --surface keeps it
+   off --plate, which is for CAD renders. */
+.deck[data-deck="pinned"] .deck-panel-inner {
+  position: relative;
+}
+
+/* ---- scroll marks -------------------------------------------------------
+   Geometry, once, because the arithmetic is the load-bearing part.
+
+   --deck-vh   is window.innerHeight in px, and --deck-step is the pin
+               distance divided by the number of panels. Skills.jsx writes
+               both from the ScrollTrigger itself on every refresh, so they
+               are the numbers the pin actually used rather than a second
+               guess at them.
+
+   --mark-lead and --jump-at are the other two, dimensionless, written once as
+   an inline style from the same timeline constants that time the handover.
+
+   App.jsx's stage observer marks whichever [data-stage-id] crosses a 1% band
+   at the middle of the viewport, at document position scrollY + 0.5*vh. Unit
+   i of the timeline is scroll [deckTop + i*step, deckTop + (i+1)*step], but
+   the card a reader is looking at changes part-way through a unit rather than
+   at its end - the incoming card is opaque and covering by i + 0.63 - so each
+   mark is pulled --mark-lead of a step earlier:
+
+       top    = 0.5*vh + (i - lead)*step      (relative to .deck)
+       height = step
+
+   Heights that tile the track, so exactly one mark crosses the band at any
+   scroll position inside the pin. That is the same property the old
+   full-height .stage-track had, and the reason the observer's thin band works
+   at all.
+
+   scroll-margin-top then re-aims a rail jump. scrollIntoView({block:"start"})
+   lands at markTop - margin, and the target is --jump-at into the unit, where
+   the card is stationary:
+
+       0.5*vh + (i - lead)*step - margin = (i + jump)*step
+       margin = 0.5*vh - (lead + jump)*step
+
+   Independent of i, which is why it is one rule rather than eight. */
+
+.deck-mark {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  pointer-events: none;
+  top: calc(
+    var(--deck-vh, 0px) * 0.5 +
+      (var(--i) - var(--mark-lead)) * var(--deck-step, 0px)
+  );
+  height: var(--deck-step, 0px);
+  scroll-margin-top: calc(
+    var(--deck-vh, 0px) * 0.5 -
+      (var(--mark-lead) + var(--jump-at)) * var(--deck-step, 0px)
+  );
+}
+
+/* ---- reduced motion -----------------------------------------------------
+   Belt and braces. Skills.jsx already refuses to build the timeline or set
+   data-deck under reduce, so this only matters if the preference is turned on
+   while the page is open and something has already been written. */
+
+@media (prefers-reduced-motion: reduce) {
+  .deck[data-deck="pinned"] .deck-stage {
+    height: auto;
+    perspective: none;
+    transform-style: flat;
+  }
+
+  .deck[data-deck="pinned"] .deck-panel {
+    position: static;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .deck-mark {
+    display: none;
+  }
+}
+
+/* ---- print --------------------------------------------------------------
+   The resume case. A pinned stage prints as one card and seven blanks, so
+   print gets the flow stack whatever the screen was doing. */
+
+@media print {
+  .deck[data-deck="pinned"] .deck-stage {
+    height: auto;
+    perspective: none;
+    transform-style: flat;
+  }
+
+  .deck[data-deck="pinned"] .deck-panel {
+    position: static;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    break-inside: avoid;
+  }
+
+  .deck[data-deck="pinned"] .deck-mark {
+    display: none;
+  }
+}

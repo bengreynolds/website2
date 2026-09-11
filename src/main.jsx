@@ -51,6 +51,12 @@ import "./report-demo.css";
 import "./rail-depth.css";
 import "./nav-swap.css";
 import "./grid-depth.css";
+import "./tile-gl.css";
+import "./deck.css";
+/* Both route transitions ship. Exactly one runs per navigation - the choice
+   is made in src/router.jsx, which aims the shutter at the tile or blooms the
+   plate depending on where the reader is going. */
+import "./shutter.css";
 import "./view-transition.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

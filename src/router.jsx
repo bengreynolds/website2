@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
 import { findProject } from "./siteData";
+import { runShutter } from "./shutter";
 
 /* --------------------------------------------------------------------------
    Router
@@ -56,25 +57,109 @@ export function routeTitle(route) {
   return "Benjamin Reynolds | R&D Engineer";
 }
 
-/* Runs a route change inside a view transition when the browser has one.
+/* Where the aperture should open once the new route is on screen.
 
-   flushSync is not optional. startViewTransition snapshots the old DOM, calls
-   this callback, then snapshots the new one - and React 18 batches state
-   updates, so without flushSync the callback returns before React has
-   committed and both snapshots are identical. The transition then plays
-   correctly and shows nothing.
+   The shared-element morph this replaced carried the clicked tile's plate
+   into the project page's figure; this is the same intent expressed through a
+   wipe - the aperture shuts on what was clicked and opens on what was
+   arrived at. Called at the seam, after the swap, so it measures the route
+   that just rendered.
 
-   Reduced motion skips the whole thing rather than shortening it: a
-   cross-document morph has no honest short version. */
-function withViewTransition(apply) {
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced || typeof document.startViewTransition !== "function") {
-    apply();
-    return;
+   In priority order, and each candidate has to actually be on screen: the
+   route change scrolls to the top, and on most project pages the Mechanism
+   figure is a screen and a half down, so opening on it would open the
+   aperture on something nobody can see. That is why the page's own head is in
+   this list and not only the figure - measured on the first build, which
+   found the figure every time, rejected it every time, and always fell back
+   to the middle of the screen. */
+const OPEN_TARGETS = [
+  ".project-figure",
+  ".demo-stage",
+  ".rig-figure",
+  ".project-head",
+  ".hero",
+];
+
+function openPoint() {
+  for (const selector of OPEN_TARGETS) {
+    const el = document.querySelector(selector);
+    if (!el) continue;
+    const box = el.getBoundingClientRect();
+    if (!box.width || !box.height) continue;
+    if (box.top > window.innerHeight || box.bottom < 0) continue;
+    return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
   }
-  document.startViewTransition(() => {
-    flushSync(apply);
-  });
+  return null;
+}
+
+/* --------------------------------------------------------------------------
+   Two route transitions, one per navigation
+   --------------------------------------------------------------------------
+   A plain left click on a work tile morphs that tile's plate into the project
+   page's figure, through the View Transitions API. Every other navigation -
+   the rail, the masthead, Back and Forward - closes the shutter over the
+   page.
+
+   They are exclusive per navigation and the reason is real:
+   startViewTransition snapshots the whole document, so a shutter drawn over
+   one of its transitions is captured in the old snapshot and freezes there.
+   An earlier build read that as "one or the other, forever", and deleted the
+   morph. It is a statement about a single navigation, not about the site.
+
+   Which one runs is decided by whether there is a source element to morph
+   FROM. WorkGrid names the clicked tile's plate and arms the flag below; the
+   rail and the masthead name nothing, and a morph with no source is a
+   crossfade with extra steps. A Back press never gets the morph either, and
+   could not: its URL has already changed before popstate is reached, and the
+   browser has already restored the scroll position for the entry being
+   returned to, so the "old" snapshot would not be the page the reader was
+   looking at.
+
+   flushSync is needed by both paths, for two different reasons.
+   startViewTransition snapshots the old DOM, calls the callback, then
+   snapshots the new one, and React 18 batches - so without it both snapshots
+   are identical and the transition plays correctly while showing nothing. The
+   shutter needs it because openPoint has to measure the route that was just
+   swapped in; without it the callback returns before the commit, openPoint
+   measures the page being left, and the aperture fell back to the middle of
+   the screen every time. Measured, on the first build of each.
+   -------------------------------------------------------------------------- */
+
+/* Set by WorkGrid on the click that named a plate, consumed by the very next
+   navigate() and by nothing else. A one-shot rather than a parameter on
+   navigate() because AppLink is what calls navigate, and threading a
+   transition choice through every link on the site to serve nine tiles would
+   put the decision everywhere instead of in the one place that makes it. */
+let morphArmed = false;
+
+/* Whether the morph can run at all. WorkGrid asks before it arms, so that the
+   alternative - bloom the plate, aim the shutter at the tile - is chosen in
+   the same breath and the two can never both be set up for one click. */
+export function morphAvailable() {
+  if (typeof document === "undefined") return false;
+  if (typeof document.startViewTransition !== "function") return false;
+  /* Reduced motion skips the morph rather than shortening it: a
+     cross-document morph has no honest short version. Such a navigation falls
+     to the shutter, which is itself instant under reduce. */
+  return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function armPlateMorph() {
+  morphArmed = true;
+}
+
+function takeMorph() {
+  const armed = morphArmed;
+  morphArmed = false;
+  return armed;
+}
+
+function withShutter(apply) {
+  runShutter(() => flushSync(apply), openPoint);
+}
+
+function withMorph(apply) {
+  document.startViewTransition(() => flushSync(apply));
 }
 
 const NavigateContext = createContext(null);
@@ -91,7 +176,19 @@ export function useRouter() {
   const [pendingHash, setPendingHash] = useState(null);
 
   useEffect(() => {
-    const onPopState = () => setPath(window.location.pathname);
+    /* Back and Forward always get the shutter, never the morph. The URL has
+       already changed by the time this fires, so the aperture closes a beat
+       after the address bar rather than before it - which nobody can see, and
+       is the price of covering a navigation the page did not initiate. It
+       closes on the middle of the screen because a Back press has no position
+       on the page.
+
+       takeMorph rather than ignoring the flag: a click that armed it and then
+       did not navigate must not leave it armed for whatever comes next. */
+    const onPopState = () => {
+      takeMorph();
+      withShutter(() => setPath(window.location.pathname));
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
@@ -107,6 +204,11 @@ export function useRouter() {
      resolves to home by accident rather than on purpose, and would then
      disagree with window.location.pathname forever after. */
   const navigate = useCallback((href) => {
+    /* Read and cleared first thing, before any early return: a click that
+       armed the morph and then turned out to be a no-op must not leave it
+       armed for the next link the reader presses. */
+    const morph = takeMorph();
+
     const hashAt = href.indexOf("#");
     const nextPath = (hashAt === -1 ? href : href.slice(0, hashAt)) || "/";
     const hash = hashAt === -1 ? null : href.slice(hashAt + 1) || null;
@@ -114,10 +216,15 @@ export function useRouter() {
     if (nextPath === window.location.pathname && !hash) return;
 
     window.history.pushState(null, "", href);
-    withViewTransition(() => {
+    const apply = () => {
       setPath(nextPath);
       setPendingHash(hash);
-    });
+    };
+    /* One or the other, never both. morphAvailable is re-read rather than
+       trusted from arming time, because a reader can turn reduced motion on
+       between the click and here. */
+    if (morph && morphAvailable()) withMorph(apply);
+    else withShutter(apply);
   }, []);
 
   const clearHash = useCallback(() => setPendingHash(null), []);
@@ -132,8 +239,9 @@ export function NavigateProvider({ navigate, children }) {
 /* An <a> that happens to be intercepted. href is spread-proof: it is applied
    after {...rest}, so a caller cannot override it. onClick is not part of
    rest at all - it is destructured out and composed instead, so a caller's
-   handler (e.g. WorkGrid naming its tile before it leaves) runs first and
-   the interception below always runs after it, unconditionally. That gives a
+   handler (e.g. WorkGrid blooming its plate and aiming the shutter at the
+   tile) runs first and the interception below always runs after it,
+   unconditionally. That gives a
    caller every click, but not a veto: it can still interfere by calling
    event.preventDefault() (killing the browser's own new-tab default on a
    modifier-click) or by throwing (aborting before navigate() runs, which

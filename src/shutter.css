@@ -1,0 +1,61 @@
+/* The route shutter. src/shutter.js owns the aperture geometry and writes
+   clip-path on both layers every frame; everything static is here.
+
+   Never pointer-events: auto, in any state. An overlay that takes the pointer
+   and then fails to clear is a dead page, and the whole point of this file's
+   JS being a deadline-guarded timeline is that the failure case is a page
+   that works. Four hundred milliseconds of clicks landing on the page
+   underneath is the cheaper mistake. */
+
+.shutter {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  /* Not rendered at all until a navigation starts. The clip-path is set
+     before this class lands, so the first painted frame is the aperture
+     already open rather than a full-screen flash. */
+  display: none;
+}
+
+.shutter.is-live {
+  display: block;
+}
+
+.shutter-rim,
+.shutter-blade {
+  position: absolute;
+  inset: 0;
+}
+
+/* The blade is the site's own stage material rather than a black or a white:
+   a plate closing over the page, not a light going out. --stage-bg is defined
+   in both themes and sits a step away from --page in each, which is enough to
+   read as a separate surface without reading as a flash. */
+.shutter-blade {
+  background: var(--stage-bg);
+}
+
+/* Three pixels of accent at the aperture's edge, from a layer whose own
+   aperture is three pixels smaller. Accent means interactive on this site and
+   a navigation is an interaction; this is the tell, and it is the only thing
+   here that is not the page's own material. */
+.shutter-rim {
+  background: var(--accent);
+}
+
+/* Belt and braces. shutter.js already refuses to run under reduce and swaps
+   the route instantly instead, so this only catches the preference being
+   turned on mid-transition. */
+@media (prefers-reduced-motion: reduce) {
+  .shutter,
+  .shutter.is-live {
+    display: none !important;
+  }
+}
+
+@media print {
+  .shutter {
+    display: none !important;
+  }
+}
