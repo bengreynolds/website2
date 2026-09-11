@@ -14,8 +14,12 @@
    timeline to stall, so that failure mode does not exist. Do not copy this
    into anything using animation-timeline: view(). */
 
+/* min-width gate: below 78rem the rail is a one line horizontal strip, where
+   translateZ and a 0.42 floor on opacity would dim and skew most of the links
+   instead of reading as a column curving away. The gauge is a property of the
+   fixed column, so it lives with the fixed column. */
 @supports (transform-style: preserve-3d) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 78rem) {
     .rail-list {
       perspective: 620px;
       perspective-origin: 0% 50%;

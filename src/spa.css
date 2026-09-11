@@ -7,7 +7,9 @@
    reader leave the story at any point and land on a project instead.
 
    Conventions
-   - One warm-neutral ramp. One accent (amber). No second family.
+   - One ramp, blended between the two ends of the palette (#fffeec and
+     #222222). One accent, the palette's acid yellow (#cac426). No second
+     family.
    - The accent means "interactive". It never lands on static text, which is
      why the large stage numbers are --text-subtle and not amber.
    - Structure is hairlines and space, not card borders.
@@ -28,21 +30,24 @@
 :root {
   color-scheme: light;
 
-  /* Neutral ramp - single warm-grey family, so the amber sits in it rather
-     than on it. */
-  --n-0: #fffefc;
-  --n-50: #f6f4f1;
-  --n-100: #ebe7e1;
-  --n-200: #ddd8d1;
-  --n-300: #c4beb5;
-  --n-400: #a09a90;
-  /* n-500 and n-600 are tuned against --surface-sunken (#ebe7e1), the darkest
-     ground either carries text on, not for evenness of the ramp. */
-  --n-500: #666359;
-  --n-600: #55534d;
-  --n-700: #3b3934;
-  --n-800: #24231f;
-  --n-900: #16181c;
+  /* Neutral ramp - not a separate family. Every step is #fffeec and #222222
+     mixed, so the ground, the rules and the type are literally the two ends
+     of the palette at different strengths and the yellow sits in that ramp
+     rather than on it. */
+  --n-0: #fffff7;
+  --n-50: #fffeec;
+  --n-100: #f3f1de;
+  --n-200: #e0deca;
+  --n-300: #c4c2ae;
+  --n-400: #a5a390;
+  /* n-500 and n-600 are tuned against --surface-sunken (#f3f1de), the darkest
+     ground either carries text on, not for evenness of the ramp: 5.3:1 and
+     6.8:1 there. */
+  --n-500: #656358;
+  --n-600: #545249;
+  --n-700: #3b3a34;
+  --n-800: #2c2b27;
+  --n-900: #222222;
 
   /* Semantic surfaces */
   --page: var(--n-50);
@@ -50,8 +55,8 @@
   --surface-sunken: var(--n-100);
   /* The narrative spine gets its own ground so the story reads as a stage
      rather than as more page. */
-  --stage-bg: #efece7;
-  --stage-glow: rgba(152, 74, 0, 0.05);
+  --stage-bg: #f6f4df;
+  --stage-glow: rgba(202, 196, 38, 0.07);
   --text: var(--n-900);
   /* Both carry real content, so both clear WCAG AA against every ground they
      appear on. n-400 is reserved for non-text decoration only. */
@@ -61,22 +66,30 @@
   --rule: var(--n-200);
   --rule-strong: var(--n-300);
 
-  /* Accent - amber, darkened for the light ground. 5.14:1 as text on
-     --surface-sunken, which is the darkest ground it has to clear, and
-     6.33:1 behind white on the primary button. */
-  --accent: #984a00;
-  --accent-hover: #7a3b00;
-  --accent-wash: rgba(152, 74, 0, 0.08);
-  --accent-contrast: #ffffff;
+  /* Accent. Two tokens, and the split is a contrast fact rather than a
+     preference: #cac426 on #fffeec is 1.65:1, which is unreadable as text, so
+     the light theme carries interactive TEXT and borders at the same hue
+     darkened to #6f6c15 (5.4:1 on the page, 4.8:1 on --surface-sunken).
+     --accent-solid below is the palette yellow itself, unchanged in both
+     themes, and it only ever appears as a FILL under --accent-contrast. */
+  --accent: #6f6c15;
+  --accent-hover: #56540f;
+  --accent-wash: rgba(202, 196, 38, 0.22);
+
+  /* Identical in both themes - this is the brand colour, and a solid chip of
+     it carries #222222 at 9.5:1 on either ground. */
+  --accent-solid: #cac426;
+  --accent-solid-hover: #dcd64b;
+  --accent-contrast: #222222;
 
   /* Drafting grid. Deliberately near-threshold: paper texture, not a graph. */
-  --grid-line: rgba(22, 24, 28, 0.05);
+  --grid-line: rgba(34, 34, 34, 0.05);
 
   /* Plate behind CAD figures. The renders are colour-accurate, which means
      mostly near-black printed plastic; on a dark ground they vanish. Both
      themes therefore put them on a light sheet. In dark mode the plates are
      the only bright objects on the page, which is the point. */
-  --plate: #e6e3dd;
+  --plate: #e4e2ce;
 
   --focus-ring: var(--accent);
 
@@ -144,28 +157,29 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page: #0e1013;
-  --surface: #14161b;
-  --surface-sunken: #101216;
+  --page: #222222;
+  --surface: #2c2c2a;
+  --surface-sunken: #1c1c1b;
   /* Deeper than --page: the spine is the cinema, the rest is the lobby. */
-  --stage-bg: #08090b;
-  --stage-glow: rgba(255, 176, 46, 0.055);
-  --text: #f2f0ec;
-  --text-muted: #a8a49c;
-  --text-subtle: #8a867e;
-  --decor: #5c5850;
-  --rule: #24262b;
-  --rule-strong: #383b42;
+  --stage-bg: #171716;
+  --stage-glow: rgba(202, 196, 38, 0.055);
+  --text: #fffeec;
+  --text-muted: #c1c0b3;
+  --text-subtle: #a2a297;
+  --decor: #6e6d64;
+  --rule: #343431;
+  --rule-strong: #4c4b45;
   /* Still light. See the note on --plate above. */
-  --plate: #c9c6bf;
+  --plate: #d2d0bc;
 
-  /* 10.7:1 as text on --page and 9.9:1 on --surface, and the same figure
-     behind --accent-contrast on the primary button. */
-  --accent: #ffb02e;
-  --accent-hover: #ffc45c;
-  --accent-wash: rgba(255, 176, 46, 0.14);
-  --accent-contrast: #0b0c0f;
-  --grid-line: rgba(242, 240, 236, 0.045);
+  /* The palette yellow needs no darkening here: 9.5:1 as text on --page and
+     8.3:1 on --surface. --accent-solid and --accent-contrast are inherited
+     from :root unchanged, which is what makes the chip identical in both
+     themes. */
+  --accent: #cac426;
+  --accent-hover: #dcd64b;
+  --accent-wash: rgba(202, 196, 38, 0.16);
+  --grid-line: rgba(255, 254, 236, 0.045);
 
   --focus-ring: var(--accent);
 }
@@ -279,7 +293,7 @@ summary {
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
 }
 
@@ -304,7 +318,7 @@ summary {
   top: 0;
   z-index: 100;
   padding: 0.65rem 1rem;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
   font-weight: 600;
   border-radius: 0 0 var(--radius-control) var(--radius-control);
@@ -461,12 +475,12 @@ summary {
 }
 
 .btn--primary {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: var(--accent-contrast);
 }
 
 .btn--primary:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .btn--quiet {
@@ -632,6 +646,24 @@ summary {
   color: var(--text-muted);
 }
 
+/* A 36px control is a 36px target, and a thumb wants 44. The box stays 36px
+   so the masthead is unchanged at every size; under a coarse pointer an
+   invisible pseudo-element carries the missing 4px on each side. The pair is
+   0.5rem apart, so the two grown targets meet and never overlap. */
+@media (pointer: coarse) {
+  .theme-button,
+  .menu-button {
+    position: relative;
+  }
+
+  .theme-button::after,
+  .menu-button::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+  }
+}
+
 .menu-button span,
 .menu-button span::before,
 .menu-button span::after {
@@ -688,7 +720,9 @@ summary {
    looking at.
 
    One DOM, two presentations. Above 78rem it is that fixed column. Below
-   that it is a sticky bar under the header with the lists overlaid.
+   that it is a one line strip inside a sticky 2.75rem bar, scrolled
+   sideways - it used to be a sheet that dropped over the article, which on a
+   phone covered a third of the viewport with no way to shut it.
    -------------------------------------------------------------------------- */
 
 .rail {
@@ -765,6 +799,7 @@ summary {
   .rail {
     position: sticky;
     top: var(--header-h);
+    height: var(--rail-h);
     background: var(--page);
     border-bottom: 1px solid var(--rule);
   }
@@ -772,39 +807,109 @@ summary {
   .rail-inner {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.75rem;
+    height: 100%;
     width: 100%;
     max-width: var(--content-max);
     margin-inline: auto;
     padding-inline: var(--gutter);
   }
 
-  /* Overlays the page rather than pushing it: the bar is a jump menu, and
-     reflowing the article every time it opens would move the thing the
-     reader was looking at. */
+  /* One line, scrolled sideways - not a sheet that drops over the article.
+
+     It was the sheet: absolutely positioned at top: 100%, up to 70dvh tall,
+     and opened by the section spy rather than by the reader. On a phone that
+     is a third of the viewport covered by an index nobody asked for, with no
+     way to shut it - below 78rem there is no hover, and .rail-label is a <p>,
+     so :focus-within never fires under a thumb. The bar's height is already
+     reserved by --rail-h (it is what every scroll-margin-top on the page
+     subtracts), so a strip that stays inside that costs the article nothing
+     and covers nothing. */
   .rail-group {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
+    position: static;
     display: none;
-    padding: 1rem var(--gutter) 1.25rem;
-    background: var(--page);
-    border-bottom: 1px solid var(--rule);
-    max-height: min(70dvh, 34rem);
-    overflow-y: auto;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    max-height: none;
+    overflow: visible;
   }
 
   .rail-group.is-open {
-    display: block;
+    display: flex;
   }
 
-  /* Two open groups would stack on top of each other at the same offset, so
-     below the breakpoint the second one is pushed clear of the first. It only
-     happens while pinned; section focus opens one at a time. */
+  /* Only one strip fits on a line. The section spy marks one at a time and a
+     project route has only the work group; this is the guard for the frame
+     where both are marked. */
   .rail-group.is-open ~ .rail-group.is-open {
-    position: static;
-    border-top: 1px solid var(--rule);
+    display: none;
+  }
+
+  .rail-label {
+    flex: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+
+  /* The list is the only thing that scrolls, and only sideways.
+     overscroll-behavior-x stops a flick that reaches either end from turning
+     into a page scroll, which is what makes a horizontal strip usable under a
+     thumb rather than a trap. */
+  .rail-list {
+    display: flex;
+    align-items: stretch;
+    gap: 0.25rem;
+    height: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .rail-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* The target is the full height of the bar rather than the height of two
+     lines of 12px type: 44px is the floor a thumb needs, and the bar is
+     already 44px. It also puts the current-item bar on the bar's own bottom
+     edge, which is what makes the strip read as a set of tabs. */
+  .rail-list > li {
+    display: flex;
+    flex: none;
+  }
+
+  /* Current state still reads without hue. The bar moves from the left edge
+     to the bottom edge because the strip runs horizontally; the weight change
+     carries the rest. */
+  .rail-link {
+    grid-template-columns: auto auto;
+    align-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.5rem;
+    border-left-width: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+
+  .rail-link:hover {
+    border-bottom-color: var(--rule-strong);
+  }
+
+  .rail-link.is-current {
+    border-bottom-color: var(--accent);
   }
 }
 
@@ -1344,24 +1449,35 @@ summary {
 
 /* The whole column. A pair used to cap at 62rem, which left each figure
    under 500px on a page whose only job is showing them properly. */
-.demo-stage--pair {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 100%;
-}
-
-/* Three frame-locked figures: the rig in context, the mechanism close up, and
-   the operator interface stepping through the same trial. Not three across:
-   the case body only affords this stage about 480px, so a third column would
-   leave each figure near 145px and the interface panel carries text. */
+.demo-stage--pair,
 .demo-stage--trio {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   max-width: 100%;
 }
 
-.demo-stage--trio > :nth-child(3) {
-  grid-column: 1 / -1;
-  justify-self: center;
-  width: min(100%, 34rem);
+/* Two across only once two will fit. The columns used to be unconditional,
+   and the same reasoning that keeps the trio from going three across applies
+   harder on a phone: at 375px a pair put each figure at 162px, which is a
+   mechanism reduced to a thumbnail of itself on the one stage whose whole job
+   is showing it. Measured 162px before, 335px after. 46rem is where a column
+   still clears 300px once the gutter is taken off, and it is below the 56rem
+   where .case-body goes two-column, so the stage widens before its container
+   splits rather than after. */
+@media (min-width: 46rem) {
+  .demo-stage--pair,
+  .demo-stage--trio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Three frame-locked figures: the rig in context, the mechanism close up,
+     and the operator interface stepping through the same trial. Not three
+     across: the case body only affords this stage about 480px, so a third
+     column would leave each figure near 145px and the interface panel
+     carries text. */
+  .demo-stage--trio > :nth-child(3) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(100%, 34rem);
+  }
 }
 
 .demo-figure {
