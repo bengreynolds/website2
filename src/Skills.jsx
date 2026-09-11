@@ -1,7 +1,32 @@
-import { memo } from "react";
+import { memo, lazy, Suspense, useSyncExternalStore } from "react";
 import { skills, skillsIntro } from "./siteData";
 import { skillCredits } from "./skillCredits";
 import { LogoArray } from "./Logos";
+
+/* three.js is 150kB and this section is the only thing on the site that wants
+   it, so it loads as its own chunk and the project routes - which never
+   render Skills - never fetch it. */
+const SkillsBackdrop = lazy(() => import("./SkillsBackdrop"));
+
+/* Whether the reader has asked for less motion, as a subscription rather than
+   a one-off read, so flipping the OS setting takes the backdrop away without
+   a reload. Returning false during server-side or pre-hydration render means
+   the chunk is never requested for a reader who will not be shown it. */
+const reduceMotionQuery =
+  typeof window === "undefined" ? null : window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function subscribeMotion(onChange) {
+  reduceMotionQuery?.addEventListener("change", onChange);
+  return () => reduceMotionQuery?.removeEventListener("change", onChange);
+}
+
+function useWantsMotion() {
+  return useSyncExternalStore(
+    subscribeMotion,
+    () => (reduceMotionQuery ? !reduceMotionQuery.matches : false),
+    () => false
+  );
+}
 
 /* --------------------------------------------------------------------------
    Skills
@@ -136,8 +161,20 @@ const SkillStage = memo(function SkillStage({ skill }) {
 });
 
 export default function Skills() {
+  const wantsMotion = useWantsMotion();
+
   return (
     <section id="skills" className="section section--stage">
+      {/* Ambient only. No fallback and no loading state: until the chunk
+          arrives there is simply no backdrop, which is the same thing the
+          section looks like for a reader who has reduced motion on, WebGL
+          off, or JS disabled entirely. */}
+      {wantsMotion ? (
+        <Suspense fallback={null}>
+          <SkillsBackdrop />
+        </Suspense>
+      ) : null}
+
       <div className="container">
         <div className="section-head reveal">
           <h2 className="section-title">Skills</h2>

@@ -1000,8 +1000,44 @@ summary {
    stacked layout IS the layout.
    -------------------------------------------------------------------------- */
 
+/* position and isolation are both here for the ambient backdrop below: the
+   first gives the absolute canvas something to resolve against, the second
+   keeps the stacking context local, so the z-index the backdrop needs cannot
+   compete with the masthead or the rail, which are positioned too and are
+   meant to win. */
 .section--stage {
+  position: relative;
+  isolation: isolate;
   background: var(--stage-bg);
+}
+
+/* ---- the ambient backdrop ---------------------------------------------
+   The WebGL field from src/SkillsBackdrop.jsx. Absolute and behind
+   everything, so the section's own layout is untouched and removing the
+   element - which is what reduced motion, a missing WebGL context and a
+   failed chunk all do - changes nothing about the page. */
+
+.stage-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stage-backdrop canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Everything the reader is actually here for sits above the field. The stage
+   tracks have no ground of their own, so this is what keeps the wave behind
+   the headings rather than through them. */
+.section--stage > .container,
+.section--stage > .spine {
+  position: relative;
+  z-index: 1;
 }
 
 .spine {
