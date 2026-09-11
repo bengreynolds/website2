@@ -608,6 +608,193 @@ export const projects = [
   },
   {
     id: "application-deployment-support-toolkit",
+    demos: [
+    {
+      "kind": "walkthrough",
+      "id": "camalign-walkthrough",
+      "label": "Camera alignment walkthrough",
+      "app": "cam-align",
+      "session": "session003 · sideCam master · frontCam secondary · 136,147 frames",
+      "dwell": 4600,
+      "caption": "The alignment tool driven end to end on a real two-camera session, on a copy so nothing in the archive was at risk. It inspects on open and states its own rules, previews the compensated frame beside the raw one, plans the edit before making it, applies it as a transaction with a manifest, and puts every file back on undo. The offset of 12 frames here is a demonstration value, not a measured correction for this session.",
+      "steps": [
+        {
+          "id": "open",
+          "label": "Open",
+          "shot": "/app/camalign-open.webp",
+          "alt": "cam-align on launch, with empty master, secondary raw and secondary preview panels.",
+          "headline": "Three panels, nothing assumed",
+          "note": "The window opens with the comparison it exists to make already laid out: master, secondary raw, secondary preview. No folder is chosen and no camera role is guessed.",
+          "facts": [
+            {
+              "label": "Session",
+              "value": "none"
+            },
+            {
+              "label": "Master",
+              "value": "—"
+            },
+            {
+              "label": "Actions",
+              "value": "4 available"
+            },
+            {
+              "label": "State",
+              "value": "Awaiting folder",
+              "state": "blocked"
+            }
+          ]
+        },
+        {
+          "id": "inspect",
+          "label": "Inspect",
+          "shot": "/app/camalign-inspect.webp",
+          "alt": "The session loaded, all three panels showing frames, and the log listing the alignment, length, error and timestamp rules.",
+          "headline": "Inspects on open, and says what it will and will not do",
+          "note": "Pointing it at a folder is the whole interaction. It reads systemdata, picks the master the session itself nominated, and prints the four rules it will hold to — including the one that makes it stop rather than guess.",
+          "facts": [
+            {
+              "label": "Master",
+              "value": "sideCam"
+            },
+            {
+              "label": "Secondary",
+              "value": "frontCam"
+            },
+            {
+              "label": "Frames",
+              "value": "136,147 at 30 fps"
+            },
+            {
+              "label": "Pellet epochs",
+              "value": "32 from events.txt"
+            },
+            {
+              "label": "Stop rule",
+              "value": "mismatch > 100 frames",
+              "state": "review"
+            }
+          ]
+        },
+        {
+          "id": "offset",
+          "label": "Preview",
+          "shot": "/app/camalign-offset.webp",
+          "alt": "An offset of 12 entered, with the secondary preview panel now showing a different frame from the secondary raw panel.",
+          "headline": "The correction is visible before it is real",
+          "note": "With an offset entered, the third panel diverges from the second. Nothing has been written — this is the compensated frame the edit would produce, shown next to the frame it would replace.",
+          "facts": [
+            {
+              "label": "Offset",
+              "value": "12 frames"
+            },
+            {
+              "label": "Convention",
+              "value": "compensated[t] = raw[t + offset]"
+            },
+            {
+              "label": "Files touched",
+              "value": "0"
+            },
+            {
+              "label": "State",
+              "value": "Preview only",
+              "state": "review"
+            }
+          ]
+        },
+        {
+          "id": "dryrun",
+          "label": "Dry run",
+          "shot": "/app/camalign-dryrun.webp",
+          "alt": "The dry-run summary listing four rewrites, two invalidations, one regeneration and ten skips.",
+          "headline": "The plan, itemised, before the edit",
+          "note": "Dry run names every file it would touch and what it would do to each. The two trajectory files are marked invalidate rather than rewrite, because a shifted video makes them wrong rather than stale — they are regenerated from the scorer instead.",
+          "facts": [
+            {
+              "label": "Rewrite",
+              "value": "4 files"
+            },
+            {
+              "label": "Invalidate",
+              "value": "2 files"
+            },
+            {
+              "label": "Regenerate",
+              "value": "1 scorer"
+            },
+            {
+              "label": "Skip",
+              "value": "10 files"
+            },
+            {
+              "label": "Written",
+              "value": "Nothing yet",
+              "state": "blocked"
+            }
+          ]
+        },
+        {
+          "id": "apply",
+          "label": "Apply",
+          "shot": "/app/camalign-apply.webp",
+          "alt": "The compensation applied, with backup, rewrite, invalidate and regenerate lines and a completed transaction id.",
+          "headline": "Backs up first, then edits, as one transaction",
+          "note": "Every original is copied out before anything is overwritten, the edit runs, the invalidated trajectories are regenerated from the scorer, and the whole thing closes under a transaction id with a manifest written beside the backup.",
+          "facts": [
+            {
+              "label": "Backed up",
+              "value": "6 originals"
+            },
+            {
+              "label": "Rewrote",
+              "value": "video, timestamps, 2 npy"
+            },
+            {
+              "label": "Regenerated",
+              "value": "hand.npy, pellet.npy"
+            },
+            {
+              "label": "Transaction",
+              "value": "txn-20260911-115020"
+            },
+            {
+              "label": "State",
+              "value": "Applied",
+              "state": "done"
+            }
+          ]
+        },
+        {
+          "id": "undo",
+          "label": "Undo",
+          "shot": "/app/camalign-undo.webp",
+          "alt": "The undo restoring all six files and re-running the inspection, which reports the original frame counts again.",
+          "headline": "Every file back, and the inspection re-run",
+          "note": "Undo restores the six originals from the transaction, updates the manifest, and then re-inspects rather than claiming success — the session is described again from disk, and reads exactly as it did before the edit.",
+          "facts": [
+            {
+              "label": "Restored",
+              "value": "6 files"
+            },
+            {
+              "label": "Elapsed",
+              "value": "10 s"
+            },
+            {
+              "label": "Re-inspected",
+              "value": "136,147 frames"
+            },
+            {
+              "label": "State",
+              "value": "Back to original",
+              "state": "done"
+            }
+          ]
+        }
+      ]
+    }
+    ],
     title: "Research Application Deployment and Support Toolkit",
     category: "software",
     tags: ["software", "hardware", "automation"],
