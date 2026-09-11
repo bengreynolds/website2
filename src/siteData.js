@@ -851,17 +851,29 @@ export const projects = [
     title: "Lick Port and Reward Delivery Hardware",
     category: "hardware",
     tags: ["hardware"],
-    figure: "lickdetect-build",
-    /* Must match the grid in src/rig-lickdetect-build.css. SequencePanel
+    /* The reward assembly leads, so it is what the work-grid tile previews.
+       The two-port detect box is the project's other build and sits in the
+       switcher below as a timed demo. */
+    figure: "lickreward-build",
+    /* Must match the grid in src/rig-lickreward-build.css. SequencePanel
        divides by it for --scrub and --scrub-steps, so a stale value seeks the
        wrong cell while the counter still reads correctly. */
     figureFrames: 49,
-    /* Describes what the sequence shows and nothing more. The dual-comparator
-       detection board is not in this assembly and is not his design; the box,
-       the reward port and the mounts are. */
     figureLabel:
-      "Assembly sequence of the two-port lick box, built up from the aluminium floor and its four feet through the polycarbonate side walls and end walls, then the reward-port hardware carried on the end plate: the electronics mount and spout clamp, the MKR Zero, breadboard, real-time clock and pin headers, the two syringe holders and their 10 mL syringes, and last the two solenoid valves with the dropper tubes that take each channel through the plate into the chamber.",
+      "Assembly sequence of the lick reward rig, built up from the floor panel and its four feet through the four box panels and their captive screws, then the reward port carried on the front panel: the water cone and electronics mount, the spout clamp with the dropper and its valve, the breadboard and power jack, and last the 10 mL syringe on its holder with the solenoid that gates it.",
     demos: [
+      {
+        id: "lickreward-port",
+        label: "Reward port, part by part",
+        caption:
+          "The reward port on the front panel, naming its pieces in the order they were drawn: the water cone the animal meets, the electronics mount behind it, the spout clamp, the valve, then the 10 mL syringe on its holder. The last two beats split the assembly rather than adding to it - first the wetted path alone, syringe through valve and clamp, then the structure alone, cone and mount - because which parts touch liquid is the distinction that governs how the thing is cleaned between sessions. The water cone here is a revision of a colleague's original geometry, not a shape drawn from scratch; the mount, clamp and the assembly around them are the contribution. Nothing moves in the CAD, so the sequence colours the parts rather than actuating them.",
+      },
+      {
+        id: "lickdetect-build",
+        label: "Two-port detect box",
+        caption:
+          "The project's other build: the two-port lick detection box, assembled from the aluminium floor and its four feet through the polycarbonate side and end walls, then the hardware carried on the end plate - electronics mount and spout clamp, the MKR Zero, breadboard, real-time clock and pin headers, the two syringe holders and their 10 mL syringes, and last the two solenoid valves with the dropper tubes that take each channel through the plate into the chamber. It plays straight through here rather than stepping, because the reward assembly holds the sequence panel above.",
+      },
       {
         id: "lickdetect-reward",
         label: "Reward path",
